@@ -1,3 +1,10 @@
+# Intellij Idea stuff
 *.iml
 .idea/
+
+# eclipse stuff
+.classpath
+.project
+
+# other stuff
 /bin/
