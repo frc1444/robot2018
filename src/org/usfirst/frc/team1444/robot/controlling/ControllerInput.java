@@ -1,0 +1,29 @@
+package org.usfirst.frc.team1444.robot.controlling;
+
+/**
+ * Should be used in different RobotController subclasses to check when a button is pressed
+ */
+public interface ControllerInput {
+
+	// 'thumb' buttons (triangle, square, circle, X) or (A, B, X, Y on other controllers)
+	boolean rightThumbBottom();
+	boolean rightThumbTop();
+	boolean rightThumbLeft();
+	boolean rightThumbRight();
+
+	boolean leftBumper();
+	boolean rightBumper();
+
+	double dPadVertical();
+	double dPadHorizontal();
+
+	double leftStickVertical();
+	double leftStickHorizontal();
+
+	double rightStickVertical();
+	double rightStickHorizontal();
+
+	double leftTrigger();
+	double rightTrigger();
+
+}

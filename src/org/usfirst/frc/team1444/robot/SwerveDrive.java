@@ -37,6 +37,17 @@ public class SwerveDrive {
 	public SwerveModule getRearLeft(){ return m_RearLeft; }
 	public SwerveModule getRearRight(){ return m_RearRight; }
 
+	/**
+	 * Sets the same speed to each SwerveModule
+	 *
+	 * @param speed A number between -1 and 1
+	 */
+	public void setSpeed(double speed) {
+		for(SwerveModule module : m_ModuleArray){
+			module.setSpeed(speed);
+		}
+	}
+
 	// TODO put methods here to rotate all motors to a position and set speed here once finished in SwerveModule
 
 }

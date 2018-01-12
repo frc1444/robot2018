@@ -1,4 +1,6 @@
-package org.usfirst.frc.team1444.robot;
+package org.usfirst.frc.team1444.robot.controlling;
+
+import org.usfirst.frc.team1444.robot.Robot;
 
 /**
  * This class will have an instance stored in Robot which can change throughout the game or just when changing modes.

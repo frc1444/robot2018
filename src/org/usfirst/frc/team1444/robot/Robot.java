@@ -10,6 +10,9 @@ package org.usfirst.frc.team1444.robot;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import org.usfirst.frc.team1444.robot.controlling.PS4Controller;
+import org.usfirst.frc.team1444.robot.controlling.RobotController;
+import org.usfirst.frc.team1444.robot.controlling.SwerveController;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -24,7 +27,8 @@ public class Robot extends IterativeRobot {
 	private String m_autoSelected;
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
 
-	private RobotController m_controller;
+	private SwerveDrive m_drive;
+	private RobotController m_controller;  // use ***Init to change this to something that fits that mode
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -32,11 +36,28 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
+		m_drive = new SwerveDrive(null, null,
+				null, null,
+				null, null,
+				null, null);
+		m_controller = null;
+
 		m_chooser.addDefault("Default Auto", kDefaultAuto);
 		m_chooser.addObject("My Auto", kCustomAuto);
 		SmartDashboard.putData("Auto choices", m_chooser);
 
 
+	}
+
+	public SwerveDrive getDrive() {
+		return m_drive;
+	}
+
+	@Override
+	public void robotPeriodic() {
+		if(m_controller != null) {
+			m_controller.update(this);
+		}
 	}
 
 	/**
@@ -45,13 +66,14 @@ public class Robot extends IterativeRobot {
 	 * chooser code works with the Java SmartDashboard. If you prefer the
 	 * LabVIEW Dashboard, remove all of the chooser code and uncomment the
 	 * getString line to get the auto name from the text box below the Gyro
-	 *
+	 * <p>
 	 * <p>You can add additional auto modes by adding additional comparisons to
 	 * the switch structure below with additional strings. If using the
 	 * SendableChooser make sure to add them to the chooser code above as well.
 	 */
 	@Override
 	public void autonomousInit() {
+		m_controller = null;
 		m_autoSelected = m_chooser.getSelected();
 		// autoSelected = SmartDashboard.getString("Auto Selector",
 		// defaultAuto);
@@ -79,6 +101,7 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
+		m_controller = new SwerveController(new PS4Controller(0));
 	}
 
 	/**
@@ -87,4 +110,6 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void testPeriodic() {
 	}
+
+
 }
