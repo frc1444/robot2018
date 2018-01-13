@@ -10,9 +10,7 @@ package org.usfirst.frc.team1444.robot;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import org.usfirst.frc.team1444.robot.controlling.PS4Controller;
-import org.usfirst.frc.team1444.robot.controlling.RobotController;
-import org.usfirst.frc.team1444.robot.controlling.SwerveController;
+import org.usfirst.frc.team1444.robot.controlling.*;
 
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
@@ -24,41 +22,55 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
  * project.
  */
 public class Robot extends IterativeRobot {
-	private static final String kDefaultAuto = "Default";
-	private static final String kCustomAuto = "My Auto";
-	private String m_autoSelected;
-	private SendableChooser<String> m_chooser = new SendableChooser<>();
+	private static final String DEFAULT_AUTO = "Default";  // I'm not sure how we will use these
+	private static final String CUSTOM_AUTO = "My Auto";
+	private String autoSelected;
+	private SendableChooser<String> chooser = new SendableChooser<>();
 
-	private SwerveDrive m_drive;
-	private RobotController m_controller;  // use ***Init to change this to something that fits that mode
 
+	private SwerveDrive drive;
+	private RobotController robotController;  // use ***Init to change this to something that fits that mode
+
+	private final ControllerInput defaultController;
+
+	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
+		super();
+		defaultController = new PS4Controller(0);  // set the default controller to a PS4Controller
+	}
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
 	 */
 	@Override
 	public void robotInit() {
-		m_drive = new SwerveDrive(new TalonSRX(1), null,
+		drive = new SwerveDrive(
+				new TalonSRX(1), null,
 				new TalonSRX(2), null,
 				new TalonSRX(3), null,
 				new TalonSRX(4), null);
-		m_controller = null;
+		this.setRobotController(null);
 
-		m_chooser.addDefault("Default Auto", kDefaultAuto);
-		m_chooser.addObject("My Auto", kCustomAuto);
-		SmartDashboard.putData("Auto choices", m_chooser);
+		chooser.addDefault("Default Auto", DEFAULT_AUTO);
+		chooser.addObject("My Auto", CUSTOM_AUTO);
+		SmartDashboard.putData("Auto choices", chooser);
 
 
 	}
 
 	public SwerveDrive getDrive() {
-		return m_drive;
+		return drive;
+	}
+	public void setRobotController(RobotController robotController){
+		this.robotController = robotController;
+		if(this.robotController == null){
+			this.robotController = new InputTester(defaultController);  // make the default controller an InputTester
+		}
 	}
 
 	@Override
 	public void robotPeriodic() {
-		if(m_controller != null) {
-			m_controller.update(this);
+		if(robotController != null) {
+			robotController.update(this);
 		}
 	}
 
@@ -75,11 +87,11 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-		m_controller = null;
-		m_autoSelected = m_chooser.getSelected();
+		setRobotController(null);
+		autoSelected = chooser.getSelected();
 		// autoSelected = SmartDashboard.getString("Auto Selector",
 		// defaultAuto);
-		System.out.println("Auto selected: " + m_autoSelected);
+		System.out.println("Auto selected: " + autoSelected);
 	}
 
 	/**
@@ -87,15 +99,20 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		switch (m_autoSelected) {
-			case kCustomAuto:
+		switch (autoSelected) {
+			case CUSTOM_AUTO:
 				// Put custom auto code here
 				break;
-			case kDefaultAuto:
+			case DEFAULT_AUTO:
 			default:
 				// Put default auto code here
 				break;
 		}
+	}
+
+	@Override
+	public void teleopInit() {
+		robotController = new SwerveController(new PS4Controller(1));
 	}
 
 	/**
@@ -103,7 +120,11 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		m_controller = new SwerveController(new PS4Controller(1));
+	}
+
+	@Override
+	public void testInit() {
+		setRobotController(null);
 	}
 
 	/**
@@ -112,6 +133,5 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void testPeriodic() {
 	}
-
 
 }

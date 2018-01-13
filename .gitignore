@@ -6,5 +6,9 @@
 .classpath
 .project
 
+# important stuff that shouldn't be synced
+build/
+dist/
+
 # other stuff
 /bin/

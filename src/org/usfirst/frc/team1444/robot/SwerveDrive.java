@@ -6,13 +6,13 @@ import com.ctre.phoenix.motorcontrol.IMotorController;
 // SwerveDrive defines the drive for the entire robot
 // This class will take control input and assign motor outputs
 public class SwerveDrive {
-	
-	private SwerveModule m_FrontLeft;
-	private SwerveModule m_FrontRight;
-	private SwerveModule m_RearLeft;
-	private SwerveModule m_RearRight;
 
-	private SwerveModule[] m_ModuleArray;  // can be used in methods below getters
+//	private SwerveModule frontLeft;
+//	private SwerveModule frontRight;
+//	private SwerveModule rearLeft;
+//	private SwerveModule rearRight;
+
+	private SwerveModule[] moduleArray;
 
 
 	/**
@@ -23,19 +23,36 @@ public class SwerveDrive {
 	                   IMotorController frDrive, IMotorController frSteer,
 	                   IMotorController rlDrive, IMotorController rlSteer,
 	                   IMotorController rrDrive, IMotorController rrSteer) {
-		
-		m_FrontLeft = new SwerveModule(flDrive, flSteer);
-		m_FrontRight = new SwerveModule(frDrive, frSteer);
-		m_RearLeft = new SwerveModule(rlDrive, rlSteer);
-		m_RearRight = new SwerveModule(rrDrive, rrSteer);
 
-		m_ModuleArray = new SwerveModule[] { m_FrontLeft, m_FrontRight, m_RearLeft, m_RearRight };
+//		frontLeft = new SwerveModule(flDrive, flSteer);
+//		frontRight = new SwerveModule(frDrive, frSteer);
+//		rearLeft = new SwerveModule(rlDrive, rlSteer);
+//		rearRight = new SwerveModule(rrDrive, rrSteer);
+
+//		moduleArray = new SwerveModule[] {frontLeft, frontRight, rearLeft, rearRight};
+		moduleArray = new SwerveModule[]{
+				new SwerveModule(flDrive, flSteer),
+				new SwerveModule(frDrive, frSteer),
+				new SwerveModule(rlDrive, rlSteer),
+				new SwerveModule(rrDrive, rrSteer)
+		};
 	}
 
-	public SwerveModule getFrontLeft(){ return m_FrontLeft; }
-	public SwerveModule getFrontRight(){ return m_FrontRight; }
-	public SwerveModule getRearLeft(){ return m_RearLeft; }
-	public SwerveModule getRearRight(){ return m_RearRight; }
+	public SwerveModule getFrontLeft() {
+		return moduleArray[0];
+	}
+
+	public SwerveModule getFrontRight() {
+		return moduleArray[1];
+	}
+
+	public SwerveModule getRearLeft() {
+		return moduleArray[2];
+	}
+
+	public SwerveModule getRearRight() {
+		return moduleArray[3];
+	}
 
 	/**
 	 * Sets the same speed to each SwerveModule
@@ -43,8 +60,19 @@ public class SwerveDrive {
 	 * @param speed A number between -1 and 1
 	 */
 	public void setSpeed(double speed) {
-		for(SwerveModule module : m_ModuleArray){
+		for (SwerveModule module : moduleArray) {
 			module.setSpeed(speed);
+		}
+	}
+
+	/**
+	 * Rotates all the SwerveModules to position
+	 *
+	 * @param position the position to rotate to
+	 */
+	public void rotateAll(float position) {
+		for(SwerveModule module : moduleArray){
+			module.steerTo(position);
 		}
 	}
 
