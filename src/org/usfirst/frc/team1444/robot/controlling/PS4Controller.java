@@ -1,6 +1,5 @@
 package org.usfirst.frc.team1444.robot.controlling;
 
-import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 
 /**
@@ -21,71 +20,71 @@ public class PS4Controller implements ControllerInput{
 
 	@Override
 	public boolean rightThumbBottom() {
-		return stick.getRawButton(0);
-	}
-
-	@Override
-	public boolean rightThumbTop() {
-		return stick.getRawButton(3);
-	}
-
-	@Override
-	public boolean rightThumbLeft() {
-		return stick.getRawButton(0);
-	}
-
-	@Override
-	public boolean rightThumbRight() {
 		return stick.getRawButton(2);
 	}
 
 	@Override
-	public boolean leftBumper() {
+	public boolean rightThumbTop() {
 		return stick.getRawButton(4);
 	}
 
 	@Override
-	public boolean rightBumper() {
+	public boolean rightThumbLeft() {
+		return stick.getRawButton(1);
+	}
+
+	@Override
+	public boolean rightThumbRight() {
+		return stick.getRawButton(3);
+	}
+
+	@Override
+	public boolean leftBumper() {
 		return stick.getRawButton(5);
 	}
 
 	@Override
-	public double dPadVertical() {
-		return stick.getRawAxis(8);
+	public boolean rightBumper() {
+		return stick.getRawButton(6);
 	}
 
 	@Override
-	public double dPadHorizontal() {
-		return stick.getRawAxis(7);
+	public int dPad() {
+		return stick.getPOV();
 	}
+
+	//@Override
+	//public double dPadHorizontal() {
+	//	return stick.getRawAxis(7);
+	//}
 
 	@Override
 	public double leftStickVertical() {
-		return stick.getY(GenericHID.Hand.kLeft);
+		return stick.getRawAxis(1);
 	}
 
 	@Override
 	public double leftStickHorizontal() {
-		return stick.getX(GenericHID.Hand.kLeft);
+		return stick.getRawAxis(0);
 	}
 
 	@Override
 	public double rightStickVertical() {
-		return stick.getY(GenericHID.Hand.kRight);
+		return stick.getRawAxis(5);
 	}
 
 	@Override
 	public double rightStickHorizontal() {
-		return stick.getX(GenericHID.Hand.kRight);
+		return stick.getRawAxis(2);
 	}
 
 	@Override
 	public double leftTrigger() {
-		return stick.getRawAxis(4);
+		return stick.getRawAxis(3);
 	}
 
 	@Override
 	public double rightTrigger() {
-		return stick.getRawAxis(5);
+		return stick.getRawAxis(4);
 	}
 }

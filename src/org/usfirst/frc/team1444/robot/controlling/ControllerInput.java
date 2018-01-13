@@ -14,8 +14,8 @@ public interface ControllerInput {
 	boolean leftBumper();
 	boolean rightBumper();
 
-	double dPadVertical();
-	double dPadHorizontal();
+	int dPad();
+	//double dPadHorizontal();
 
 	double leftStickVertical();
 	double leftStickHorizontal();

@@ -14,6 +14,8 @@ import org.usfirst.frc.team1444.robot.controlling.PS4Controller;
 import org.usfirst.frc.team1444.robot.controlling.RobotController;
 import org.usfirst.frc.team1444.robot.controlling.SwerveController;
 
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to each mode, as described in the IterativeRobot
@@ -36,10 +38,10 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
-		m_drive = new SwerveDrive(null, null,
-				null, null,
-				null, null,
-				null, null);
+		m_drive = new SwerveDrive(new TalonSRX(1), null,
+				new TalonSRX(2), null,
+				new TalonSRX(3), null,
+				new TalonSRX(4), null);
 		m_controller = null;
 
 		m_chooser.addDefault("Default Auto", kDefaultAuto);
@@ -101,7 +103,7 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
-		m_controller = new SwerveController(new PS4Controller(0));
+		m_controller = new SwerveController(new PS4Controller(1));
 	}
 
 	/**
