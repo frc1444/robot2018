@@ -32,6 +32,9 @@ public class Robot extends IterativeRobot {
 
 	private final ControllerInput defaultController;
 	
+	private PidParameters drivePid;
+	private PidParameters steerPid;
+	
 //	// Maximum allowed rotation rate in deg/s
 //	public final double maximumRotationRate = 1; // TODO move these constants to SwerveModule because that's where
 													// we'll handle these values and convert stuff
@@ -55,7 +58,8 @@ public class Robot extends IterativeRobot {
 				new TalonSRX(Constants.FrontLeftDriveId), new TalonSRX(Constants.FrontLeftSteerId),
 				new TalonSRX(Constants.FrontRightDriveId), new TalonSRX(Constants.FrontRightSteerId),
 				new TalonSRX(Constants.RearLeftDriveId), new TalonSRX(Constants.RearLeftSteerId),
-				new TalonSRX(Constants.RearRightDriveId), new TalonSRX(Constants.RearRightSteerId));
+				new TalonSRX(Constants.RearRightDriveId), new TalonSRX(Constants.RearRightSteerId),
+				drivePid, steerPid);
 		this.setRobotController(null);
 
 		chooser.addDefault("Default Auto", DEFAULT_AUTO);

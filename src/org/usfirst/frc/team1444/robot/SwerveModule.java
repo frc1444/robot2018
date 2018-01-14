@@ -10,20 +10,17 @@ public class SwerveModule {
 
 	private BaseMotorController drive; 
 	private BaseMotorController steer;
-<<<<<<< HEAD
+	
+	private PidParameters drivePid;
+	private PidParameters steerPid;
 
 	private double x, y;
 	
-	public SwerveModule(BaseMotorController drive, BaseMotorController steer, double x, double y) {
-=======
-	private PidParameters drivePid;
-	private PidParameters steerPid;
-	
-	public SwerveModule(BaseMotorController drive, BaseMotorController steer, PidParameters drivePid, PidParameters steerPid) {
->>>>>>> add-pid
+	public SwerveModule(BaseMotorController drive, BaseMotorController steer, PidParameters drivePid, PidParameters steerPid, double x, double y) {
 		
 		this.drive = drive;
 		this.steer = steer;
+
 		this.x = x;
 		this.y = y;
 		
@@ -55,7 +52,7 @@ public class SwerveModule {
 	 * Test method to allow drive motors to be set open loop
 	 * @param speed Desired motor speed as a percentage of maximum: -1 to 1
 	 */
-	public void setSpeedOpenLoop(double speed) {
+	public void setSpeed(double speed) {
 		
 		// Set the motor speed directly
 		drive.set(ControlMode.PercentOutput, speed); // TODO convert speed to velocity and change ControlMode
@@ -75,49 +72,15 @@ public class SwerveModule {
 
 	}
 
-
-<<<<<<< HEAD
-//	/** Unless we are going to store the values passed to this method, just call setSpeedOpenLoop and setPosition
-//	 *
-//	 * @param speed Desired speed in a percent (-1 to 1) Will eventually be converted to ft/s
-//	 * @param position Desired position of module in degrees: 0 - 360
-//	 */
-//	public void update(double speed, double position){
-//
-//		this.setSpeedOpenLoop(speed);
-//		this.setPosition(position);
-//	}
-//
-=======
-	/**
-	 * 
-	 * @param velocity Desired velocity of module in ft/s
+	/** Unless we are going to store the values passed to this method, just call setSpeedOpenLoop and setPosition
+	 *
+	 * @param speed Desired speed in a percent (-1 to 1) Will eventually be converted to ft/s
 	 * @param position Desired position of module in degrees: 0 - 360
 	 */
-	public void update(double velocity, double position){
-		
-		this.setVelocity(velocity);
+	public void update(double speed, double position){
+
+		this.setSpeed(speed);
 		this.setPosition(position);
-	}
-	
-	/**
-	 * 
-	 * @param velocity Desired open-loop drive velocity: -1 to 1
-	 * @param position Desired open-loop steer "position": -1 to 1 (NOT ACTUALLY POSITION)
-	 */
-	public void updateOpenLoop(double velocity, double position) {
-		
-		this.setSpeedOpenLoop(velocity);
-		this.setPositionOpenLoop(position);
-	}
-	
-	// TODO: remove
-	public void steerTo(double x) {
-		
-	}
-	
-	public void setSpeed(double x) {
-		
 	}
 	
 	public void UpdateDrivePid(PidParameters pid) {
@@ -137,6 +100,5 @@ public class SwerveModule {
 		steer.config_kD(steerPid.pidIdx, steerPid.KD, Constants.TimeoutMs);
 		steer.config_kF(steerPid.pidIdx, steerPid.KF, Constants.TimeoutMs);
 	}
->>>>>>> add-pid
 
 }

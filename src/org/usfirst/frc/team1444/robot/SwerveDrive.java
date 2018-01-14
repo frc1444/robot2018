@@ -19,13 +19,14 @@ public class SwerveDrive {
 	public SwerveDrive(BaseMotorController flDrive, BaseMotorController flSteer,
 	                   BaseMotorController frDrive, BaseMotorController frSteer,
 	                   BaseMotorController rlDrive, BaseMotorController rlSteer,
-	                   BaseMotorController rrDrive, BaseMotorController rrSteer) {
+	                   BaseMotorController rrDrive, BaseMotorController rrSteer,
+	                   PidParameters drivePid, PidParameters steerPid) {
 
 		moduleArray = new SwerveModule[]{
-				new SwerveModule(flDrive, flSteer, -1, 1),
-				new SwerveModule(frDrive, frSteer, 1, 1),
-				new SwerveModule(rlDrive, rlSteer, -1, -1),
-				new SwerveModule(rrDrive, rrSteer, 1, -1)
+				new SwerveModule(flDrive, flSteer, drivePid, steerPid, -1, 1),
+				new SwerveModule(frDrive, frSteer, drivePid, steerPid, 1, 1),
+				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, -1, -1),
+				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, 1, -1)
 		};
 
 	}
@@ -115,7 +116,7 @@ public class SwerveDrive {
 				for(int i = 0; i < length; i++){ // simple for loop to set speeds from variable 'speeds'
 					SwerveModule module = modules[i];
 					double moduleSpeed = Math.signum(speed) * speeds[i];
-					module.setSpeedOpenLoop(moduleSpeed / maxSpeed);
+					module.setSpeed(moduleSpeed / maxSpeed);
 				}
 			}
 		} else{  // only fires if the user definitely wants to turn while still
@@ -149,7 +150,7 @@ public class SwerveDrive {
 	 */
 	public void setAllSpeeds(double speed) {
 		for (SwerveModule module : moduleArray) {
-			module.setSpeedOpenLoop(speed);
+			module.setSpeed(speed);
 		}
 	}
 
@@ -160,7 +161,7 @@ public class SwerveDrive {
 	 */
 	public void rotateAll(double position) {
 		for(SwerveModule module : moduleArray){
-			module.setSpeedOpenLoop(position);
+			module.setSpeed(position);
 		}
 	}
 
