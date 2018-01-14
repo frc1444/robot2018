@@ -27,15 +27,20 @@ public class Robot extends IterativeRobot {
 	private String autoSelected;
 	private SendableChooser<String> chooser = new SendableChooser<>();
 
-
 	private SwerveDrive drive;
 	private RobotController robotController;  // use ***Init to change this to something that fits that mode
 
 	private final ControllerInput defaultController;
+	
+	// Maximum allowed rotation rate in deg/s
+	public final double maximumRotationRate = 1;
+	
+	// Maximum allowed linear speed in ft/s
+	public final double maximumLinearSpeed = 11.5;
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
 		super();
-		defaultController = new PS4Controller(0);  // set the default controller to a PS4Controller
+		defaultController = new PS4Controller(1);  // set the default controller to a PS4Controller
 	}
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -43,18 +48,19 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
+		
+		// Initialize the drive by passing in new TalonSRXs for each drive and steer motor
 		drive = new SwerveDrive(
-				new TalonSRX(1), null,
-				new TalonSRX(2), null,
-				new TalonSRX(3), null,
-				new TalonSRX(4), null);
+				new TalonSRX(Constants.FrontLeftDriveId), new TalonSRX(Constants.FrontLeftSteerId),
+				new TalonSRX(Constants.FrontRightDriveId), new TalonSRX(Constants.FrontRightSteerId),
+				new TalonSRX(Constants.RearLeftDriveId), new TalonSRX(Constants.RearLeftSteerId),
+				new TalonSRX(Constants.RearRightDriveId), new TalonSRX(Constants.RearRightSteerId));
 		this.setRobotController(null);
 
 		chooser.addDefault("Default Auto", DEFAULT_AUTO);
 		chooser.addObject("My Auto", CUSTOM_AUTO);
 		SmartDashboard.putData("Auto choices", chooser);
-
-
+		
 	}
 
 	public SwerveDrive getDrive() {

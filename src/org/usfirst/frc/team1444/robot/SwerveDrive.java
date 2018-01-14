@@ -1,42 +1,33 @@
 package org.usfirst.frc.team1444.robot;
 
-
-import com.ctre.phoenix.motorcontrol.IMotorController;
+import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 
 // SwerveDrive defines the drive for the entire robot
 // This class will take control input and assign motor outputs
 public class SwerveDrive {
 
-//	private SwerveModule frontLeft;
-//	private SwerveModule frontRight;
-//	private SwerveModule rearLeft;
-//	private SwerveModule rearRight;
-
 	private SwerveModule[] moduleArray;
 
 
 	/**
-	 * Initializes SwerveDrive and creates SwerveModules. Even though each parameter is a IMotorController,
+	 * Initializes SwerveDrive and creates SwerveModules. Even though each parameter is a BaseMotorController,
 	 * we can still pass it a TalonSRX
 	 */
-	public SwerveDrive(IMotorController flDrive, IMotorController flSteer,
-	                   IMotorController frDrive, IMotorController frSteer,
-	                   IMotorController rlDrive, IMotorController rlSteer,
-	                   IMotorController rrDrive, IMotorController rrSteer) {
+	public SwerveDrive(BaseMotorController flDrive, BaseMotorController flSteer,
+	                   BaseMotorController frDrive, BaseMotorController frSteer,
+	                   BaseMotorController rlDrive, BaseMotorController rlSteer,
+	                   BaseMotorController rrDrive, BaseMotorController rrSteer) {
 
-//		frontLeft = new SwerveModule(flDrive, flSteer);
-//		frontRight = new SwerveModule(frDrive, frSteer);
-//		rearLeft = new SwerveModule(rlDrive, rlSteer);
-//		rearRight = new SwerveModule(rrDrive, rrSteer);
-
-//		moduleArray = new SwerveModule[] {frontLeft, frontRight, rearLeft, rearRight};
 		moduleArray = new SwerveModule[]{
 				new SwerveModule(flDrive, flSteer),
 				new SwerveModule(frDrive, frSteer),
 				new SwerveModule(rlDrive, rlSteer),
 				new SwerveModule(rrDrive, rrSteer)
 		};
+
 	}
+	
+	// TODO: Are these accessors really necessary - do we want other classes to have access to this array?
 
 	public SwerveModule getFrontLeft() {
 		return moduleArray[0];
@@ -46,12 +37,24 @@ public class SwerveDrive {
 		return moduleArray[1];
 	}
 
-	public SwerveModule getRearLeft() {
+	public SwerveModule getRearLeft() { 
 		return moduleArray[2];
 	}
 
 	public SwerveModule getRearRight() {
 		return moduleArray[3];
+	}
+	
+	/**
+	 * 
+	 * @param velocity Desired linear velocity of robot in ft/s
+	 * @param direction Desired direction of robot in degrees
+	 * @param rotationRate Desired rotation rate of robot in degrees/s
+	 */
+	public void update(double velocity, double direction, double rotationRate) {
+		
+		// TODO: Set individual module velocity and position based on inputs
+		// TODO: lots of math
 	}
 
 	public SwerveModule[] getModules() {
@@ -65,7 +68,7 @@ public class SwerveDrive {
 	 */
 	public void setSpeed(double speed) {
 		for (SwerveModule module : moduleArray) {
-			module.setSpeed(speed);
+			module.setSpeedOpenLoop(speed);
 		}
 	}
 
@@ -76,7 +79,7 @@ public class SwerveDrive {
 	 */
 	public void rotateAll(float position) {
 		for(SwerveModule module : moduleArray){
-			module.steerTo(position);
+			module.setPositionOpenLoop(position);
 		}
 	}
 

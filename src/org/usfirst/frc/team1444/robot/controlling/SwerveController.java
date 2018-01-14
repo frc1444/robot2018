@@ -2,15 +2,27 @@ package org.usfirst.frc.team1444.robot.controlling;
 
 import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.SwerveDrive;
-import org.usfirst.frc.team1444.robot.SwerveModule;
 
 public class SwerveController implements RobotController {
+<<<<<<< HEAD
 	private static final double ROTATE_DEAD_ZONE = .1;  // used to make sure the user really wants to turn while still
 	private static final double ROTATE_MULTIPLIER = .4; // The speed that is applied while rotating
 	private static final double SPEED_DEAD_ZONE = .05;  // used to check if the user really wants to go forward
+=======
+>>>>>>> add-encoders
 
-	private float rotation = 90;
 	private ControllerInput controller;
+	
+	// TODO: find proper deadbands
+	
+	// Deadband for main drive velocity input
+	private static final double kTriggerDeadband = 0.1;
+	
+	// Deadband for direction input
+	private static final double kDirectionDeadband = 0.1;
+	
+	// Deadband for rotation rate input
+	private static final double kRotationRateDeadband = 0.1;
 
 	public SwerveController(ControllerInput controller){
 		this.controller = controller;
@@ -18,7 +30,37 @@ public class SwerveController implements RobotController {
 
 	@Override
 	public void update(Robot robot) {
-		this.drive(robot.getDrive());
+		this.newdrive(robot.getDrive(), robot.maximumLinearSpeed, robot.maximumRotationRate);
+	}
+	
+	private void newdrive(SwerveDrive drive, double maxLinearSpeed, double maxRotationRate) {
+		
+		// Linear velocity of robot is determined by the combination of the left and right triggers		
+		double velocity = rightTrigger() - leftTrigger();
+		
+		// Convert to ft/s
+		velocity *= maxLinearSpeed;
+		
+		// Direction is determined by the vector produced by the left joystick
+		double x = leftStickVertical();
+		double y = leftStickHorizontal();
+		
+		// If there is no valid input from the left joystick, just steer ahead which is defined as 90 degrees
+		double direction = 90;
+		
+		// If controller input is valid, calculate the angle of the joystick
+		if (x != 0 || y != 0) { 		
+			direction = Math.toDegrees(Math.atan2(y, x));
+		}
+		
+		// Rotation rate is based fully on right joystick
+		double rotationRate = rightStickHorizontal();
+		
+		// Convert to degrees/sec
+		rotationRate *= maxRotationRate;
+		
+		// Update the drive
+		drive.update(velocity, direction, rotationRate);
 	}
 
 	/**
@@ -127,5 +169,55 @@ public class SwerveController implements RobotController {
 
 		}
 
+	}
+	
+	private double rightTrigger() {
+		double value = controller.rightTrigger();
+		
+		if (Math.abs(value) < kTriggerDeadband) {
+			value = 0;
+		}
+		
+		return value;
+	}
+	
+	private double leftTrigger() {
+		double value = controller.leftTrigger();
+		
+		if (Math.abs(value) < kTriggerDeadband) {
+			value = 0;
+		}
+		
+		return value;
+	}
+	
+	private double leftStickHorizontal() {
+		double value = controller.leftStickHorizontal();
+		
+		if (Math.abs(value) < kDirectionDeadband) {
+			value = 0;
+		}
+		
+		return value;
+	}
+	
+	private double leftStickVertical() {
+		double value = controller.leftStickVertical();
+		
+		if (Math.abs(value) < kDirectionDeadband) {
+			value = 0;
+		}
+		
+		return value;
+	}
+	
+	private double rightStickHorizontal() {
+		double value = controller.rightStickHorizontal();
+		
+		if (Math.abs(value) < kRotationRateDeadband) {
+			value = 0;
+		}
+		
+		return 0;
 	}
 }
