@@ -54,6 +54,10 @@ public class SwerveDrive {
 		return moduleArray[3];
 	}
 
+	public SwerveModule[] getModules() {
+		return moduleArray;
+	}
+
 	/**
 	 * Sets the same speed to each SwerveModule
 	 *
