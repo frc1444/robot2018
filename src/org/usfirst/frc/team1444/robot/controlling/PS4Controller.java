@@ -53,11 +53,6 @@ public class PS4Controller implements ControllerInput{
 		return stick.getPOV();
 	}
 
-	//@Override
-	//public double dPadHorizontal() {
-	//	return stick.getRawAxis(7);
-	//}
-
 	@Override
 	public double leftStickVertical() {
 		return stick.getRawAxis(1);

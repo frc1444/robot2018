@@ -2,13 +2,9 @@ package org.usfirst.frc.team1444.robot.controlling;
 
 import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.SwerveDrive;
-import org.usfirst.frc.team1444.robot.SwerveModule;
 
 public class SwerveController implements RobotController {
-	private static final double ROTATE_DEAD_ZONE = .1;
-	private static final double ROTATE_MULTIPLIER = .4;
 
-	private float rotation = 90;
 	private ControllerInput controller;
 
 	public SwerveController(ControllerInput controller){
@@ -17,7 +13,37 @@ public class SwerveController implements RobotController {
 
 	@Override
 	public void update(Robot robot) {
-		this.drive(robot.getDrive());
+		this.drive(robot.getDrive(), robot.maximumLinearSpeed, robot.maximumRotationRate);
+	}
+	
+	private void drive(SwerveDrive drive, double maxLinearSpeed, double maxRotationRate) {
+		
+		// Linear velocity of robot is determined by the combination of the left and right triggers		
+		double velocity = controller.rightTrigger() - controller.leftTrigger();
+		
+		// Convert to ft/s
+		velocity *= maxLinearSpeed;
+		
+		// Direction is determined by the vector produced by the left joystick
+		double x = controller.leftStickVertical();
+		double y = controller.leftStickHorizontal();
+		
+		// If there is no valid input from the left joystick, just steer ahead which is defined as 90 degrees
+		double direction = 90;
+		
+		// If controller input is valid, calculate the angle of the joystick
+		if (x != 0 || y != 0) { 		
+			direction = Math.toDegrees(Math.atan2(y, x));
+		}
+		
+		// Rotation rate is based fully on right joystick
+		double rotationRate = controller.rightStickHorizontal();
+		
+		// Convert to degrees/sec
+		rotationRate *= maxRotationRate;
+		
+		// Update the drive
+		drive.update(velocity, direction, rotationRate);
 	}
 
 	/**
@@ -30,6 +56,7 @@ public class SwerveController implements RobotController {
 	 *
 	 * @param drive the SwerveDrive object
 	 */
+	/*
 	private void drive(SwerveDrive drive){
 		SwerveModule frontLeft = drive.getFrontLeft(),
 				frontRight = drive.getFrontRight(),
@@ -104,4 +131,5 @@ public class SwerveController implements RobotController {
 			drive.rotateAll(this.rotation);  // since we aren't turning, we can turn to where we want to
 		}
 	}
+	*/
 }

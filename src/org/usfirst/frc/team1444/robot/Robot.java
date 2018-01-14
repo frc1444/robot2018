@@ -27,15 +27,20 @@ public class Robot extends IterativeRobot {
 	private String autoSelected;
 	private SendableChooser<String> chooser = new SendableChooser<>();
 
-
 	private SwerveDrive drive;
 	private RobotController robotController;  // use ***Init to change this to something that fits that mode
 
 	private final ControllerInput defaultController;
+	
+	// Maximum allowed rotation rate in deg/s
+	public final double maximumRotationRate = 1;
+	
+	// Maximum allowed linear speed in ft/s
+	public final double maximumLinearSpeed = 11.5;
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
 		super();
-		defaultController = new PS4Controller(0);  // set the default controller to a PS4Controller
+		defaultController = new PS4Controller(1);  // set the default controller to a PS4Controller
 	}
 	/**
 	 * This function is run when the robot is first started up and should be

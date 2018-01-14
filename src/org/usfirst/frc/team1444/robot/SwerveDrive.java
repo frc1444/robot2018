@@ -37,12 +37,24 @@ public class SwerveDrive {
 		return moduleArray[1];
 	}
 
-	public SwerveModule getRearLeft() {
+	public SwerveModule getRearLeft() { 
 		return moduleArray[2];
 	}
 
 	public SwerveModule getRearRight() {
 		return moduleArray[3];
+	}
+	
+	/**
+	 * 
+	 * @param velocity Desired linear velocity of robot in ft/s
+	 * @param direction Desired direction of robot in degrees
+	 * @param rotationRate Desired rotation rate of robot in degrees/s
+	 */
+	public void update(double velocity, double direction, double rotationRate) {
+		
+		// TODO: Set individual module velocity and position based on inputs
+		// TODO: lots of math
 	}
 
 	/**
