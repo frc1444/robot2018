@@ -10,8 +10,10 @@ public class SwerveModule {
 
 	private BaseMotorController drive; 
 	private BaseMotorController steer;
+	private PidParameters drivePid;
+	private PidParameters steerPid;
 	
-	public SwerveModule(BaseMotorController drive, BaseMotorController steer) {
+	public SwerveModule(BaseMotorController drive, BaseMotorController steer, PidParameters drivePid, PidParameters steerPid) {
 		
 		this.drive = drive;
 		this.steer = steer;
@@ -27,6 +29,12 @@ public class SwerveModule {
 		
 		// Set the Steer encoder phase
 		this.steer.setSensorPhase(false);
+		
+		// Set the drive PID parameters
+		this.UpdateDrivePid(drivePid);
+		
+		// Set the steer PID parameters
+		this.UpdateSteerPid(steerPid);
 	}
 
 
@@ -105,6 +113,24 @@ public class SwerveModule {
 	
 	public void setSpeed(double x) {
 		
+	}
+	
+	public void UpdateDrivePid(PidParameters pid) {
+		this.drivePid = pid;
+		
+		drive.config_kP(drivePid.pidIdx, drivePid.KP, Constants.TimeoutMs);
+		drive.config_kI(drivePid.pidIdx, drivePid.KI, Constants.TimeoutMs);
+		drive.config_kD(drivePid.pidIdx, drivePid.KD, Constants.TimeoutMs);
+		drive.config_kF(drivePid.pidIdx, drivePid.KF, Constants.TimeoutMs);
+	}
+	
+	public void UpdateSteerPid(PidParameters pid) {
+		this.steerPid = pid;
+		
+		steer.config_kP(steerPid.pidIdx, steerPid.KP, Constants.TimeoutMs);
+		steer.config_kI(steerPid.pidIdx, steerPid.KI, Constants.TimeoutMs);
+		steer.config_kD(steerPid.pidIdx, steerPid.KD, Constants.TimeoutMs);
+		steer.config_kF(steerPid.pidIdx, steerPid.KF, Constants.TimeoutMs);
 	}
 
 }
