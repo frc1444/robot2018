@@ -8,54 +8,94 @@ import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 // Two motor controllers are defined, drive and steer
 public class SwerveModule {
 
-	// checks whether the speed is within this from 0, if so, set speed 0
-	private static final double DEAD_ZONE = 0.04;
-
-	private BaseMotorController drive;  // basically the same as SpeedController in c++
+	private BaseMotorController drive; 
 	private BaseMotorController steer;
 	
 	public SwerveModule(BaseMotorController drive, BaseMotorController steer) {
-		// if we need to, add parameter SwerveDrive if that has state that we need to take into account
+		
 		this.drive = drive;
 		this.steer = steer;
 		
 		// Set the Drive motor to use an incremental encoder
-		// TODO: set correct PID id and timeout
-		this.drive.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
+		this.drive.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, Constants.PidIdx, Constants.TimeoutMs);
+		
+		// Set the Drive encoder phase
+		this.drive.setSensorPhase(false);
 		
 		// Set the Drive motor to use an absolute encoder
-		// TODO: set correct PID id and timeout
-		this.steer.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 0);
+		this.steer.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, Constants.PidIdx, Constants.TimeoutMs);
+		
+		// Set the Steer encoder phase
+		this.steer.setSensorPhase(false);
 	}
 
-	// These methods are just ideas on how this class might turn out.
 
 	/**
-	 * @param speed A number between -1 and 1 where 1 is full speed and -1 is full speed in reverse
+	 * @param velocity Desired drive velocity of module in ft/s
 	 */
-	public void setSpeed(double speed){
-		// http://www.ctr-electronics.com/downloads/api/java/html/com/ctre/phoenix/motorcontrol/can/BaseMotorController.html#set-com.ctre.phoenix.motorcontrol.ControlMode-double-
-		// useful docs on the set method
-
-		if(Math.abs(speed) <= DEAD_ZONE){
-			speed = 0;
-		}
+	public void setVelocity(double velocity) {
+		
+		// TODO: Add calculation to convert ft/s in units/100ms?
+		double targetVelocity = 0;
+		
+		// Set the motor controller to the target velocity
+		drive.set(ControlMode.Velocity, targetVelocity);
+	}
+	
+	/**
+	 * Test method to allow drive motors to be set open loop
+	 * @param speed Desired motor speed as a percentage of maximum: -1 to 1
+	 */
+	public void setSpeedOpenLoop(double speed) {
+		
+		// Set the motor speed directly
 		drive.set(ControlMode.PercentOutput, speed);
-		// TODO add if statements to create a dead zone, and make sure that the motor isn't about to explode
 	}
 
 	/**
 	 * Unfinished method
-	 * @param position A float in degrees where 90 degrees is straight forward and 0 is to the right 180 left etc.
+	 * @param position A double in degrees where 90 degrees is straight forward and 0 is to the right 180 left etc.
 	 */
-	public void steerTo(float position){
-//		steer.set(ControlMode.Position, position)
-// "In Position mode, output value is in encoder ticks or an analog value, depending on the sensor."
+	public void setPosition(double position){
+
+		// TODO: convert degrees to encoder counts
+		double targetPosition = 0;
+		
+		// Set the steer motor controller to the desired position
+		steer.set(ControlMode.Position, targetPosition);
 
 	}
 
-	public void update(){
-		// TODO use this to stop the motors for the steerTo method.
+	/**
+	 * Test method to allow steer motor to run open loop
+	 * @param position Desired steer motor speed (NOT ACTUALLY POSITION)
+	 */
+	public void setPositionOpenLoop(double position) {
+		
+		// Set the steer motor to move at the desired positon (this really just sets to motor to run at a certain speed)
+		steer.set(ControlMode.PercentOutput, position);
+	}
+
+	/**
+	 * 
+	 * @param velocity Desired velocity of module in ft/s
+	 * @param position Desired position of module in degrees: 0 - 360
+	 */
+	public void update(double velocity, double position){
+		
+		this.setVelocity(velocity);
+		this.setPosition(position);
+	}
+	
+	/**
+	 * 
+	 * @param velocity Desired open-loop drive velocity: -1 to 1
+	 * @param position Desired open-loop steer "position": -1 to 1 (NOT ACTUALLY POSITION)
+	 */
+	public void updateOpenLoop(double velocity, double position) {
+		
+		this.setSpeedOpenLoop(velocity);
+		this.setPositionOpenLoop(position);
 	}
 
 }

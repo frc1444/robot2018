@@ -1,17 +1,10 @@
 package org.usfirst.frc.team1444.robot;
 
-
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 
 // SwerveDrive defines the drive for the entire robot
 // This class will take control input and assign motor outputs
 public class SwerveDrive {
-
-//	private SwerveModule frontLeft;
-//	private SwerveModule frontRight;
-//	private SwerveModule rearLeft;
-//	private SwerveModule rearRight;
 
 	private SwerveModule[] moduleArray;
 
@@ -33,6 +26,8 @@ public class SwerveDrive {
 		};
 
 	}
+	
+	// TODO: Are these accessors really necessary - do we want other classes to have access to this array?
 
 	public SwerveModule getFrontLeft() {
 		return moduleArray[0];
@@ -57,7 +52,7 @@ public class SwerveDrive {
 	 */
 	public void setSpeed(double speed) {
 		for (SwerveModule module : moduleArray) {
-			module.setSpeed(speed);
+			module.setSpeedOpenLoop(speed);
 		}
 	}
 
@@ -68,7 +63,7 @@ public class SwerveDrive {
 	 */
 	public void rotateAll(float position) {
 		for(SwerveModule module : moduleArray){
-			module.steerTo(position);
+			module.setPositionOpenLoop(position);
 		}
 	}
 
