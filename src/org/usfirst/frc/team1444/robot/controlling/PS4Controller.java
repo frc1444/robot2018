@@ -6,8 +6,22 @@ import edu.wpi.first.wpilibj.Joystick;
  * A ControllerInput class made just for the PS4 Controller
  * Thanks: https://forum.unity.com/threads/playstation-4-controller-mapping.368549/
  */
-public class PS4Controller implements ControllerInput{
+public class PS4Controller implements ControllerInput {
 	private Joystick stick;
+	
+	// Axes definitions
+	private static final int kLeftStickVertical = 1;
+	private static final int kLeftStickHorizontal = 0;
+	private static final int kRightStickVertical = 5;
+	private static final int kRightStickHorizontal = 2;
+	private static final int kLeftTrigger = 3;
+	private static final int kRightTrigger = 4;
+	
+	// Button definitions
+	private static final int kCross = 2;
+	private static final int kTriangle = 4;
+	private static final int kSquare = 1;
+	private static final int kCircle = 3;
 
 	/**
 	 * Creates a PS4 Controller object
@@ -20,22 +34,22 @@ public class PS4Controller implements ControllerInput{
 
 	@Override
 	public boolean rightThumbBottom() {
-		return stick.getRawButton(2);
+		return stick.getRawButton(kCross);
 	}
 
 	@Override
 	public boolean rightThumbTop() {
-		return stick.getRawButton(4);
+		return stick.getRawButton(kTriangle);
 	}
 
 	@Override
 	public boolean rightThumbLeft() {
-		return stick.getRawButton(1);
+		return stick.getRawButton(kSquare);
 	}
 
 	@Override
 	public boolean rightThumbRight() {
-		return stick.getRawButton(3);
+		return stick.getRawButton(kCircle);
 	}
 
 	@Override
@@ -55,31 +69,31 @@ public class PS4Controller implements ControllerInput{
 
 	@Override
 	public double leftStickVertical() {
-		return stick.getRawAxis(1);
+		return stick.getRawAxis(kLeftStickVertical);
 	}
 
 	@Override
-	public double leftStickHorizontal() {
-		return stick.getRawAxis(0);
+	public double leftStickHorizontal() {		
+		return stick.getRawAxis(kLeftStickHorizontal);
 	}
 
 	@Override
 	public double rightStickVertical() {
-		return stick.getRawAxis(5);
+		return stick.getRawAxis(kRightStickVertical);
 	}
 
 	@Override
 	public double rightStickHorizontal() {
-		return stick.getRawAxis(2);
+		return stick.getRawAxis(kRightStickHorizontal);
 	}
 
 	@Override
 	public double leftTrigger() {
-		return stick.getRawAxis(3);
+		return stick.getRawAxis(kLeftTrigger);
 	}
 
 	@Override
 	public double rightTrigger() {
-		return stick.getRawAxis(4);
+		return stick.getRawAxis(kRightTrigger);
 	}
 }
