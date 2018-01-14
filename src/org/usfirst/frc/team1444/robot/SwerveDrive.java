@@ -77,7 +77,7 @@ public class SwerveDrive {
 	 *
 	 * @param position the position to rotate to
 	 */
-	public void rotateAll(float position) {
+	public void rotateAll(double position) {
 		for(SwerveModule module : moduleArray){
 			module.setPositionOpenLoop(position);
 		}

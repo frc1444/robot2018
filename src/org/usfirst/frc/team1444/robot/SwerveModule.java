@@ -97,5 +97,14 @@ public class SwerveModule {
 		this.setSpeedOpenLoop(velocity);
 		this.setPositionOpenLoop(position);
 	}
+	
+	// TODO: remove
+	public void steerTo(double x) {
+		
+	}
+	
+	public void setSpeed(double x) {
+		
+	}
 
 }

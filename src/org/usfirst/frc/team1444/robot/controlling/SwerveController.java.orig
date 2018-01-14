@@ -2,13 +2,14 @@ package org.usfirst.frc.team1444.robot.controlling;
 
 import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.SwerveDrive;
-import org.usfirst.frc.team1444.robot.SwerveModule;
 
 public class SwerveController implements RobotController {
-
+<<<<<<< HEAD
 	private static final double ROTATE_DEAD_ZONE = .1;  // used to make sure the user really wants to turn while still
 	private static final double ROTATE_MULTIPLIER = .4; // The speed that is applied while rotating
 	private static final double SPEED_DEAD_ZONE = .05;  // used to check if the user really wants to go forward
+=======
+>>>>>>> add-encoders
 
 	private ControllerInput controller;
 	
@@ -22,8 +23,6 @@ public class SwerveController implements RobotController {
 	
 	// Deadband for rotation rate input
 	private static final double kRotationRateDeadband = 0.1;
-	
-	private double rotation = 0;
 
 	public SwerveController(ControllerInput controller){
 		this.controller = controller;
