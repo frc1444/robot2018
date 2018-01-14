@@ -7,12 +7,15 @@
 
 package org.usfirst.frc.team1444.robot;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.controlling.*;
 
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -44,17 +47,16 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void robotInit() {
 		drive = new SwerveDrive(
-				new TalonSRX(1), null,
-				new TalonSRX(2), null,
-				new TalonSRX(3), null,
-				new TalonSRX(4), null);
+				new TalonSRX(Constants.FrontLeftDriveId), new TalonSRX(Constants.FrontLeftSteerId),
+				new TalonSRX(Constants.FrontRightDriveId), new TalonSRX(Constants.FrontRightSteerId),
+				new TalonSRX(Constants.RearLeftDriveId), new TalonSRX(Constants.RearLeftSteerId),
+				new TalonSRX(Constants.RearRightDriveId), new TalonSRX(Constants.RearRightSteerId));
 		this.setRobotController(null);
 
 		chooser.addDefault("Default Auto", DEFAULT_AUTO);
 		chooser.addObject("My Auto", CUSTOM_AUTO);
 		SmartDashboard.putData("Auto choices", chooser);
-
-
+		
 	}
 
 	public SwerveDrive getDrive() {

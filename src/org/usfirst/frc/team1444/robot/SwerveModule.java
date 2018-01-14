@@ -1,7 +1,8 @@
 package org.usfirst.frc.team1444.robot;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.IMotorController;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 
 // SwerveModule defines one corner of a swerve drive
 // Two motor controllers are defined, drive and steer
@@ -10,14 +11,21 @@ public class SwerveModule {
 	// checks whether the speed is within this from 0, if so, set speed 0
 	private static final double DEAD_ZONE = 0.04;
 
-	private IMotorController drive;  // basically the same as SpeedController in c++
-	private IMotorController steer;
+	private BaseMotorController drive;  // basically the same as SpeedController in c++
+	private BaseMotorController steer;
 	
-	public SwerveModule(IMotorController drive, IMotorController steer) {
+	public SwerveModule(BaseMotorController drive, BaseMotorController steer) {
 		// if we need to, add parameter SwerveDrive if that has state that we need to take into account
 		this.drive = drive;
 		this.steer = steer;
-//		drive = new TalonSRX(0);
+		
+		// Set the Drive motor to use an incremental encoder
+		// TODO: set correct PID id and timeout
+		this.drive.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 0);
+		
+		// Set the Drive motor to use an absolute encoder
+		// TODO: set correct PID id and timeout
+		this.steer.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 0);
 	}
 
 	// These methods are just ideas on how this class might turn out.

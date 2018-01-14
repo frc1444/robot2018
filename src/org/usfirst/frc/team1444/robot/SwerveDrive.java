@@ -1,7 +1,8 @@
 package org.usfirst.frc.team1444.robot;
 
 
-import com.ctre.phoenix.motorcontrol.IMotorController;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 
 // SwerveDrive defines the drive for the entire robot
 // This class will take control input and assign motor outputs
@@ -16,26 +17,21 @@ public class SwerveDrive {
 
 
 	/**
-	 * Initializes SwerveDrive and creates SwerveModules. Even though each parameter is a IMotorController,
+	 * Initializes SwerveDrive and creates SwerveModules. Even though each parameter is a BaseMotorController,
 	 * we can still pass it a TalonSRX
 	 */
-	public SwerveDrive(IMotorController flDrive, IMotorController flSteer,
-	                   IMotorController frDrive, IMotorController frSteer,
-	                   IMotorController rlDrive, IMotorController rlSteer,
-	                   IMotorController rrDrive, IMotorController rrSteer) {
+	public SwerveDrive(BaseMotorController flDrive, BaseMotorController flSteer,
+	                   BaseMotorController frDrive, BaseMotorController frSteer,
+	                   BaseMotorController rlDrive, BaseMotorController rlSteer,
+	                   BaseMotorController rrDrive, BaseMotorController rrSteer) {
 
-//		frontLeft = new SwerveModule(flDrive, flSteer);
-//		frontRight = new SwerveModule(frDrive, frSteer);
-//		rearLeft = new SwerveModule(rlDrive, rlSteer);
-//		rearRight = new SwerveModule(rrDrive, rrSteer);
-
-//		moduleArray = new SwerveModule[] {frontLeft, frontRight, rearLeft, rearRight};
 		moduleArray = new SwerveModule[]{
 				new SwerveModule(flDrive, flSteer),
 				new SwerveModule(frDrive, frSteer),
 				new SwerveModule(rlDrive, rlSteer),
 				new SwerveModule(rrDrive, rrSteer)
 		};
+
 	}
 
 	public SwerveModule getFrontLeft() {
