@@ -32,11 +32,12 @@ public class Robot extends IterativeRobot {
 
 	private final ControllerInput defaultController;
 	
-	// Maximum allowed rotation rate in deg/s
-	public final double maximumRotationRate = 1;
-	
-	// Maximum allowed linear speed in ft/s
-	public final double maximumLinearSpeed = 11.5;
+//	// Maximum allowed rotation rate in deg/s
+//	public final double maximumRotationRate = 1; // TODO move these constants to SwerveModule because that's where
+													// we'll handle these values and convert stuff
+//
+//	// Maximum allowed linear speed in ft/s
+//	public final double maximumLinearSpeed = 11.5;
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
 		super();
@@ -118,7 +119,7 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopInit() {
-		robotController = new SwerveController(new PS4Controller(1));
+		robotController = new SwerveController(defaultController);
 	}
 
 	/**
