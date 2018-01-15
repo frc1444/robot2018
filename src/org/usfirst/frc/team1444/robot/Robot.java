@@ -53,6 +53,10 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void robotInit() {
 		
+		drivePid = new PidParameters();
+		steerPid = new PidParameters();
+		steerPid.KP = 1;
+		
 		// Initialize the drive by passing in new TalonSRXs for each drive and steer motor
 		drive = new SwerveDrive(
 				new TalonSRX(Constants.FrontLeftDriveId), new TalonSRX(Constants.FrontLeftSteerId),

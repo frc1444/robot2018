@@ -23,10 +23,10 @@ public class SwerveDrive {
 	                   PidParameters drivePid, PidParameters steerPid) {
 
 		moduleArray = new SwerveModule[]{
-				new SwerveModule(flDrive, flSteer, drivePid, steerPid, -1, 1),
-				new SwerveModule(frDrive, frSteer, drivePid, steerPid, 1, 1),
-				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, -1, -1),
-				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, 1, -1)
+				new SwerveModule(flDrive, flSteer, drivePid, steerPid, -1, 1, 0),
+				new SwerveModule(frDrive, frSteer, drivePid, steerPid, 1, 1, 1),
+				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, -1, -1, 2),
+				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, 1, -1, 3)
 		};
 
 	}
@@ -72,13 +72,14 @@ public class SwerveDrive {
 				rearLeft = this.getRearLeft(),
 				rearRight = this.getRearRight();
 		// calculate motor speeds
+		this.rotateAll(90);
 
 		// Calculate direction of Swerve wheels to allow agility
 		if(direction != null){  // make sure that the person inputting really wants to change steer position.
 			this.rotation = direction;
 		}
 
-		if(speed != 0 || turnAmount != 0){
+		if(turnAmount == 0 || speed != 0){
 			// if statement used for: if we want to go forward/backwards, or if we don't want to turn
 			// basically, this code is run if the user probably doesn't want to turn while still
 
@@ -120,10 +121,10 @@ public class SwerveDrive {
 				}
 			}
 		} else{  // only fires if the user definitely wants to turn while still
-			float targetFL;
-			float targetFR;
-			float targetRL;
-			float targetRR;
+			double targetFL = 0;
+			double targetFR = 0;
+			double targetRL = 0;
+			double targetRR = 0;
 
 			targetFL = 45;
 			targetFR = 270 + 45; // -45
@@ -141,6 +142,11 @@ public class SwerveDrive {
 			this.setAllSpeeds(turnAmount * ROTATE_MULTIPLIER);
 
 		}
+		
+		frontLeft.debug();
+		frontRight.debug();
+		rearLeft.debug();
+		rearRight.debug();
 	}
 
 	/**
@@ -161,7 +167,7 @@ public class SwerveDrive {
 	 */
 	public void rotateAll(double position) {
 		for(SwerveModule module : moduleArray){
-			module.setSpeed(position);
+			module.setPosition(position);
 		}
 	}
 

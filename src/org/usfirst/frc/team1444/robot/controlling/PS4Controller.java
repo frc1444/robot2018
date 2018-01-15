@@ -69,7 +69,7 @@ public class PS4Controller implements ControllerInput {
 
 	@Override
 	public double leftStickVertical() {
-		return stick.getRawAxis(kLeftStickVertical);
+		return -stick.getRawAxis(kLeftStickVertical);
 	}
 
 	@Override
@@ -79,7 +79,7 @@ public class PS4Controller implements ControllerInput {
 
 	@Override
 	public double rightStickVertical() {
-		return stick.getRawAxis(kRightStickVertical);
+		return -stick.getRawAxis(kRightStickVertical);
 	}
 
 	@Override

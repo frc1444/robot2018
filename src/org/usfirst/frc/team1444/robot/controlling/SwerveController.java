@@ -18,7 +18,6 @@ public class SwerveController implements RobotController {
 	// Deadband for rotation rate input
 	private static final double kRotationRateDeadband = 0.1;
 	
-	private double rotation = 0;
 
 	public SwerveController(ControllerInput controller){
 		this.controller = controller;
@@ -42,8 +41,7 @@ public class SwerveController implements RobotController {
 	private void drive(SwerveDrive drive) {
 		
 		// Linear velocity of robot is determined by the combination of the left and right triggers		
-		double velocity = rightTrigger() - leftTrigger();
-		
+		double velocity = Math.pow(rightTrigger(),2) - Math.pow(leftTrigger(),2);
 //		// Convert to ft/s // TODO do this at lower level
 //		velocity *= maxLinearSpeed;
 		
@@ -52,12 +50,14 @@ public class SwerveController implements RobotController {
 		double y = leftStickHorizontal();
 		
 		// If there is no valid input from the left joystick, just steer ahead which is defined as 90 degrees
-		Double direction = 90.0;  // if we want, we can set this to null which won't change the direction
+		Double direction = null;  // if we want, we can set this to null which won't change the direction
 		
 		// If controller input is valid, calculate the angle of the joystick
 		if (x != 0 || y != 0) { 		
 			direction = Math.toDegrees(Math.atan2(y, x));
 		}
+		
+		System.out.println("X,Y,D" + x + "," + y + "," + direction);
 		
 		// Rotation rate is based fully on right joystick
 		double rotationRate = rightStickHorizontal();
