@@ -2,6 +2,7 @@ package org.usfirst.frc.team1444.robot;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.RemoteSensorSource;
 import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -19,8 +20,19 @@ public class SwerveModule {
 	private double x, y;
 	
 	private int ID;
-	
-	public SwerveModule(BaseMotorController drive, BaseMotorController steer, 
+
+	/**
+	 * Creates a SwerveModule with the given parameters
+	 *
+	 * @param drive The drive motor that is used to drive
+	 * @param steer The steer motor that is used to steer/rotate the wheel
+	 * @param drivePid PidParameters for the drive motor
+	 * @param steerPid PidParameters for the steer motor
+	 * @param x The x coordinate relative to the center of the robot. Normally 1 or -1
+	 * @param y The y coordinate relative to the center of the robot. Normally 1 or -1
+	 * @param id An integer to easily identify the module while debugging. Should start at 0
+	 */
+	public SwerveModule(BaseMotorController drive, BaseMotorController steer,
 			PidParameters drivePid, PidParameters steerPid, 
 			double x, double y,
 			int id) {
@@ -67,7 +79,7 @@ public class SwerveModule {
 	public void setSpeed(double speed) {
 		
 		// Set the motor speed directly
-		drive.set(ControlMode.PercentOutput, speed); // TODO convert speed to velocity and change ControlMode
+		drive.set(ControlMode.PercentOutput, speed);
 	}
 
 	/**
@@ -76,12 +88,11 @@ public class SwerveModule {
 	 */
 	public void setPosition(double position){
 		position *= -1;
-		// TODO: convert degrees to encoder counts
-		double targetPosition = position % 360;
+		double targetPosition = ((position % 360) / 360) * 4096; // a number 0 to 4096 excluding 4096
 		
-		targetPosition = (position / 360) * 4096;
 		SmartDashboard.putNumber("Target Position " + ID, targetPosition);
-		
+
+		// TODO make the set method find the quickest path to the targetPosition
 		// Set the steer motor controller to the desired position
 		steer.set(ControlMode.Position, targetPosition);
 
