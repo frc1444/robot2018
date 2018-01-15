@@ -5,19 +5,18 @@ import org.usfirst.frc.team1444.robot.SwerveDrive;
 
 public class SwerveController implements RobotController {
 
-	private ControllerInput controller;
-	
 	// TODO: find proper deadbands
 	
 	// Deadband for main drive velocity input
-	private static final double kTriggerDeadband = 0.1;
-	
+	private static final double kTriggerDeadband = 0.05;
 	// Deadband for direction input
-	private static final double kDirectionDeadband = 0.1;
-	
+	private static final double kDirectionDeadband = 0.3;
 	// Deadband for rotation rate input
 	private static final double kRotationRateDeadband = 0.1;
-	
+
+
+	private ControllerInput controller;
+
 
 	public SwerveController(ControllerInput controller){
 		this.controller = controller;
@@ -41,7 +40,7 @@ public class SwerveController implements RobotController {
 	private void drive(SwerveDrive drive) {
 		
 		// Linear velocity of robot is determined by the combination of the left and right triggers		
-		double velocity = Math.pow(rightTrigger(),2) - Math.pow(leftTrigger(),2);
+		double velocity = Math.pow(rightTrigger(), 2) - Math.pow(leftTrigger(), 2);
 //		// Convert to ft/s // TODO do this at lower level
 //		velocity *= maxLinearSpeed;
 		
@@ -50,23 +49,23 @@ public class SwerveController implements RobotController {
 		double y = leftStickHorizontal();
 		
 		// If there is no valid input from the left joystick, just steer ahead which is defined as 90 degrees
-		Double direction = null;  // if we want, we can set this to null which won't change the direction
+		Double direction = null;  // TODO decide if we want this to be null or 90 degrees.
 		
 		// If controller input is valid, calculate the angle of the joystick
 		if (x != 0 || y != 0) { 		
 			direction = Math.toDegrees(Math.atan2(y, x));
 		}
 		
-		System.out.println("X,Y,D" + x + "," + y + "," + direction);
-		
+//		System.out.println("X,Y,D" + x + "," + y + "," + direction);
 		// Rotation rate is based fully on right joystick
-		double rotationRate = rightStickHorizontal();
-		
+		double turnAmount = rightStickHorizontal();
+		System.out.println("turnAmount: " + turnAmount);
+
 //		// Convert to degrees/sec
 //		rotationRate *= maxRotationRate;  // TODO do at lower level
 		
 		// Update the drive
-		drive.update(velocity, direction, rotationRate);  // TODO decide if we want to pass null as a direction
+		drive.update(velocity, direction, turnAmount);  // TODO decide if we want to pass null as a direction
 	}
 
 	// simple methods to get values for controller. Each should use this.controller

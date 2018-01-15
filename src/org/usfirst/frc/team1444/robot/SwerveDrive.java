@@ -1,6 +1,7 @@
 package org.usfirst.frc.team1444.robot;
 
 import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // SwerveDrive defines the drive for the entire robot
 // This class will take control input and assign motor outputs
@@ -64,89 +65,90 @@ public class SwerveDrive {
 	 */
 	public void update(double speed, Double direction, double turnAmount) {
 		// TODO, if we need/want to we could try to change turnAmount to degrees/s but that'd make this more complex
-		
-		// TODO: Set individual module velocity and position based on inputs
-		// TODO: lots of math
-		SwerveModule frontLeft = this.getFrontLeft(),
-				frontRight = this.getFrontRight(),
-				rearLeft = this.getRearLeft(),
-				rearRight = this.getRearRight();
-		// calculate motor speeds
-		this.rotateAll(90);
 
-		// Calculate direction of Swerve wheels to allow agility
-		if(direction != null){  // make sure that the person inputting really wants to change steer position.
+		if(direction != null){
 			this.rotation = direction;
 		}
 
 		if(turnAmount == 0 || speed != 0){
-			// if statement used for: if we want to go forward/backwards, or if we don't want to turn
-			// basically, this code is run if the user probably doesn't want to turn while still
-
-			this.rotateAll(this.rotation);  // since we aren't turning, we can turn to where we want to
-			// both if statements, set the speed
-			if(turnAmount == 0) {
-				// I think, if we just use the else statement, it should do the same thing as this, but we'll keep this
-				// just to be safe
-				this.setAllSpeeds(speed);
-			} else { // if the user wants to turn, then we will do it like a tank drive, adjust the speeds
-				// complex algorithm to basically make a tank drive, but in whatever direction you want
-				final double angle = Math.toRadians(-this.rotation);
-				final SwerveModule[] modules = this.getModules();
-				final int length = modules.length;
-
-				double[] speeds = new double[length];  // array of speeds all with a positive sign or 0
-				double maxSpeed = 1;  // can be divided by to scale speeds down if some speeds are > 1.0
-				for(int i = 0; i < length; i++){
-					SwerveModule module = modules[i];
-					double x = module.getX();
-					double y = module.getY();
-
-//					double distanceFromCenter = Math.hypot(x, y); // distance from the center of the robot
-					double newY = (x * Math.sin(angle)) + (y * Math.cos(angle)); // around values between -1 and 1
-					newY *= -1;  // after multiplying, -1 means module on left, 1 means module on right
-//					newY /= distanceFromCenter;  // I don't think we need this, but if uncommented, don't need maxSpeed
-					// so if dividing my distanceFromCenter, fixes maxSpeed, remove it later
-
-					double absSpeed = Math.abs(speed) - (newY * turnAmount);
-					speeds[i] = absSpeed;
-					if(absSpeed > maxSpeed){
-						maxSpeed = absSpeed;
-					}
-				}
-				for(int i = 0; i < length; i++){ // simple for loop to set speeds from variable 'speeds'
-					SwerveModule module = modules[i];
-					double moduleSpeed = Math.signum(speed) * speeds[i];
-					module.setSpeed(moduleSpeed / maxSpeed);
-				}
-			}
-		} else{  // only fires if the user definitely wants to turn while still
-			double targetFL = 0;
-			double targetFR = 0;
-			double targetRL = 0;
-			double targetRR = 0;
-
-			targetFL = 45;
-			targetFR = 270 + 45; // -45
-			targetRL = 90 + 45;
-			targetRR = 180 + 45; // -(90 + 45)
-			// the target rotations for all the modules
-
-			// rotate all motors
-			frontLeft.setPosition(targetFL);
-			frontRight.setPosition(targetFR);
-			rearLeft.setPosition(targetRL);
-			rearRight.setPosition(targetRR);
-
-			// set speeds of all motors
-			this.setAllSpeeds(turnAmount * ROTATE_MULTIPLIER);
-
+			regularDrive(speed, turnAmount);
+		} else{
+			rotateDrive(turnAmount);
 		}
 		
-		frontLeft.debug();
-		frontRight.debug();
-		rearLeft.debug();
-		rearRight.debug();
+		for(SwerveModule module : this.getModules()){
+			module.debug();  // Since I moved all the frontLeft etc variables, this for loop will do the trick.
+			// If we don't need to debug this much, remove this loop later
+		}
+	}
+
+	/**
+	 * Uses the provided parameters and this.rotation to set the motor speeds
+	 * @param speed A value from -1 to 1 representing the percent speed
+	 * @param turnAmount A value from -1 to 1 representing how much the robot should rotate.
+	 */
+	private void regularDrive(double speed, double turnAmount){
+
+		this.rotateAll(this.rotation);
+
+		final double angle = Math.toRadians(-this.rotation);
+		final SwerveModule[] modules = this.getModules();
+		final int length = modules.length;
+
+		double[] speeds = new double[length];  // array of speeds all with a positive sign or 0
+		double maxSpeed = 1;  // can be divided by to scale speeds down if some speeds are > 1.0
+		for(int i = 0; i < length; i++){
+			SwerveModule module = modules[i];
+			double x = module.getX();
+			double y = module.getY();
+
+			double newY = (x * Math.sin(angle)) + (y * Math.cos(angle)); // around values between -1 and 1
+			newY *= -1;  // after multiplying, -1 means module on left, 1 means module on right
+
+			double absSpeed = Math.abs(speed) - (newY * turnAmount);
+			speeds[i] = absSpeed;
+			if(absSpeed > maxSpeed){
+				maxSpeed = absSpeed;
+			}
+		}
+		for(int i = 0; i < length; i++){ // simple for loop to set speeds from variable 'speeds'
+			SwerveModule module = modules[i];
+			double moduleSpeed = Math.signum(speed) * speeds[i];
+			moduleSpeed /= maxSpeed;  // scale the speed down if the max speed is high. maxSpeed is 1 most of the time
+			module.setSpeed(moduleSpeed);
+			SmartDashboard.putNumber("module speed " + module.getID(), moduleSpeed);
+		}
+	}
+
+	/**
+	 * Called when the user wants to stay still and rotate the robot
+	 *
+	 * This may be the only place in the code where degrees/s might make sense. Although, I think if we did that,
+	 * we should overload a method.
+	 *
+	 * @param turnAmount A number from -1 to 1 representing how much we should turn.
+	 */
+	private void rotateDrive(double turnAmount){
+
+		SwerveModule frontLeft = this.getFrontLeft(),
+				frontRight = this.getFrontRight(),
+				rearLeft = this.getRearLeft(),
+				rearRight = this.getRearRight();
+
+		double targetFL = 45;
+		double targetFR = 270 + 45; // -45
+		double targetRL = 90 + 45;
+		double targetRR = 180 + 45; // -(90 + 45)
+		// the target rotations for all the modules
+
+		// rotate all motors
+		frontLeft.setPosition(targetFL);
+		frontRight.setPosition(targetFR);
+		rearLeft.setPosition(targetRL);
+		rearRight.setPosition(targetRR);
+
+		// set speeds of all motors
+		this.setAllSpeeds(turnAmount * ROTATE_MULTIPLIER);
 	}
 
 	/**

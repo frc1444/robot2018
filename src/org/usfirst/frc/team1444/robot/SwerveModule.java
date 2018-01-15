@@ -13,7 +13,7 @@ public class SwerveModule {
 	private BaseMotorController drive; 
 	private BaseMotorController steer;
 	
-	private PidParameters drivePid;
+	private PidParameters drivePid; // TODO make these local variable since we never access these.
 	private PidParameters steerPid;
 
 	private double x, y;
@@ -32,6 +32,7 @@ public class SwerveModule {
 		this.y = y;
 		
 		this.ID = id;
+
 		
 		// Set the Drive motor to use an incremental encoder
 		this.drive.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, Constants.PidIdx, Constants.TimeoutMs);
@@ -56,6 +57,7 @@ public class SwerveModule {
 	public double getX(){ return x; }
 	public double getY(){ return y; }
 
+	public int getID() { return ID; }
 
 	
 	/**
@@ -90,6 +92,7 @@ public class SwerveModule {
 	 * @param speed Desired speed in a percent (-1 to 1) Will eventually be converted to ft/s
 	 * @param position Desired position of module in degrees: 0 - 360
 	 */
+	@Deprecated  // Since we don't need this method, I think we can remove it. If not, remove deprecation
 	public void update(double speed, double position){
 
 		this.setSpeed(speed);
@@ -101,7 +104,7 @@ public class SwerveModule {
 		SmartDashboard.putNumber("Encoder " + ID, this.steer.getSelectedSensorPosition(0));
 	}
 	
-	public void UpdateDrivePid(PidParameters pid) {
+	private void UpdateDrivePid(PidParameters pid) {
 		this.drivePid = pid;
 		
 		drive.config_kP(drivePid.pidIdx, drivePid.KP, Constants.TimeoutMs);
@@ -110,7 +113,7 @@ public class SwerveModule {
 		drive.config_kF(drivePid.pidIdx, drivePid.KF, Constants.TimeoutMs);
 	}
 	
-	public void UpdateSteerPid(PidParameters pid) {
+	private void UpdateSteerPid(PidParameters pid) {
 		this.steerPid = pid;
 		
 		steer.config_kP(steerPid.pidIdx, steerPid.KP, Constants.TimeoutMs);
