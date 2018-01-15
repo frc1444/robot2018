@@ -2,9 +2,7 @@ package org.usfirst.frc.team1444.robot;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-import com.ctre.phoenix.motorcontrol.RemoteSensorSource;
 import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // SwerveModule defines one corner of a swerve drive
@@ -83,11 +81,11 @@ public class SwerveModule {
 	}
 
 	/**
-	 * Unfinished method
+	 * Sets the position of the steer motor.
 	 * @param position A double in degrees where 90 degrees is straight forward and 0 is to the right 180 left etc.
 	 */
 	public void setPosition(double position){
-		position *= -1;
+//		position *= -1;  // if all the other places in the code are set up right, we shouldn't need this.
 		double targetPosition = ((position % 360) / 360) * 4096; // a number 0 to 4096 excluding 4096
 		
 		SmartDashboard.putNumber("Target Position " + ID, targetPosition);
@@ -98,7 +96,8 @@ public class SwerveModule {
 
 	}
 
-	/** Unless we are going to store the values passed to this method, just call setSpeedOpenLoop and setPosition
+	/**
+	 * Calls setSpeed and setPosition with the passed speed and position
 	 *
 	 * @param speed Desired speed in a percent (-1 to 1) Will eventually be converted to ft/s
 	 * @param position Desired position of module in degrees: 0 - 360
