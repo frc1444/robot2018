@@ -8,8 +8,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 // SwerveModule defines one corner of a swerve drive
 // Two motor controllers are defined, drive and steer
 public class SwerveModule {
+	public static final int ENCODER_COUNTS = 4096;
 
-	private BaseMotorController drive; 
+
+	private BaseMotorController drive;
 	private BaseMotorController steer;
 	
 	private PidParameters drivePid; // TODO make these local variable since we never access these.
@@ -85,12 +87,21 @@ public class SwerveModule {
 	 * @param position A double in degrees where 90 degrees is straight forward and 0 is to the right 180 left etc.
 	 */
 	public void setPosition(double position){
-//		position *= -1;  // if all the other places in the code are set up right, we shouldn't need this.
-		double targetPosition = ((position % 360) / 360) * 4096; // a number 0 to 4096 excluding 4096
+		position %= 360;  // returns remainder, can be -359 to 360 (excluding 360)
+		position = position < 0 ? position + 360 : position;  // makes it 0 to 360
+		double targetPosition = ((position) / 360) * ENCODER_COUNTS; // a number 0 to 4096 excluding 4096
+		assert 0 <= targetPosition && targetPosition < ENCODER_COUNTS;  // just make sure for now.
 		
 		SmartDashboard.putNumber("Target Position " + ID, targetPosition);
+		final int currentPosition = steer.getActiveTrajectoryPosition();
+		while(Math.abs(targetPosition - currentPosition) > ENCODER_COUNTS / 2){ // finds the quickest route
+			if(targetPosition > currentPosition){
+				targetPosition -= ENCODER_COUNTS;
+			} else { // targetPosition < currentPosition
+				targetPosition += ENCODER_COUNTS;
+			}
+		}
 
-		// TODO make the set method find the quickest path to the targetPosition
 		// Set the steer motor controller to the desired position
 		steer.set(ControlMode.Position, targetPosition);
 
@@ -130,6 +141,8 @@ public class SwerveModule {
 		steer.config_kI(steerPid.pidIdx, steerPid.KI, Constants.TimeoutMs);
 		steer.config_kD(steerPid.pidIdx, steerPid.KD, Constants.TimeoutMs);
 		steer.config_kF(steerPid.pidIdx, steerPid.KF, Constants.TimeoutMs);
+
+//		steer.setSelectedSensorPosition((90 / 360) * 4096, steerPid.pidIdx, Constants.TimeoutMs); // will this work?
 	}
 
 }

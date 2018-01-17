@@ -60,7 +60,8 @@ public class SwerveDrive {
 	/**
 	 * 
 	 * @param speed Desired speed of the motors (-1 to 1) that will eventually be converted to ft/s
-	 * @param direction Desired direction of robot in degrees or null if you don't want to change direction
+	 * @param direction Desired direction of robot in degrees or null if you don't want to change direction. Even if
+	 *                  this isn't between 0 and 360, it will take the most efficient path.
 	 * @param turnAmount a number from -1 to 1 representing how much you want to turn.
 	 */
 	public void update(double speed, Double direction, double turnAmount) {

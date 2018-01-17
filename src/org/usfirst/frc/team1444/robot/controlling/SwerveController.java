@@ -46,7 +46,7 @@ public class SwerveController implements RobotController {
 		velocity *= scaleAmount;
 
 		// Direction is determined by the vector produced by the left joystick
-		double x = leftStickHorizontal();
+		double x = leftStickHorizontal(); // these values don't have a deadband applied yet
 		double y = leftStickVertical();
 
 		// If there is no valid input from the left joystick, just steer ahead which is defined as 90 degrees
@@ -55,11 +55,11 @@ public class SwerveController implements RobotController {
 		// If controller input is valid, calculate the angle of the joystick
 		if (Math.hypot(x, y) > kDirectionDeadband) {
 			direction = Math.toDegrees(Math.atan2(y, x));
-			
-			if (direction < 0)
-			{
-				direction += 360;
-			}
+
+//			if (direction < 0)  // fixed at lower level
+//			{
+//				direction += 360;
+//			}
 		}
 
 //		System.out.println("X,Y,D" + x + "," + y + "," + direction); // if uncomment, cast direction to int
@@ -91,24 +91,13 @@ public class SwerveController implements RobotController {
 		return value;
 	}
 
+	// Even though these methods don't use a deadband, we'll still keep them to keep our nice abstractions
 	private double leftStickHorizontal() {
-		double value = controller.leftStickHorizontal();
-
-		if (Math.abs(value) < kDirectionDeadband) {
-			value = 0;
-		}
-
-		return value;
+		return this.controller.leftStickHorizontal();
 	}
 
 	private double leftStickVertical() {
-		double value = controller.leftStickVertical();
-
-		if (Math.abs(value) < kDirectionDeadband) {
-			value = 0;
-		}
-
-		return value;
+		return this.controller.leftStickVertical();
 	}
 
 	private double rightStickHorizontal() {
@@ -118,6 +107,6 @@ public class SwerveController implements RobotController {
 			value = 0;
 		}
 
-		return 0;
+		return value;
 	}
 }
