@@ -69,10 +69,15 @@ public class SwerveDrive {
 		if(direction != null){
 			this.rotation = direction;
 		}
+		SmartDashboard.putNumber("SwerveDrive speed", speed);
+		SmartDashboard.putNumber("SwerveDrive this.rotation", this.rotation);
+		SmartDashboard.putNumber("SwerveDrive turnAmount", turnAmount);
 
 		if(turnAmount == 0 || speed != 0){
+			SmartDashboard.putString("drive method", "regularDrive");
 			regularDrive(speed, turnAmount);
 		} else{
+			SmartDashboard.putString("drive method", "rotateDrive");
 			rotateDrive(turnAmount);
 		}
 		
@@ -105,23 +110,29 @@ public class SwerveDrive {
 			double newY = (x * Math.sin(angle)) + (y * Math.cos(angle)); // around values between -1 and 1
 			newY *= -1;  // after multiplying, -1 means module on left, 1 means module on right
 
-			double absSpeed = Math.abs(speed) - (newY * turnAmount);
-			speeds[i] = absSpeed;
+			double subtractAmount = newY * turnAmount;  // The amount of speed to take away (in a percent)
+			SmartDashboard.putString("id : " + module.getID() + "newY, subtractAmount",
+					"" + newY + ", " + subtractAmount);
+
+			double absSpeed = Math.abs(speed) - subtractAmount;
 			if(absSpeed > maxSpeed){
 				maxSpeed = absSpeed;
 			}
+
+			speeds[i] = absSpeed;  // add absSpeed to speed array which will be set in for loop below
 		}
+		SmartDashboard.putNumber("regularDrive maxSpeed", maxSpeed);
 		for(int i = 0; i < length; i++){ // simple for loop to set speeds from variable 'speeds'
 			SwerveModule module = modules[i];
 			double moduleSpeed = Math.signum(speed) * speeds[i];
 			moduleSpeed /= maxSpeed;  // scale the speed down if the max speed is high. maxSpeed is 1 most of the time
 			module.setSpeed(moduleSpeed);
-			SmartDashboard.putNumber("module speed " + module.getID(), moduleSpeed);
+			SmartDashboard.putNumber("regularDrive module speed " + module.getID(), moduleSpeed);
 		}
 	}
 
 	/**
-	 * Called when the user wants to stay still and rotate the robot
+	 * Called when the user wants to stay still and rotate the robot. The speed is not taken because it should be 0
 	 *
 	 * This may be the only place in the code where degrees/s might make sense. Although, I think if we did that,
 	 * we should overload a method.

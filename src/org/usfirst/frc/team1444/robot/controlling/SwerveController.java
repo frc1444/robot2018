@@ -38,10 +38,12 @@ public class SwerveController implements RobotController {
 	 * @param drive the SwerveDrive object
 	 */
 	private void drive(SwerveDrive drive) {
-		double powAmount = 3;
+		final double scaleAmount = 0.4;
+		final double powAmount = 2;
 
 		// Linear velocity of robot is determined by the combination of the left and right triggers		
 		double velocity = Math.pow(rightTrigger(), powAmount) - Math.pow(leftTrigger(), powAmount);
+		velocity *= scaleAmount;
 
 		// Direction is determined by the vector produced by the left joystick
 		double x = leftStickHorizontal();
@@ -63,11 +65,9 @@ public class SwerveController implements RobotController {
 //		System.out.println("X,Y,D" + x + "," + y + "," + direction); // if uncomment, cast direction to int
 		// Rotation rate is based fully on right joystick
 		double turnAmount = rightStickHorizontal();
-		System.out.println("turnAmount: " + (Math.round(turnAmount * 100) / 100) +
-				"direction: " + (direction != null ? Math.round(direction) + "" : "null"));
 
 		// Update the drive
-		drive.update(velocity, direction, turnAmount);
+		drive.update(velocity, direction, turnAmount);  // also, the values are debugged in here
 	}
 
 	// simple methods to get values for controller. Each should use this.controller
