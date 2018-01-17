@@ -14,7 +14,7 @@ public class SwerveModule {
 	private BaseMotorController drive;
 	private BaseMotorController steer;
 	
-	private PidParameters drivePid; // TODO make these local variable since we never access these.
+	private PidParameters drivePid;
 	private PidParameters steerPid;
 
 	private double x, y;
@@ -93,7 +93,7 @@ public class SwerveModule {
 		assert 0 <= targetPosition && targetPosition < ENCODER_COUNTS;  // just make sure for now.
 		
 		SmartDashboard.putNumber("Target Position " + ID, targetPosition);
-		final int currentPosition = steer.getActiveTrajectoryPosition();
+		final int currentPosition = steer.getSelectedSensorPosition(steerPid.pidIdx);
 		while(Math.abs(targetPosition - currentPosition) > ENCODER_COUNTS / 2){ // finds the quickest route
 			if(targetPosition > currentPosition){
 				targetPosition -= ENCODER_COUNTS;
