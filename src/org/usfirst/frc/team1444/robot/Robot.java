@@ -72,14 +72,19 @@ public class Robot extends IterativeRobot {
 		
 	}
 
+	@Override
+	public void disabledInit() {
+		setRobotController(null);
+	}
+
 	public SwerveDrive getDrive() {
 		return drive;
 	}
 	public void setRobotController(RobotController robotController){
 		this.robotController = robotController;
-		if(this.robotController == null){
-			this.robotController = new InputTester(defaultController);  // make the default controller an InputTester
-		}
+//		if(this.robotController == null){
+//			this.robotController = new InputTester(defaultController);  // make the default controller an InputTester
+//		}
 	}
 
 	@Override

@@ -13,3 +13,9 @@ dist/
 # other stuff
 /bin/
 out/
+
+# gradle stuff
+gradle/
+.gradle/
+*.ipr
+*.iws

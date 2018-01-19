@@ -41,25 +41,21 @@ public class SwerveController implements RobotController {
 		final double scaleAmount = 0.4;
 		final double powAmount = 2;
 
+		double right = rightTrigger(), left = leftTrigger();
 		// Linear velocity of robot is determined by the combination of the left and right triggers		
-		double velocity = Math.pow(rightTrigger(), powAmount) - Math.pow(leftTrigger(), powAmount);
-		velocity *= scaleAmount;
+		double speed = Math.pow(right, powAmount) - Math.pow(left, powAmount); // right is forward
+		speed *= scaleAmount;
 
 		// Direction is determined by the vector produced by the left joystick
 		double x = leftStickHorizontal(); // these values don't have a deadband applied yet
 		double y = leftStickVertical();
 
 		// If there is no valid input from the left joystick, just steer ahead which is defined as 90 degrees
-		Double direction = null;  // TODO decide if we want this to be null or 90 degrees.
+		Double direction = 90.0;  // TODO decide if we want this to be null or 90 degrees.
 
 		// If controller input is valid, calculate the angle of the joystick
 		if (Math.hypot(x, y) > kDirectionDeadband) {
-			direction = Math.toDegrees(Math.atan2(y, x));
-
-//			if (direction < 0)  // fixed at lower level
-//			{
-//				direction += 360;
-//			}
+			direction = Math.toDegrees(Math.atan2(y, x)); // even if negative, fixed at lower level
 		}
 
 //		System.out.println("X,Y,D" + x + "," + y + "," + direction); // if uncomment, cast direction to int
@@ -67,7 +63,7 @@ public class SwerveController implements RobotController {
 		double turnAmount = rightStickHorizontal();
 
 		// Update the drive
-		drive.update(velocity, direction, turnAmount);  // also, the values are debugged in here
+		drive.update(speed, direction, turnAmount);  // also, the values are debugged in here
 	}
 
 	// simple methods to get values for controller. Each should use this.controller
