@@ -53,8 +53,7 @@ public class SwerveModule {
 		this.drive.setSensorPhase(false);
 		
 		// Set the Drive motor to use an absolute encoder
-		// TODO Change to absolute encoder
-		this.steer.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, Constants.PidIdx, Constants.TimeoutMs);
+		this.steer.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, Constants.PidIdx, Constants.TimeoutMs);
 		
 		// Set the Steer encoder phase
 		this.steer.setSensorPhase(true);
@@ -73,13 +72,16 @@ public class SwerveModule {
 
 	
 	/**
-	 * Test method to allow drive motors to be set open loop
+	 * Update the setpoint for the drive PID control
 	 * @param speed Desired motor speed as a percentage of maximum: -1 to 1
 	 */
 	public void setSpeed(double speed) {
 		
-		// Set the motor speed directly
-		drive.set(ControlMode.PercentOutput, speed);
+		// Convert input percentage to CTRE units/100ms		
+		double targetSpeed = speed * Constants.CimCoderCountsPerRev * Constants.CtreUnitConversion * Constants.MaxCimRpm;
+		
+		// Update the drive PID setpoints
+		drive.set(ControlMode.Velocity, targetSpeed);
 	}
 
 	/**

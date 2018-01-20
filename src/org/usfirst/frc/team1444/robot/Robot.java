@@ -54,6 +54,8 @@ public class Robot extends IterativeRobot {
 	public void robotInit() {
 		
 		drivePid = new PidParameters();
+		drivePid.KP = 1;
+		
 		steerPid = new PidParameters();
 		steerPid.KP = 2;
 		
