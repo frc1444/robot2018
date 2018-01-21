@@ -1,5 +1,6 @@
 package org.usfirst.frc.team1444.robot.controlling;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.SwerveDrive;
 
@@ -12,7 +13,7 @@ public class SwerveController implements RobotController {
 	// Deadband for direction input
 	private static final double kDirectionDeadband = 0.05;
 	// Deadband for rotation rate input
-	private static final double kRotationRateDeadband = 0.1;
+	private static final double kRotationRateDeadband = 0.3;  // big because only change direction if hyp big enough
 
 
 	private ControllerInput controller;
@@ -44,7 +45,8 @@ public class SwerveController implements RobotController {
 		double right = rightTrigger(), left = leftTrigger();
 		// Linear velocity of robot is determined by the combination of the left and right triggers		
 		double speed = Math.pow(right, powAmount) - Math.pow(left, powAmount); // right is forward
-		speed *= scaleAmount;
+//		speed *= scaleAmount;
+		SmartDashboard.putString("right, left, speed", right + ", " + left + ", " + speed);
 
 		// Direction is determined by the vector produced by the left joystick
 		double x = leftStickHorizontal(); // these values don't have a deadband applied yet

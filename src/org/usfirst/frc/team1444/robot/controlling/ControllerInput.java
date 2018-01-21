@@ -23,7 +23,13 @@ public interface ControllerInput {
 	double rightStickVertical();
 	double rightStickHorizontal();
 
+	/**
+	 * @return A number from 0 to 1
+	 */
 	double leftTrigger();
+	/**
+	 * @return A number from 0 to 1
+	 */
 	double rightTrigger();
 
 }

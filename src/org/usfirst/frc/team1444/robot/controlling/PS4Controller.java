@@ -89,11 +89,11 @@ public class PS4Controller implements ControllerInput {
 
 	@Override
 	public double leftTrigger() {
-		return stick.getRawAxis(kLeftTrigger);
+		return (stick.getRawAxis(kLeftTrigger) + 1) / 2;
 	}
 
 	@Override
 	public double rightTrigger() {
-		return stick.getRawAxis(kRightTrigger);
+		return (stick.getRawAxis(kRightTrigger) + 1) / 2;
 	}
 }
