@@ -21,13 +21,14 @@ public class SwerveDrive {
 	                   BaseMotorController frDrive, BaseMotorController frSteer,
 	                   BaseMotorController rlDrive, BaseMotorController rlSteer,
 	                   BaseMotorController rrDrive, BaseMotorController rrSteer,
-	                   PidParameters drivePid, PidParameters steerPid) {
+	                   PidParameters drivePid, PidParameters steerPid,
+	                   double flOffset, double frOffset, double rlOffset, double rrOffset) {
 
 		moduleArray = new SwerveModule[]{
-				new SwerveModule(flDrive, flSteer, drivePid, steerPid, -1, 1, 0),
-				new SwerveModule(frDrive, frSteer, drivePid, steerPid, 1, 1, 1),
-				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, -1, -1, 2),
-				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, 1, -1, 3)
+				new SwerveModule(flDrive, flSteer, drivePid, steerPid, -1, 1, 0, flOffset),
+				new SwerveModule(frDrive, frSteer, drivePid, steerPid, 1, 1, 1, frOffset),
+				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, -1, -1, 2, rlOffset),
+				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, 1, -1, 3, rrOffset)
 		};
 
 	}

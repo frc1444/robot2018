@@ -54,10 +54,18 @@ public class Robot extends IterativeRobot {
 	public void robotInit() {
 		
 		drivePid = new PidParameters();
+		drivePid.KF = 0.3;
 		drivePid.KP = 1;
 		
 		steerPid = new PidParameters();
+		//steerPid.KF = 0.3;
 		steerPid.KP = 2;
+		//steerPid.KI = 0.001;
+		
+		final double flOffset = 111;
+		final double frOffset = 515; 
+		final double rlOffset = 276;
+		final double rrOffset = 760;
 		
 		// Initialize the drive by passing in new TalonSRXs for each drive and steer motor
 		drive = new SwerveDrive(
@@ -65,7 +73,7 @@ public class Robot extends IterativeRobot {
 				new TalonSRX(Constants.FrontRightDriveId), new TalonSRX(Constants.FrontRightSteerId),
 				new TalonSRX(Constants.RearLeftDriveId), new TalonSRX(Constants.RearLeftSteerId),
 				new TalonSRX(Constants.RearRightDriveId), new TalonSRX(Constants.RearRightSteerId),
-				drivePid, steerPid);
+				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset);
 		this.setRobotController(null);
 
 		chooser.addDefault("Default Auto", DEFAULT_AUTO);
@@ -84,9 +92,9 @@ public class Robot extends IterativeRobot {
 	}
 	public void setRobotController(RobotController robotController){
 		this.robotController = robotController;
-//		if(this.robotController == null){
-//			this.robotController = new InputTester(defaultController);  // make the default controller an InputTester
-//		}
+		if(this.robotController == null){
+			this.robotController = new EncoderDebug();  // make the default controller an InputTester
+		}
 	}
 
 	@Override

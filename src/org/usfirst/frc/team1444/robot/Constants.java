@@ -36,8 +36,8 @@ public final class Constants {
 	
 	// Drive Motor Constants
 	public static final int CtreUnitConversion = 600; // Conversion to CTRE units of 100 units/ms
-	public static final int MaxCimRpm = 5000;
-	public static final int CimCoderCountsPerRev = 20;
+	public static final int MaxCimRpm = 5300;
+	public static final int CimCoderCountsPerRev = 80;
 	
 	// Controls
 	public static final double DriveDeadBand = 0.1; 
