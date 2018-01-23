@@ -126,15 +126,24 @@ public class SwerveModule {
 		}
 		
 		// Use a direct calculation to handle encoder crossover - better than while loops :)
+		// TODO: handle multiple rotations
 //		int targetEncoderCounts = (int)(targetPosition * ENCODER_COUNTS / 360);
 //		final int currentEncoderCounts = steer.getSelectedSensorPosition(steerPid.pidIdx);
 //		final int countDifference = currentEncoderCounts - targetEncoderCounts;
 //		
 //		if (countDifference > ENCODER_COUNTS / 2)
 //		{
-//			targetEncoderCounts = targetEncoderCounts + ENCODER_COUNTS;
+//			targetEncoderCounts += ENCODER_COUNTS;
 //		}
-//		steer.set(ControlMode.Position, targetEncoderCounts);
+//		else if (countDifference < -(ENCODER_COUNTS / 2))
+//		{
+//			targetEncoderCounts -= ENCODER_COUNTS;
+//		}
+//		else
+//		{
+//			// nothing to do
+//		}
+		steer.set(ControlMode.Position, targetEncoderCounts);
 		
 		
 		// Convert position to voltage
