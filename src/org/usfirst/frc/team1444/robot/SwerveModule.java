@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 // SwerveModule defines one corner of a swerve drive
 // Two motor controllers are defined, drive and steer
 public class SwerveModule {
-	public static final int ENCODER_COUNTS = 921;//(int) 3.3 * 360;
+	public static final int ENCODER_COUNTS = 1024;//(int) 3.3 * 360;
 
 
 	private BaseMotorController drive;
@@ -23,7 +23,7 @@ public class SwerveModule {
 	
 	private int ID;
 	
-	private double encoderOffset;
+	private int encoderOffset;
 
 	/**
 	 * Creates a SwerveModule with the given parameters
@@ -39,7 +39,7 @@ public class SwerveModule {
 	public SwerveModule(BaseMotorController drive, BaseMotorController steer,
 			PidParameters drivePid, PidParameters steerPid, 
 			double x, double y,
-			int id, double offset) {
+			int id, int offset) {
 		
 		this.drive = drive;
 		this.steer = steer;
@@ -64,12 +64,16 @@ public class SwerveModule {
 		
 		// Set the Drive motor to use an absolute encoder
 		
-		int absoluteSteerPosition = this.steer.getSelectedSensorPosition(Constants.PidIdx);
-		this.steer.setSelectedSensorPosition(absoluteSteerPosition, Constants.PidIdx, Constants.TimeoutMs);
+		//int absoluteSteerPosition = this.steer.getSelectedSensorPosition(Constants.PidIdx);
+		//this.steer.setSelectedSensorPosition(absoluteSteerPosition, Constants.PidIdx, Constants.TimeoutMs);
 		
 		this.steer.configSelectedFeedbackSensor(FeedbackDevice.Analog, Constants.PidIdx, Constants.TimeoutMs);
-		//this.steer.configSetParameter(ParamEnum.eFeedbackNotContinuous, 1, 0, 0, Constants.TimeoutMs);
+		this.steer.configSetParameter(ParamEnum.eFeedbackNotContinuous, 0, 0, 0, Constants.TimeoutMs);
 		
+		// Zero encoder reading
+		SensorCollection collection = new SensorCollection(this.steer);
+		
+		this.steer.setSelectedSensorPosition(collection.getAnalogInRaw() - this.encoderOffset, Constants.PidIdx, Constants.TimeoutMs);
 		
 		// Set the Steer encoder phase
 		this.steer.setSensorPhase(false);
@@ -108,34 +112,48 @@ public class SwerveModule {
 	 */
 	public void setPosition(double position){
 		
-		position %= 360;  // returns remainder, can be -359 to 360 (excluding 360)
-		position = position < 0 ? position + 360 : position;  // makes it 0 to 360
-		double targetPosition = ((position) / 360) * ENCODER_COUNTS; // a number 0 to 4096 excluding 4096
-		assert 0 <= targetPosition && targetPosition < ENCODER_COUNTS;  // just make sure for now.
+		//position %= 360;  // returns remainder, can be -359 to 360 (excluding 360)
+		//position = position < 0 ? position + 360 : position;  // makes it 0 to 360
+		//double targetPosition = ((position) / 360) * ENCODER_COUNTS; // a number 0 to 4096 excluding 4096
+		//assert 0 <= targetPosition && targetPosition < ENCODER_COUNTS;  // just make sure for now.
 		
-		targetPosition += encoderOffset;
+//		targetPosition += encoderOffset;
+//		
+//		SmartDashboard.putNumber("Target Position " + ID, targetPosition);
+//		final int currentPosition = steer.getSelectedSensorPosition(steerPid.pidIdx);
+//		while(Math.abs(targetPosition - currentPosition) > ENCODER_COUNTS / 2){ // finds the quickest route
+//			if(targetPosition > currentPosition){
+//				targetPosition -= ENCODER_COUNTS;
+//			} else { // targetPosition < currentPosition
+//				targetPosition += ENCODER_COUNTS;
+//			}
+//		}
+		
+		// Convert the input into 0 to 359
+		double actualPosition = position % 360;
+		actualPosition = actualPosition < 0 ? actualPosition + 360 : actualPosition;
+		
+		// Convert to a percentage 0 - 1
+		double targetPosition = (actualPosition / 360);
 		
 		SmartDashboard.putNumber("Target Position " + ID, targetPosition);
-		final int currentPosition = steer.getSelectedSensorPosition(steerPid.pidIdx);
-		while(Math.abs(targetPosition - currentPosition) > ENCODER_COUNTS / 2){ // finds the quickest route
-			if(targetPosition > currentPosition){
-				targetPosition -= ENCODER_COUNTS;
-			} else { // targetPosition < currentPosition
-				targetPosition += ENCODER_COUNTS;
-			}
-		}
 		
-		// Use a direct calculation to handle encoder crossover - better than while loops :)
-		// TODO: handle multiple rotations
-//		int targetEncoderCounts = (int)(targetPosition * ENCODER_COUNTS / 360);
-//		final int currentEncoderCounts = steer.getSelectedSensorPosition(steerPid.pidIdx);
-//		final int countDifference = currentEncoderCounts - targetEncoderCounts;
+		// Convert desired position to encoder counts
+		int targetEncoderCounts = (int)(targetPosition * ENCODER_COUNTS);
+		
+		// Find the fastest path from the current position to the new position
+		final int currentEncoderCounts = steer.getSelectedSensorPosition(steerPid.pidIdx);
+		final int relativeEncoderCounts = currentEncoderCounts % ENCODER_COUNTS;
+		final int countDifference = relativeEncoderCounts - targetEncoderCounts;
+		
+		// Both of these methods work, but generally pure integer addition/subtraction is better 
+//		targetEncoderCounts = currentEncoderCounts - countDifference;
 //		
 //		if (countDifference > ENCODER_COUNTS / 2)
 //		{
 //			targetEncoderCounts += ENCODER_COUNTS;
 //		}
-//		else if (countDifference < -(ENCODER_COUNTS / 2))
+//		else if (countDifference < -ENCODER_COUNTS / 2)
 //		{
 //			targetEncoderCounts -= ENCODER_COUNTS;
 //		}
@@ -143,19 +161,11 @@ public class SwerveModule {
 //		{
 //			// nothing to do
 //		}
+		
+		targetEncoderCounts += (int) Math.round((currentEncoderCounts - targetEncoderCounts) / (double) ENCODER_COUNTS) * ENCODER_COUNTS;
+		
+		// Command a new steering position
 		steer.set(ControlMode.Position, targetEncoderCounts);
-		
-		
-		// Convert position to voltage
-		//double targetPosition = position % 360;  // returns remainder, can be -359 to 360 (excluding 360)
-		//targetPosition = targetPosition < 0 ? targetPosition + 360 : targetPosition;  // makes it 0 to 360	
-		
-		//double targetEncoder = (targetPosition / 360) * 910;
-		
-		//SmartDashboard.putNumber("Target Position " + ID, targetEncoder);
-
-		// Set the steer motor controller to the desired position
-		steer.set(ControlMode.Position, targetPosition);
 
 	}
 
@@ -174,7 +184,10 @@ public class SwerveModule {
 	}
 	
 	public void debug() {	
-		SmartDashboard.putNumber("Encoder " + ID, this.steer.getSelectedSensorPosition(0));
+		SensorCollection x = new SensorCollection(steer);
+		SmartDashboard.putNumber("Raw Analog " + ID, x.getAnalogInRaw());
+		SmartDashboard.putNumber("Encoder" + ID, this.steer.getSelectedSensorPosition(0));
+		
 	}
 	
 	private void UpdateDrivePid(PidParameters pid) {
@@ -193,8 +206,6 @@ public class SwerveModule {
 		steer.config_kI(steerPid.pidIdx, steerPid.KI, Constants.TimeoutMs);
 		steer.config_kD(steerPid.pidIdx, steerPid.KD, Constants.TimeoutMs);
 		steer.config_kF(steerPid.pidIdx, steerPid.KF, Constants.TimeoutMs);
-
-//		steer.setSelectedSensorPosition((90 / 360) * 4096, steerPid.pidIdx, Constants.TimeoutMs); // will this work?
 	}
 
 }

@@ -60,12 +60,12 @@ public class Robot extends IterativeRobot {
 		steerPid = new PidParameters();
 		//steerPid.KF = 0.3;
 		steerPid.KP = 2;
-		//steerPid.KI = 0.001;
+		steerPid.KI = 0.001;
 		
-		final double flOffset = 111;
-		final double frOffset = 515; 
-		final double rlOffset = 276;
-		final double rrOffset = 760;
+		final int flOffset = 111;
+		final int frOffset = 520; 
+		final int rlOffset = 276; // TODO: Set this!
+		final int rrOffset = 750;
 		
 		// Initialize the drive by passing in new TalonSRXs for each drive and steer motor
 		drive = new SwerveDrive(

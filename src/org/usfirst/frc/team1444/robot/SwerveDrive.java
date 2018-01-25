@@ -22,7 +22,7 @@ public class SwerveDrive {
 	                   BaseMotorController rlDrive, BaseMotorController rlSteer,
 	                   BaseMotorController rrDrive, BaseMotorController rrSteer,
 	                   PidParameters drivePid, PidParameters steerPid,
-	                   double flOffset, double frOffset, double rlOffset, double rrOffset) {
+	                   int flOffset, int frOffset, int rlOffset, int rrOffset) {
 
 		moduleArray = new SwerveModule[]{
 				new SwerveModule(flDrive, flSteer, drivePid, steerPid, -1, 1, 0, flOffset),
