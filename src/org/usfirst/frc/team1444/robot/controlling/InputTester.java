@@ -16,11 +16,11 @@ public class InputTester implements RobotController {
 				controller.rightThumbTop(), controller.rightThumbBottom(),
 				controller.rightThumbLeft(), controller.rightThumbRight()));
 		SmartDashboard.putString("lstick (x, y)", String.format("x: %s y: %s",
-				controller.leftStickHorizontal(),
-				controller.leftStickVertical()));
+				controller.leftStickX(),
+				controller.leftStickY()));
 		SmartDashboard.putString("rstick (x, y)", String.format("x: %s y: %s",
-				controller.rightStickHorizontal(),
-				controller.rightStickVertical()));
+				controller.rightStickX(),
+				controller.rightStickY()));
 		SmartDashboard.putString("lb, rb", String.format("%s, %s", controller.leftBumper(), controller.rightBumper()));
 	}
 }

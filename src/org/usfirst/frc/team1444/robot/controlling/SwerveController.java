@@ -1,23 +1,13 @@
 package org.usfirst.frc.team1444.robot.controlling;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import org.usfirst.frc.team1444.robot.Constants;
 import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.SwerveDrive;
 
 public class SwerveController implements RobotController {
-
-	// TODO: find proper deadbands // Also decide if we want to put these values in Constants
-
-	// Deadband for main drive velocity input
-	private static final double kTriggerDeadband = 0.05;
-	// Deadband for direction input
-	private static final double kDirectionDeadband = 0.05;
-	// Deadband for rotation rate input
-	private static final double kRotationRateDeadband = 0.3;  // big because only change direction if hyp big enough
-
+	private static final Double DEFAULT_DIRECTION = 90.0; // the default direction to go to when joystick isn't touched
 
 	private ControllerInput controller;
-
 
 	public SwerveController(ControllerInput controller){
 		this.controller = controller;
@@ -39,28 +29,32 @@ public class SwerveController implements RobotController {
 	 * @param drive the SwerveDrive object
 	 */
 	private void drive(SwerveDrive drive) {
-		final double scaleAmount = 0.4;
-		final double powAmount = 2;
 
-		double right = rightTrigger(), left = leftTrigger();
-		// Linear velocity of robot is determined by the combination of the left and right triggers		
-		double speed = Math.pow(right, powAmount) - Math.pow(left, powAmount); // right is forward
-//		speed *= scaleAmount;
-		SmartDashboard.putString("right, left, speed", right + ", " + left + ", " + speed);
+		// ========== Calculate speed ==========
+		boolean isFineMovement = isFineMovement(); // are we going to move really slow?
+		final double powAmount = isFineMovement ? 1 : 2; // if fine, make acceleration linear
 
+		double right = rightTrigger(); // forward speed (will be added to backwards)
+		double left = leftTrigger(); // backwards speed
+		double speed = Math.pow(right, powAmount) - Math.pow(left, powAmount);
+		if(isFineMovement){
+			speed *= Constants.FineScaleAmount;
+		}
+
+
+		// ========== Calculate direction of wheels ==========
 		// Direction is determined by the vector produced by the left joystick
-		double x = leftStickHorizontal(); // these values don't have a deadband applied yet
-		double y = leftStickVertical();
+		double x = leftStickX(); // these values don't have a deadband applied yet
+		double y = leftStickY();
 
-		// If there is no valid input from the left joystick, just steer ahead which is defined as 90 degrees
-		Double direction = 90.0;  // TODO decide if we want this to be null or 90 degrees.
-
-		// If controller input is valid, calculate the angle of the joystick
-		if (Math.hypot(x, y) > kDirectionDeadband) {
+		Double direction = DEFAULT_DIRECTION;
+		if(shouldKeepPosition()){
+			direction = null; // Do we want to lock the position that is currently requested
+		} else if (Math.hypot(x, y) > Constants.DirectionDeadband) {
 			direction = Math.toDegrees(Math.atan2(y, x)); // even if negative, fixed at lower level
 		}
 
-//		System.out.println("X,Y,D" + x + "," + y + "," + direction); // if uncomment, cast direction to int
+
 		// Rotation rate is based fully on right joystick
 		double turnAmount = rightStickHorizontal();
 
@@ -72,17 +66,16 @@ public class SwerveController implements RobotController {
 	private double rightTrigger() {
 		double value = controller.rightTrigger();
 
-		if (Math.abs(value) < kTriggerDeadband) {
+		if (Math.abs(value) < Constants.TriggerDeadband) {
 			value = 0;
 		}
 
 		return value;
 	}
-
 	private double leftTrigger() {
 		double value = controller.leftTrigger();
 
-		if (Math.abs(value) < kTriggerDeadband) {
+		if (Math.abs(value) < Constants.TriggerDeadband) {
 			value = 0;
 		}
 
@@ -90,21 +83,31 @@ public class SwerveController implements RobotController {
 	}
 
 	// Even though these methods don't use a deadband, we'll still keep them to keep our nice abstractions
-	private double leftStickHorizontal() {
-		return this.controller.leftStickHorizontal();
+	private double leftStickX() {
+		return controller.leftStickX();
 	}
-
-	private double leftStickVertical() {
-		return this.controller.leftStickVertical();
+	private double leftStickY() {
+		return controller.leftStickY();
 	}
 
 	private double rightStickHorizontal() {
-		double value = controller.rightStickHorizontal();
+		double value = controller.rightStickX();
 
-		if (Math.abs(value) < kRotationRateDeadband) {
+		if (Math.abs(value) < Constants.RotationRateDeadband) {
 			value = 0;
 		}
 
 		return value;
+	}
+
+	private boolean isFineMovement(){
+		return controller.leftBumper();
+	}
+
+	/**
+	 * @return whether or not the direction should be locked.
+	 */
+	private boolean shouldKeepPosition(){
+		return controller.rightThumbBottom();
 	}
 }
