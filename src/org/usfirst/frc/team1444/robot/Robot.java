@@ -22,8 +22,8 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
  * project.
  */
 public class Robot extends IterativeRobot {
-	private static final String DEFAULT_AUTO = "Default";  // I'm not sure how we will use these
-	private static final String CUSTOM_AUTO = "My Auto";
+	private static final String DEFAULT_AUTO = "Default";	// Boring default autonomous
+	private static final String RAMPAGE_AUTO = "RAMPAGE";	// RAMPAGE
 	private String autoSelected;
 	private SendableChooser<String> chooser = new SendableChooser<>();
 
@@ -34,13 +34,6 @@ public class Robot extends IterativeRobot {
 	
 	private PidParameters drivePid;
 	private PidParameters steerPid;
-	
-//	// Maximum allowed rotation rate in deg/s
-//	public final double maximumRotationRate = 1; // TODO move these constants to SwerveModule because that's where
-													// we'll handle these values and convert stuff
-//
-//	// Maximum allowed linear speed in ft/s
-//	public final double maximumLinearSpeed = 11.5;
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
 		super();
@@ -58,7 +51,6 @@ public class Robot extends IterativeRobot {
 		drivePid.KP = 1;
 		
 		steerPid = new PidParameters();
-		//steerPid.KF = 0.3;
 		steerPid.KP = 2;
 		steerPid.KI = 0.001;
 		
@@ -76,8 +68,9 @@ public class Robot extends IterativeRobot {
 				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset);
 		this.setRobotController(null);
 
+		// Setup dashboard chooser
 		chooser.addDefault("Default Auto", DEFAULT_AUTO);
-		chooser.addObject("My Auto", CUSTOM_AUTO);
+		chooser.addObject("RAMPAGE", RAMPAGE_AUTO);
 		SmartDashboard.putData("Auto choices", chooser);
 		
 	}
@@ -121,7 +114,6 @@ public class Robot extends IterativeRobot {
 		autoSelected = chooser.getSelected();
 		// autoSelected = SmartDashboard.getString("Auto Selector",
 		// defaultAuto);
-		System.out.println("Auto selected: " + autoSelected);
 	}
 
 	/**
@@ -130,12 +122,12 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void autonomousPeriodic() {
 		switch (autoSelected) {
-			case CUSTOM_AUTO:
-				// Put custom auto code here
+			case RAMPAGE_AUTO:
+				// RAMPAGE
 				break;
 			case DEFAULT_AUTO:
 			default:
-				// Put default auto code here
+				// Boring default auto
 				break;
 		}
 	}
