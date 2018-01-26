@@ -27,6 +27,8 @@ public final class Constants {
 	// Digital Outputs
 	
 	// Digital Inputs
+		// Boom down limit
+		// Boom up limit
 	
 	// Analog Inputs
 	
@@ -37,7 +39,7 @@ public final class Constants {
 	// Drive Motor Constants
 	public static final int CtreUnitConversion = 600; // Conversion to CTRE units of 100 units/ms
 	public static final int MaxCimRpm = 5300;
-	public static final int CimCoderCountsPerRev = 80;
+	public static final int CimCoderCountsPerRev = 80;	// Talon SRX counts every edge of the quadrature encoder, so 4 * 20
 	
 	// Controls
 	public static final double DriveDeadBand = 0.1; 

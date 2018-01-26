@@ -10,10 +10,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 // SwerveModule defines one corner of a swerve drive
 // Two motor controllers are defined, drive and steer
 public class SwerveModule {
-	private static final int ENCODER_COUNTS = 1024;//(int) 3.3 * 360;
+	private static final int ENCODER_COUNTS = 1024;
 	/** If the requested encoder counts after converting is bigger than this, go back to 0 to avoid deadband */
 	private static final int MAX_ENCODER_COUNTS = 890;
-
 
 	private BaseMotorController drive;
 	private BaseMotorController steer;
@@ -46,36 +45,30 @@ public class SwerveModule {
 		this.drive = drive;
 		this.steer = steer;
 
+		// Cartesian position of module on robot
 		this.x = x;
 		this.y = y;
 		
+		// Unique ID for this module - mainly used for debugging
 		this.ID = id;
 		
+		// Manully measured encoder offset
 		this.encoderOffset = offset;
-
 		
-		// Set the Drive motor to use an incremental encoder
+		// Set the Drive motor to use an incremental encoder (CIMcoder)
 		this.drive.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, Constants.PidIdx, Constants.TimeoutMs);
-		this.drive.configNominalOutputForward(0, Constants.TimeoutMs);
-		this.drive.configNominalOutputReverse(0, Constants.TimeoutMs);
-		this.drive.configPeakOutputForward(1, Constants.TimeoutMs);
-		this.drive.configPeakOutputReverse(-1, Constants.TimeoutMs);
 		
 		// Set the Drive encoder phase
 		this.drive.setSensorPhase(false);
 		
-		// Set the Drive motor to use an absolute encoder
-		
-		//int absoluteSteerPosition = this.steer.getSelectedSensorPosition(Constants.PidIdx);
-		//this.steer.setSelectedSensorPosition(absoluteSteerPosition, Constants.PidIdx, Constants.TimeoutMs);
-		
+		// Set steer motor to use an MA3 absolute encoder
 		this.steer.configSelectedFeedbackSensor(FeedbackDevice.Analog, Constants.PidIdx, Constants.TimeoutMs);
 		this.steer.configSetParameter(ParamEnum.eFeedbackNotContinuous, 0, 0, 0, Constants.TimeoutMs);
 		
-		// Zero encoder reading
-		SensorCollection collection = new SensorCollection(this.steer);
+		// Zero encoder reading by applying the premeasured offsets
+		this.steerSensorCollection = new SensorCollection(this.steer);
 		
-		this.steer.setSelectedSensorPosition(collection.getAnalogInRaw() - this.encoderOffset, Constants.PidIdx, Constants.TimeoutMs);
+		this.steer.setSelectedSensorPosition(this.steerSensorCollection.getAnalogInRaw() - this.encoderOffset, Constants.PidIdx, Constants.TimeoutMs);
 		
 		// Set the Steer encoder phase
 		this.steer.setSensorPhase(false);
@@ -91,6 +84,9 @@ public class SwerveModule {
 	public double getY(){ return y; }
 
 	public int getID() { return ID; }
+	
+	private int currentEncoderCount = 0;
+	private SensorCollection steerSensorCollection;
 
 	
 	/**
@@ -101,8 +97,6 @@ public class SwerveModule {
 		
 		// Convert input percentage to CTRE units/100ms		
 		double targetSpeed = (speed * Constants.CimCoderCountsPerRev * Constants.MaxCimRpm) / Constants.CtreUnitConversion;
-		
-		SmartDashboard.putNumber("Speed " + ID, targetSpeed);
 		
 		// Update the drive PID setpoints
 		drive.set(ControlMode.Velocity, targetSpeed);
@@ -121,39 +115,14 @@ public class SwerveModule {
 		// Convert to a percentage 0 - 1
 		double targetPosition = (actualPosition / 360);
 		
-		SmartDashboard.putNumber("Target Position " + ID, targetPosition);
-		
 		// Convert desired position to encoder counts
 		int targetEncoderCounts = (int)(targetPosition * ENCODER_COUNTS);
 		
 		// Find the fastest path from the current position to the new position
-		final int currentEncoderCounts = steer.getSelectedSensorPosition(steerPid.pidIdx);
-		final int relativeEncoderCounts = currentEncoderCounts % ENCODER_COUNTS;
-		final int countDifference = relativeEncoderCounts - targetEncoderCounts;
+		currentEncoderCount = steer.getSelectedSensorPosition(steerPid.pidIdx);
 		
-		// Both of these methods work, but generally pure integer addition/subtraction is better 
-//		targetEncoderCounts = currentEncoderCounts - countDifference;
-//		
-//		if (countDifference > ENCODER_COUNTS / 2)
-//		{
-//			targetEncoderCounts += ENCODER_COUNTS;
-//		}
-//		else if (countDifference < -ENCODER_COUNTS / 2)
-//		{
-//			targetEncoderCounts -= ENCODER_COUNTS;
-//		}
-//		else
-//		{
-//			// nothing to do
-//		}
-
-//		if(targetEncoderCounts > MAX_ENCODER_COUNTS){
-//			targetEncoderCounts = 0; // avoid deadband
-//		} else if (targetEncoderCounts < 10){
-//			targetEncoderCounts = 10; // avoid smaller deadband that's around 0
-//		}
-		
-		targetEncoderCounts += (int) Math.round((currentEncoderCounts - targetEncoderCounts) / (double) ENCODER_COUNTS) * ENCODER_COUNTS;
+		// Add rotation offset factoring in the number of rotations (either positive or negative)
+		targetEncoderCounts += (int) Math.round((currentEncoderCount - targetEncoderCounts) / (double) ENCODER_COUNTS) * ENCODER_COUNTS;
 		
 		// Command a new steering position
 		steer.set(ControlMode.Position, targetEncoderCounts);
@@ -166,8 +135,7 @@ public class SwerveModule {
 	 * @param speed Desired speed in a percent (-1 to 1) Will eventually be converted to ft/s
 	 * @param position Desired position of module in degrees: 0 - 360
 	 */
-	@Deprecated  // Since we don't need this method, I think we can remove it. If not, remove deprecation
-	public void update(double speed, double position){
+	public void update(double speed, double position) {
 
 		this.setSpeed(speed);
 		this.setPosition(position);
@@ -175,9 +143,11 @@ public class SwerveModule {
 	}
 	
 	public void debug() {	
-		SensorCollection x = new SensorCollection(steer);
-		SmartDashboard.putNumber("Raw Analog " + ID, x.getAnalogInRaw());
-		SmartDashboard.putNumber("Encoder" + ID, this.steer.getSelectedSensorPosition(0));
+		// Get the raw analog encoder count (can be removed later once drive is sorted out)
+		SmartDashboard.putNumber("Raw Analog " + ID, this.steerSensorCollection.getAnalogInRaw());
+		
+		// Print the current, measured encoder count
+		SmartDashboard.putNumber("Encoder " + ID, currentEncoderCount);
 		
 	}
 	
