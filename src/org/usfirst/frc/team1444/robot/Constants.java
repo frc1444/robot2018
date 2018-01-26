@@ -39,8 +39,11 @@ public final class Constants {
 	public static final int MaxCimRpm = 5300;
 	public static final int CimCoderCountsPerRev = 80;
 	
-	// Controls
-	public static final double DriveDeadBand = 0.1; 
-	public static final double SteerDeadBand = 0.1;
 
+	// Controls
+	public static final double TriggerDeadband = 0.05; // Deadband for main drive velocity input
+	public static final double DirectionDeadband = 0.05; // Deadband for direction input
+	public static final double RotationRateDeadband = 0.3;  // big because only change direction if hyp big enough
+
+	public static final double FineScaleAmount = .3;
 }

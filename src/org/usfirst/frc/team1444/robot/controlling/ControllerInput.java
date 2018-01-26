@@ -15,13 +15,12 @@ public interface ControllerInput {
 	boolean rightBumper();
 
 	int dPad();
-	//double dPadHorizontal();
 
-	double leftStickVertical();
-	double leftStickHorizontal();
+	double leftStickY();
+	double leftStickX();
 
-	double rightStickVertical();
-	double rightStickHorizontal();
+	double rightStickY();
+	double rightStickX();
 
 	/**
 	 * @return A number from 0 to 1

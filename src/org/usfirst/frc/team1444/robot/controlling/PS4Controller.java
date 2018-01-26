@@ -68,22 +68,22 @@ public class PS4Controller implements ControllerInput {
 	}
 
 	@Override
-	public double leftStickVertical() {
+	public double leftStickY() {
 		return -stick.getRawAxis(kLeftStickVertical);
 	}
 
 	@Override
-	public double leftStickHorizontal() {		
+	public double leftStickX() {
 		return stick.getRawAxis(kLeftStickHorizontal);
 	}
 
 	@Override
-	public double rightStickVertical() {
+	public double rightStickY() {
 		return -stick.getRawAxis(kRightStickVertical);
 	}
 
 	@Override
-	public double rightStickHorizontal() {
+	public double rightStickX() {
 		return stick.getRawAxis(kRightStickHorizontal);
 	}
 
