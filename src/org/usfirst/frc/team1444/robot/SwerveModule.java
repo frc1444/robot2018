@@ -10,7 +10,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 // SwerveModule defines one corner of a swerve drive
 // Two motor controllers are defined, drive and steer
 public class SwerveModule {
-	public static final int ENCODER_COUNTS = 1024;//(int) 3.3 * 360;
+	private static final int ENCODER_COUNTS = 1024;//(int) 3.3 * 360;
+	/** If the requested encoder counts after converting is bigger than this, go back to 0 to avoid deadband */
+	private static final int MAX_ENCODER_COUNTS = 890;
 
 
 	private BaseMotorController drive;
@@ -112,23 +114,6 @@ public class SwerveModule {
 	 */
 	public void setPosition(double position){
 		
-		//position %= 360;  // returns remainder, can be -359 to 360 (excluding 360)
-		//position = position < 0 ? position + 360 : position;  // makes it 0 to 360
-		//double targetPosition = ((position) / 360) * ENCODER_COUNTS; // a number 0 to 4096 excluding 4096
-		//assert 0 <= targetPosition && targetPosition < ENCODER_COUNTS;  // just make sure for now.
-		
-//		targetPosition += encoderOffset;
-//		
-//		SmartDashboard.putNumber("Target Position " + ID, targetPosition);
-//		final int currentPosition = steer.getSelectedSensorPosition(steerPid.pidIdx);
-//		while(Math.abs(targetPosition - currentPosition) > ENCODER_COUNTS / 2){ // finds the quickest route
-//			if(targetPosition > currentPosition){
-//				targetPosition -= ENCODER_COUNTS;
-//			} else { // targetPosition < currentPosition
-//				targetPosition += ENCODER_COUNTS;
-//			}
-//		}
-		
 		// Convert the input into 0 to 359
 		double actualPosition = position % 360;
 		actualPosition = actualPosition < 0 ? actualPosition + 360 : actualPosition;
@@ -160,6 +145,12 @@ public class SwerveModule {
 //		else
 //		{
 //			// nothing to do
+//		}
+
+//		if(targetEncoderCounts > MAX_ENCODER_COUNTS){
+//			targetEncoderCounts = 0; // avoid deadband
+//		} else if (targetEncoderCounts < 10){
+//			targetEncoderCounts = 10; // avoid smaller deadband that's around 0
 //		}
 		
 		targetEncoderCounts += (int) Math.round((currentEncoderCounts - targetEncoderCounts) / (double) ENCODER_COUNTS) * ENCODER_COUNTS;
