@@ -98,12 +98,10 @@ public class SwerveDrive {
 	 */
 	private void regularDrive(double speed, double turnAmount){
 
-
 		final double rotationInRadians = Math.toRadians(this.rotation);
 		final SwerveModule[] modules = this.getModules();
 		final int length = modules.length;
 
-		// Variables for speeds
 		double[] speeds = new double[length];  // array of speeds all with a positive sign or 0
 		double maxSpeed = 1;  // can be divided by to scale speeds down if some speeds are > 1.0 (set in for loop)
 
