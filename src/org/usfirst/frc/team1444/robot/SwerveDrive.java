@@ -2,9 +2,6 @@ package org.usfirst.frc.team1444.robot;
 
 import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import javafx.scene.transform.Rotate;
-import javafx.geometry.Point2D;
-
 
 // SwerveDrive defines the drive for the entire robot
 // This class will take control input and assign motor outputs
@@ -28,10 +25,10 @@ public class SwerveDrive {
 	                   int flOffset, int frOffset, int rlOffset, int rrOffset) {
 
 		moduleArray = new SwerveModule[]{
-				new SwerveModule(flDrive, flSteer, drivePid, steerPid, new Point2D(-1, 1), 0, flOffset),
-				new SwerveModule(frDrive, frSteer, drivePid, steerPid, new Point2D(1, 1), 1, frOffset),
-				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, new Point2D(-1, -1), 2, rlOffset),
-				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, new Point2D(1, -1), 3, rrOffset)
+				new SwerveModule(flDrive, flSteer, drivePid, steerPid, -1, 1, 0, flOffset),
+				new SwerveModule(frDrive, frSteer, drivePid, steerPid, 1, 1, 1, frOffset),
+				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, -1, -1, 2, rlOffset),
+				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, 1, -1, 3, rrOffset)
 		};
 
 	}
@@ -78,13 +75,13 @@ public class SwerveDrive {
 		SmartDashboard.putNumber("SwerveDrive this.rotation", this.rotation);
 		SmartDashboard.putNumber("SwerveDrive turnAmount", turnAmount);
 
-//		if(turnAmount == 0 || speed != 0){
-//		    SmartDashboard.putString("drive method", "regularDrive");
-		regularDrive(speed, turnAmount);
-//		} else{
-//			SmartDashboard.putString("drive method", "rotateDrive");
-//			rotateDrive(turnAmount);
-//		}
+		if(turnAmount == 0 || speed != 0){
+			SmartDashboard.putString("drive method", "regularDrive");
+			regularDrive(speed, turnAmount);
+		} else{
+			SmartDashboard.putString("drive method", "rotateDrive");
+			rotateDrive(turnAmount);
+		}
 		
 		for(SwerveModule module : this.getModules()){
 			module.debug();  // Since I moved all the frontLeft etc variables, this for loop will do the trick.
@@ -98,31 +95,22 @@ public class SwerveDrive {
 	 * @param turnAmount A value from -1 to 1 representing how much the robot should rotate.
 	 */
 	private void regularDrive(double speed, double turnAmount){
-		// This method uses classes from javafx.geometry and javafx.scene.transform which use degrees
 
-//		this.rotateAll(this.rotation); // do this below
+		this.rotateAll(this.rotation);
 
+		final double angle = Math.toRadians(-this.rotation);
 		final SwerveModule[] modules = this.getModules();
 		final int length = modules.length;
 
-		// Variables for speeds
 		double[] speeds = new double[length];  // array of speeds all with a positive sign or 0
 		double maxSpeed = 1;  // can be divided by to scale speeds down if some speeds are > 1.0
-
-		// Variables for angles
-		double centerMagnitude = (Math.abs(speed) * -3 * Math.signum(turnAmount));
-		Point2D centerOfRotation = new Point2D(0, centerMagnitude);
-		Rotate centerPointRotate = new Rotate(this.rotation);
-		centerOfRotation = centerPointRotate.transform(centerOfRotation);
-
 		for(int i = 0; i < length; i++){
 			SwerveModule module = modules[i];
+			double x = module.getX();
+			double y = module.getY();
 
-			// ========== Calculate speed ==========
-			Rotate speedRotate = new Rotate(-this.rotation); // notice the -this.rotation
-			Point2D result = speedRotate.transform(module.getLocation());
-
-			double newY = result.getY() * -1;
+			double newY = (x * Math.sin(angle)) + (y * Math.cos(angle)); // around values between -1 and 1
+			newY *= -1;  // after multiplying, -1 means module on left, 1 means module on right
 
 			double subtractAmount = newY * turnAmount;  // The amount of speed to take away (in a percent)
 			SmartDashboard.putString("id : " + module.getID() + "newY, subtractAmount",
@@ -132,18 +120,8 @@ public class SwerveDrive {
 			if(absSpeed > maxSpeed){
 				maxSpeed = absSpeed;
 			}
+
 			speeds[i] = absSpeed;  // add absSpeed to speed array which will be set in for loop below
-
-			// ========== Calculate angles ==========
-			if(turnAmount != 0) {
-				Point2D relativeLocation = module.getLocation().subtract(centerOfRotation);
-				double angle = Math.toDegrees(Math.atan2(relativeLocation.getY(), relativeLocation.getX()));
-//				module.setPosition(angle + 90);
-				module.setPosition((this.rotation * (1 - turnAmount)) + ((angle + 90) * (turnAmount)));
-			} else { // If we aren't turning at all, don't do unnecessary atan2 calculation
-				module.setPosition(this.rotation);
-			}
-
 		}
 		SmartDashboard.putNumber("regularDrive maxSpeed", maxSpeed);
 		for(int i = 0; i < length; i++){ // simple for loop to set speeds from variable 'speeds'

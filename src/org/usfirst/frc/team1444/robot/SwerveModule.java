@@ -6,13 +6,13 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.SensorCollection;
 import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import javafx.geometry.Point2D;
-
 
 // SwerveModule defines one corner of a swerve drive
 // Two motor controllers are defined, drive and steer
 public class SwerveModule {
 	private static final int ENCODER_COUNTS = 1024;
+	/** If the requested encoder counts after converting is bigger than this, go back to 0 to avoid deadband */
+	private static final int MAX_ENCODER_COUNTS = 890;
 
 	private BaseMotorController drive;
 	private BaseMotorController steer;
@@ -20,8 +20,7 @@ public class SwerveModule {
 	private PidParameters drivePid;
 	private PidParameters steerPid;
 
-//	private double x, y;
-	private Point2D location;
+	private double x, y;
 	
 	private int ID;
 	
@@ -34,20 +33,22 @@ public class SwerveModule {
 	 * @param steer The steer motor that is used to steer/rotate the wheel
 	 * @param drivePid PidParameters for the drive motor
 	 * @param steerPid PidParameters for the steer motor
-	 * @param location The location of the wheel, usually a Point2D.Double
+	 * @param x The x coordinate relative to the center of the robot. Normally 1 or -1
+	 * @param y The y coordinate relative to the center of the robot. Normally 1 or -1
 	 * @param id An integer to easily identify the module while debugging. Should start at 0
 	 */
 	public SwerveModule(BaseMotorController drive, BaseMotorController steer,
-			PidParameters drivePid, PidParameters steerPid,
-			Point2D location,
+			PidParameters drivePid, PidParameters steerPid, 
+			double x, double y,
 			int id, int offset) {
 		
 		this.drive = drive;
 		this.steer = steer;
 
 		// Cartesian position of module on robot
-		this.location = location;
-
+		this.x = x;
+		this.y = y;
+		
 		// Unique ID for this module - mainly used for debugging
 		this.ID = id;
 		
@@ -79,14 +80,8 @@ public class SwerveModule {
 		this.UpdateSteerPid(steerPid);
 	}
 
-//	public double getX(){ return x; }
-//	public double getY(){ return y; }
-
-	/**
-	 * Note that this object is mutable
-	 * @return returns the Cartesian location that the module is located.
-	 */
-	public Point2D getLocation(){ return location; }
+	public double getX(){ return x; }
+	public double getY(){ return y; }
 
 	public int getID() { return ID; }
 	
