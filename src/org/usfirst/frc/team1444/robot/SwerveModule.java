@@ -6,8 +6,8 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.SensorCollection;
 import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import javafx.geometry.Point2D;
 
+import java.awt.geom.Point2D;
 
 // SwerveModule defines one corner of a swerve drive
 // Two motor controllers are defined, drive and steer

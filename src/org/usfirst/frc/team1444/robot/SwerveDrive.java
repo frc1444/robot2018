@@ -2,8 +2,9 @@ package org.usfirst.frc.team1444.robot;
 
 import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import javafx.scene.transform.Rotate;
-import javafx.geometry.Point2D;
+
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 
 
 // SwerveDrive defines the drive for the entire robot
@@ -28,10 +29,10 @@ public class SwerveDrive {
 	                   int flOffset, int frOffset, int rlOffset, int rrOffset) {
 
 		moduleArray = new SwerveModule[]{
-				new SwerveModule(flDrive, flSteer, drivePid, steerPid, new Point2D(-1, 1), 0, flOffset),
-				new SwerveModule(frDrive, frSteer, drivePid, steerPid, new Point2D(1, 1), 1, frOffset),
-				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, new Point2D(-1, -1), 2, rlOffset),
-				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, new Point2D(1, -1), 3, rrOffset)
+				new SwerveModule(flDrive, flSteer, drivePid, steerPid, new Point2D.Double(-1, 1), 0, flOffset),
+				new SwerveModule(frDrive, frSteer, drivePid, steerPid, new Point2D.Double(1, 1), 1, frOffset),
+				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, new Point2D.Double(-1, -1), 2, rlOffset),
+				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, new Point2D.Double(1, -1), 3, rrOffset)
 		};
 
 	}
@@ -102,6 +103,7 @@ public class SwerveDrive {
 
 //		this.rotateAll(this.rotation); // do this below
 
+		final double rotationInRadians = Math.toRadians(this.rotation);
 		final SwerveModule[] modules = this.getModules();
 		final int length = modules.length;
 
@@ -111,16 +113,21 @@ public class SwerveDrive {
 
 		// Variables for angles
 		double centerMagnitude = (Math.abs(speed) * -3 * Math.signum(turnAmount));
-		Point2D centerOfRotation = new Point2D(0, centerMagnitude);
-		Rotate centerPointRotate = new Rotate(this.rotation);
-		centerOfRotation = centerPointRotate.transform(centerOfRotation);
+		Point2D centerOfRotation = new Point2D.Double(0, centerMagnitude);
+		AffineTransform centerTransform = new AffineTransform();
+		centerTransform.rotate(rotationInRadians);
+		centerOfRotation = centerTransform.transform(centerOfRotation, null);
 
 		for(int i = 0; i < length; i++){
 			SwerveModule module = modules[i];
+			Point2D location = module.getLocation();
 
 			// ========== Calculate speed ==========
-			Rotate speedRotate = new Rotate(-this.rotation); // notice the -this.rotation
-			Point2D result = speedRotate.transform(module.getLocation());
+//			Rotate speedRotate = new Rotate(-this.rotation); // notice the -this.rotation
+//			Affine2D speedRotate = new Affine2D();
+			AffineTransform speedTransform = new AffineTransform();
+			speedTransform.rotate(-rotationInRadians);
+			Point2D result = speedTransform.transform(location, null);
 
 			double newY = result.getY() * -1;
 
@@ -136,7 +143,8 @@ public class SwerveDrive {
 
 			// ========== Calculate angles ==========
 			if(turnAmount != 0) {
-				Point2D relativeLocation = module.getLocation().subtract(centerOfRotation);
+				Point2D relativeLocation = new Point2D.Double(location.getX() - centerOfRotation.getX(),
+						location.getY() - centerOfRotation.getY());
 				double angle = Math.toDegrees(Math.atan2(relativeLocation.getY(), relativeLocation.getX()));
 //				module.setPosition(angle + 90);
 				module.setPosition((this.rotation * (1 - turnAmount)) + ((angle + 90) * (turnAmount)));
