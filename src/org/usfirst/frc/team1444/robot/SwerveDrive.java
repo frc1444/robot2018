@@ -118,6 +118,9 @@ public class SwerveDrive {
 		centerTransform.rotate(rotationInRadians);
 		centerOfRotation = centerTransform.transform(centerOfRotation, null);
 
+		SmartDashboard.putNumber("centerOfRotation x", centerOfRotation.getX());
+		SmartDashboard.putNumber("centerOfRotation y", centerOfRotation.getY());
+
 		for(int i = 0; i < length; i++){
 			SwerveModule module = modules[i];
 			Point2D location = module.getLocation();
@@ -147,7 +150,7 @@ public class SwerveDrive {
 						location.getY() - centerOfRotation.getY());
 				double angle = Math.toDegrees(Math.atan2(relativeLocation.getY(), relativeLocation.getX()));
 //				module.setPosition(angle + 90);
-				module.setPosition((this.rotation * (1 - turnAmount)) + ((angle + 90) * (turnAmount)));
+				module.setPosition((this.rotation * (1 - turnAmount)) + (angle * turnAmount));
 			} else { // If we aren't turning at all, don't do unnecessary atan2 calculation
 				module.setPosition(this.rotation);
 			}
