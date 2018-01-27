@@ -22,22 +22,27 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
  * project.
  */
 public class Robot extends IterativeRobot {
+	// For autonomousChooser
 	private static final String DEFAULT_AUTO = "Default";	// Boring default autonomous
 	private static final String RAMPAGE_AUTO = "RAMPAGE";	// RAMPAGE
-	private String autoSelected;
-	private SendableChooser<String> chooser = new SendableChooser<>();
+
+	// For controllerInputChooser
+	private static final String PS4_CONTROLLER = "PS4 Controller";
+	private static final String SINGLE_JOYSTICK = "Single Joystick";
+
+	private SendableChooser<String> autonomousChooser = new SendableChooser<>();
+
+	private SendableChooser<String> controllerInputChooser = new SendableChooser<>();
 
 	private SwerveDrive drive;
 	private RobotController robotController;  // use ***Init to change this to something that fits that mode
 
-	private final ControllerInput defaultController;
-	
+
 	private PidParameters drivePid;
 	private PidParameters steerPid;
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
 		super();
-		defaultController = new PS4Controller(1);  // set the default controller to a PS4Controller
 	}
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -68,10 +73,14 @@ public class Robot extends IterativeRobot {
 				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset);
 		this.setRobotController(null);
 
-		// Setup dashboard chooser
-		chooser.addDefault("Default Auto", DEFAULT_AUTO);
-		chooser.addObject("RAMPAGE", RAMPAGE_AUTO);
-		SmartDashboard.putData("Auto choices", chooser);
+		// Setup dashboard autonomousChooser
+		autonomousChooser.addDefault(DEFAULT_AUTO, DEFAULT_AUTO); // since DEFAULT_AUTO is a String, use for both
+		autonomousChooser.addObject(RAMPAGE_AUTO, RAMPAGE_AUTO);
+		SmartDashboard.putData("Auto choices", autonomousChooser);
+
+		controllerInputChooser.addDefault(PS4_CONTROLLER, PS4_CONTROLLER);
+		controllerInputChooser.addObject(SINGLE_JOYSTICK, SINGLE_JOYSTICK);
+		SmartDashboard.putData("Controller Type", controllerInputChooser);
 		
 	}
 
@@ -97,23 +106,9 @@ public class Robot extends IterativeRobot {
 		}
 	}
 
-	/**
-	 * This autonomous (along with the chooser code above) shows how to select
-	 * between different autonomous modes using the dashboard. The sendable
-	 * chooser code works with the Java SmartDashboard. If you prefer the
-	 * LabVIEW Dashboard, remove all of the chooser code and uncomment the
-	 * getString line to get the auto name from the text box below the Gyro
-	 * <p>
-	 * <p>You can add additional auto modes by adding additional comparisons to
-	 * the switch structure below with additional strings. If using the
-	 * SendableChooser make sure to add them to the chooser code above as well.
-	 */
 	@Override
 	public void autonomousInit() {
 		setRobotController(null);
-		autoSelected = chooser.getSelected();
-		// autoSelected = SmartDashboard.getString("Auto Selector",
-		// defaultAuto);
 	}
 
 	/**
@@ -121,7 +116,9 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		switch (autoSelected) {
+		// We probably won't but code in here. Probably do this in autonomousInit and check in here if we
+		// have the right robotController
+		switch (autonomousChooser.getSelected()) {
 			case RAMPAGE_AUTO:
 				// RAMPAGE
 				break;
@@ -134,7 +131,23 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopInit() {
-		robotController = new SwerveController(defaultController);
+		robotController = new SwerveController(createControllerInput(1));
+	}
+
+	/**
+	 * Uses controllerInputChooser to create the correct ControllerInput object
+	 */
+	private ControllerInput createControllerInput(int port){
+		String selected = controllerInputChooser.getSelected();
+		switch(selected){
+			case PS4_CONTROLLER:
+				return new PS4Controller(port);
+			case SINGLE_JOYSTICK:
+				return new SingleJoystickInput(port);
+			default:
+				break;
+		}
+		throw new RuntimeException("controllerInputChooser has selected: '" + selected + "'");
 	}
 
 	/**
