@@ -4,6 +4,7 @@ import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 
 
@@ -16,6 +17,7 @@ public class SwerveDrive {
 	private final SwerveModule[] moduleArray;
 	private double rotation;
 
+	private final Point2D origin;
 
 	/**
 	 * Initializes SwerveDrive and creates SwerveModules. Even though each parameter is a BaseMotorController,
@@ -34,6 +36,8 @@ public class SwerveDrive {
 				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, new Point2D.Double(-1, -1), 2, rlOffset),
 				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, new Point2D.Double(1, -1), 3, rrOffset)
 		};
+
+		this.origin = new Point2D.Double(0, 0);
 
 	}
 	
@@ -99,9 +103,6 @@ public class SwerveDrive {
 	 * @param turnAmount A value from -1 to 1 representing how much the robot should rotate.
 	 */
 	private void regularDrive(double speed, double turnAmount){
-		// This method uses classes from javafx.geometry and javafx.scene.transform which use degrees
-
-//		this.rotateAll(this.rotation); // do this below
 
 		final double rotationInRadians = Math.toRadians(this.rotation);
 		final SwerveModule[] modules = this.getModules();
@@ -109,30 +110,27 @@ public class SwerveDrive {
 
 		// Variables for speeds
 		double[] speeds = new double[length];  // array of speeds all with a positive sign or 0
-		double maxSpeed = 1;  // can be divided by to scale speeds down if some speeds are > 1.0
+		double maxSpeed = 1;  // can be divided by to scale speeds down if some speeds are > 1.0 (set in for loop)
 
 		// Variables for angles
-//		double centerMagnitude = (Math.abs(speed) * -3 * Math.signum(turnAmount));
-//		Point2D centerOfRotation = new Point2D.Double(0, centerMagnitude);
-//		AffineTransform centerTransform = new AffineTransform();
-//		centerTransform.rotate(rotationInRadians);
-//		centerOfRotation = centerTransform.transform(centerOfRotation, null);
-//
-//		SmartDashboard.putNumber("centerOfRotation x", centerOfRotation.getX());
-//		SmartDashboard.putNumber("centerOfRotation y", centerOfRotation.getY());
+		double centerMagnitude = (Math.abs(speed) * -5 * Math.signum(turnAmount));
+		Point2D centerOfRotation = new Point2D.Double(0, centerMagnitude);
+		AffineTransform centerTransform = new AffineTransform();
+		centerTransform.rotate(rotationInRadians);
+		centerOfRotation = centerTransform.transform(centerOfRotation, null);
+
 
 		for(int i = 0; i < length; i++){
 			SwerveModule module = modules[i];
 			Point2D location = module.getLocation();
 
 			// ========== Calculate speed ==========
-//			Rotate speedRotate = new Rotate(-this.rotation); // notice the -this.rotation
-//			Affine2D speedRotate = new Affine2D();
-			AffineTransform speedTransform = new AffineTransform();
+			AffineTransform speedTransform = new AffineTransform(); // works
 			speedTransform.rotate(-rotationInRadians);
 			Point2D result = speedTransform.transform(location, null);
 
-			double newY = result.getY() * -1;
+			double newY = result.getY() * -1; // after multiplying, when newY is -1, module on left, 1 means on right
+			// Note that |newY| may not always be < 1
 
 			double subtractAmount = newY * turnAmount;  // The amount of speed to take away (in a percent)
 			SmartDashboard.putString("id : " + module.getID() + "newY, subtractAmount",
@@ -145,25 +143,33 @@ public class SwerveDrive {
 			speeds[i] = absSpeed;  // add absSpeed to speed array which will be set in for loop below
 
 			// ========== Calculate angles ==========
-//			if(turnAmount != 0) {
-//				Point2D relativeLocation = new Point2D.Double(location.getX() - centerOfRotation.getX(),
-//						location.getY() - centerOfRotation.getY());
-//				double angle = Math.toDegrees(Math.atan2(relativeLocation.getY(), relativeLocation.getX()));
-////				module.setPosition(angle + 90);
+			if(turnAmount != 0) {
+				double angle = getAngleFromPoints(location, centerOfRotation, this.origin);
+				SmartDashboard.putNumber("pre angle; id: " + module.getID(), angle);
+
+				/*
+				 * This basically says if we are turning left, then use if statement if module is above the line
+				 * containing the points centerOfRotation and this.origin, otherwise use else statement.
+				 * If we are turning right, use the above logic, except flip which statement is fired
+				 */
+				if(turnAmount < 0 == result.getX() > 0){
+					angle = angle + 90;
+				} else {
+					angle = 90 - angle;
+				}
 //				module.setPosition((this.rotation * (1 - turnAmount)) + (angle * turnAmount));
-//			} else { // If we aren't turning at all, don't do unnecessary atan2 calculation
-//				module.setPosition(this.rotation);
-//			}
-			module.setPosition(this.rotation);
+				module.setPosition(angle);
+			} else { // If we aren't turning at all, don't do unnecessary atan2 calculation
+				module.setPosition(this.rotation);
+			}
 
 		}
-		SmartDashboard.putNumber("regularDrive maxSpeed", maxSpeed);
 		for(int i = 0; i < length; i++){ // simple for loop to set speeds from variable 'speeds'
 			SwerveModule module = modules[i];
 			double moduleSpeed = Math.signum(speed) * speeds[i];
 			moduleSpeed /= maxSpeed;  // scale the speed down if the max speed is high. maxSpeed is 1 most of the time
 			module.setSpeed(moduleSpeed);
-			SmartDashboard.putNumber("regularDrive module speed " + module.getID(), moduleSpeed);
+//			SmartDashboard.putNumber("regularDrive module speed " + module.getID(), moduleSpeed);
 		}
 	}
 
@@ -218,6 +224,26 @@ public class SwerveDrive {
 		for(SwerveModule module : moduleArray){
 			module.setPosition(position);
 		}
+	}
+
+	/**
+	 *
+	 * @param pointA makes up the line AB that intersects BC
+	 * @param pointB the point in which the angle will be returned
+	 * @param pointC makes up the line BC that intersects AB
+	 * @return The angle in degrees that the points make where pointA and pointC intersect at PointB
+	 */
+	private static double getAngleFromPoints(Point2D pointA, Point2D pointB, Point2D pointC){
+		double b = Point2D.distance(pointA.getX(), pointA.getY(), pointC.getX(), pointC.getY());
+		double a = Point2D.distance(pointB.getX(), pointB.getY(), pointC.getX(), pointC.getY());
+		double c = Point2D.distance(pointB.getX(), pointB.getY(), pointA.getX(), pointA.getY());
+
+		return Math.toDegrees(Math.acos(
+				(b*b - a*a - c*c) / (-2 * a * c)
+		));
+	}
+	private static String pointToString(Point2D point){
+		return String.format("(%s,%s)", point.getX(), point.getY());
 	}
 
 }
