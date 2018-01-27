@@ -3,6 +3,10 @@ package org.usfirst.frc.team1444.robot;
 import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+
+
 // SwerveDrive defines the drive for the entire robot
 // This class will take control input and assign motor outputs
 public class SwerveDrive {
@@ -25,10 +29,10 @@ public class SwerveDrive {
 	                   int flOffset, int frOffset, int rlOffset, int rrOffset) {
 
 		moduleArray = new SwerveModule[]{
-				new SwerveModule(flDrive, flSteer, drivePid, steerPid, -1, 1, 0, flOffset),
-				new SwerveModule(frDrive, frSteer, drivePid, steerPid, 1, 1, 1, frOffset),
-				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, -1, -1, 2, rlOffset),
-				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, 1, -1, 3, rrOffset)
+				new SwerveModule(flDrive, flSteer, drivePid, steerPid, new Point2D.Double(-1, 1), 0, flOffset),
+				new SwerveModule(frDrive, frSteer, drivePid, steerPid, new Point2D.Double(1, 1), 1, frOffset),
+				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, new Point2D.Double(-1, -1), 2, rlOffset),
+				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, new Point2D.Double(1, -1), 3, rrOffset)
 		};
 
 	}
@@ -98,19 +102,36 @@ public class SwerveDrive {
 
 		this.rotateAll(this.rotation);
 
-		final double angle = Math.toRadians(-this.rotation);
+		final double rotationInRadians = Math.toRadians(this.rotation);
 		final SwerveModule[] modules = this.getModules();
 		final int length = modules.length;
 
 		double[] speeds = new double[length];  // array of speeds all with a positive sign or 0
 		double maxSpeed = 1;  // can be divided by to scale speeds down if some speeds are > 1.0
+
+
+		// Variables for angles
+		double centerMagnitude = (Math.abs(speed) * -3 * Math.signum(turnAmount));
+		Point2D centerOfRotation = new Point2D.Double(0, centerMagnitude);
+		AffineTransform centerTransform = new AffineTransform();
+		centerTransform.rotate(rotationInRadians);
+		centerOfRotation = centerTransform.transform(centerOfRotation, null);
+
+		SmartDashboard.putNumber("centerOfRotation x", centerOfRotation.getX());
+		SmartDashboard.putNumber("centerOfRotation y", centerOfRotation.getY());
+
 		for(int i = 0; i < length; i++){
 			SwerveModule module = modules[i];
-			double x = module.getX();
-			double y = module.getY();
+			Point2D location = module.getLocation();
 
-			double newY = (x * Math.sin(angle)) + (y * Math.cos(angle)); // around values between -1 and 1
-			newY *= -1;  // after multiplying, -1 means module on left, 1 means module on right
+			// ========== Calculate speed ==========
+//			Rotate speedRotate = new Rotate(-this.rotation); // notice the -this.rotation
+//			Affine2D speedRotate = new Affine2D();
+			AffineTransform speedTransform = new AffineTransform();
+			speedTransform.rotate(-rotationInRadians);
+			Point2D result = speedTransform.transform(location, null);
+
+			double newY = result.getY() * -1;
 
 			double subtractAmount = newY * turnAmount;  // The amount of speed to take away (in a percent)
 			SmartDashboard.putString("id : " + module.getID() + "newY, subtractAmount",
@@ -122,6 +143,17 @@ public class SwerveDrive {
 			}
 
 			speeds[i] = absSpeed;  // add absSpeed to speed array which will be set in for loop below
+			// ========== Calculate angles ==========
+			if(turnAmount != 0) {
+				Point2D relativeLocation = new Point2D.Double(location.getX() - centerOfRotation.getX(),
+						location.getY() - centerOfRotation.getY());
+				double angle = Math.toDegrees(Math.atan2(relativeLocation.getY(), relativeLocation.getX()));
+//				module.setPosition(angle + 90);
+				module.setPosition((this.rotation * (1 - turnAmount)) + (angle * turnAmount));
+			} else { // If we aren't turning at all, don't do unnecessary atan2 calculation
+				module.setPosition(this.rotation);
+			}
+
 		}
 		SmartDashboard.putNumber("regularDrive maxSpeed", maxSpeed);
 		for(int i = 0; i < length; i++){ // simple for loop to set speeds from variable 'speeds'

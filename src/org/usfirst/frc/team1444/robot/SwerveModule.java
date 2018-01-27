@@ -7,6 +7,8 @@ import com.ctre.phoenix.motorcontrol.SensorCollection;
 import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import java.awt.geom.Point2D;
+
 // SwerveModule defines one corner of a swerve drive
 // Two motor controllers are defined, drive and steer
 public class SwerveModule {
@@ -20,8 +22,8 @@ public class SwerveModule {
 	private PidParameters drivePid;
 	private PidParameters steerPid;
 
-	private double x, y;
-	
+	private Point2D location;
+
 	private int ID;
 	
 	private int encoderOffset;
@@ -33,22 +35,19 @@ public class SwerveModule {
 	 * @param steer The steer motor that is used to steer/rotate the wheel
 	 * @param drivePid PidParameters for the drive motor
 	 * @param steerPid PidParameters for the steer motor
-	 * @param x The x coordinate relative to the center of the robot. Normally 1 or -1
-	 * @param y The y coordinate relative to the center of the robot. Normally 1 or -1
 	 * @param id An integer to easily identify the module while debugging. Should start at 0
 	 */
 	public SwerveModule(BaseMotorController drive, BaseMotorController steer,
-			PidParameters drivePid, PidParameters steerPid, 
-			double x, double y,
+			PidParameters drivePid, PidParameters steerPid,
+			Point2D location,
 			int id, int offset) {
 		
 		this.drive = drive;
 		this.steer = steer;
 
 		// Cartesian position of module on robot
-		this.x = x;
-		this.y = y;
-		
+		this.location = location;
+
 		// Unique ID for this module - mainly used for debugging
 		this.ID = id;
 		
@@ -80,8 +79,7 @@ public class SwerveModule {
 		this.UpdateSteerPid(steerPid);
 	}
 
-	public double getX(){ return x; }
-	public double getY(){ return y; }
+	public Point2D getLocation(){ return this.location; }
 
 	public int getID() { return ID; }
 	
