@@ -112,14 +112,14 @@ public class SwerveDrive {
 		double maxSpeed = 1;  // can be divided by to scale speeds down if some speeds are > 1.0
 
 		// Variables for angles
-		double centerMagnitude = (Math.abs(speed) * -3 * Math.signum(turnAmount));
-		Point2D centerOfRotation = new Point2D.Double(0, centerMagnitude);
-		AffineTransform centerTransform = new AffineTransform();
-		centerTransform.rotate(rotationInRadians);
-		centerOfRotation = centerTransform.transform(centerOfRotation, null);
-
-		SmartDashboard.putNumber("centerOfRotation x", centerOfRotation.getX());
-		SmartDashboard.putNumber("centerOfRotation y", centerOfRotation.getY());
+//		double centerMagnitude = (Math.abs(speed) * -3 * Math.signum(turnAmount));
+//		Point2D centerOfRotation = new Point2D.Double(0, centerMagnitude);
+//		AffineTransform centerTransform = new AffineTransform();
+//		centerTransform.rotate(rotationInRadians);
+//		centerOfRotation = centerTransform.transform(centerOfRotation, null);
+//
+//		SmartDashboard.putNumber("centerOfRotation x", centerOfRotation.getX());
+//		SmartDashboard.putNumber("centerOfRotation y", centerOfRotation.getY());
 
 		for(int i = 0; i < length; i++){
 			SwerveModule module = modules[i];
@@ -145,15 +145,16 @@ public class SwerveDrive {
 			speeds[i] = absSpeed;  // add absSpeed to speed array which will be set in for loop below
 
 			// ========== Calculate angles ==========
-			if(turnAmount != 0) {
-				Point2D relativeLocation = new Point2D.Double(location.getX() - centerOfRotation.getX(),
-						location.getY() - centerOfRotation.getY());
-				double angle = Math.toDegrees(Math.atan2(relativeLocation.getY(), relativeLocation.getX()));
-//				module.setPosition(angle + 90);
-				module.setPosition((this.rotation * (1 - turnAmount)) + (angle * turnAmount));
-			} else { // If we aren't turning at all, don't do unnecessary atan2 calculation
-				module.setPosition(this.rotation);
-			}
+//			if(turnAmount != 0) {
+//				Point2D relativeLocation = new Point2D.Double(location.getX() - centerOfRotation.getX(),
+//						location.getY() - centerOfRotation.getY());
+//				double angle = Math.toDegrees(Math.atan2(relativeLocation.getY(), relativeLocation.getX()));
+////				module.setPosition(angle + 90);
+//				module.setPosition((this.rotation * (1 - turnAmount)) + (angle * turnAmount));
+//			} else { // If we aren't turning at all, don't do unnecessary atan2 calculation
+//				module.setPosition(this.rotation);
+//			}
+			module.setPosition(this.rotation);
 
 		}
 		SmartDashboard.putNumber("regularDrive maxSpeed", maxSpeed);
