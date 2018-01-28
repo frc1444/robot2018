@@ -96,9 +96,10 @@ public class SwerveDrive {
 	 * @param speed A value from -1 to 1 representing the percent speed
 	 * @param turnAmount A value from -1 to 1 representing how much the robot should rotate. -1 is full left
 	 */
-	private void regularDrive(double speed, double turnAmount){
+	private void regularDrive(final double speed, final double turnAmount){
 
 
+		final double absSpeed = Math.abs(speed); // should be used below instead of typing Math.abs(speed)
 		final double rotationInRadians = Math.toRadians(this.rotation);
 		final SwerveModule[] modules = this.getModules();
 		final int length = modules.length;
@@ -107,15 +108,14 @@ public class SwerveDrive {
 		double maxSpeed = 1;  // can be divided by to scale speeds down if some speeds are > 1.0 (set in for loop)
 
 		// Variables for angles
-		Point2D centerOfRotation = null;
+		Point2D centerOfRotation = null; // if we aren't turning, this will be null
 		double centerDistanceToOrigin = 0; // should only be used if turnAmount != 0 or if centerOfRotation != null
 		if(turnAmount != 0){
 			double centerMagnitude; // = (Math.abs(speed) * -5 * Math.signum(turnAmount));
 			centerMagnitude = MAX_TURN_MAGNITUDE * (1 - Math.abs(turnAmount)) * -Math.signum(turnAmount);
-			if (speed < .1) {
-				centerMagnitude *= (speed / .1);
+			if (absSpeed < .1) {
+				centerMagnitude *= (absSpeed / .1);
 			}
-			SmartDashboard.putNumber("centerMagnitude", centerMagnitude);
 
 			centerOfRotation = new Point2D.Double(0, centerMagnitude);
 			AffineTransform centerTransform = new AffineTransform();
@@ -123,59 +123,66 @@ public class SwerveDrive {
 			centerOfRotation = centerTransform.transform(centerOfRotation, null);
 			centerDistanceToOrigin = centerOfRotation.distance(this.origin);
 		}
+		SmartDashboard.putString("centerOfRotation", centerOfRotation != null ? pointToString(centerOfRotation) : "null");
 
-		for(int i = 0; i < length; i++){
+
+		// For loop to calculate speeds and set rotation angles
+		for(int i = 0; i < length; i++){ // not a for each loop because we need to use i to set value in speeds array
 			SwerveModule module = modules[i];
 
-			double absSpeed; // variable for speed, used below if else clause
+			double newAbsSpeed; // variable for speed, used below if else clause
 			if(centerOfRotation != null) {
 				Point2D location = module.getLocation();
 
 				// ========== Calculate speed  ==========
-				absSpeed = Math.abs(speed) * (location.distance(centerOfRotation) / centerDistanceToOrigin);
+				newAbsSpeed = absSpeed * (location.distance(centerOfRotation) / centerDistanceToOrigin);
 
 
 				// ========== Calculate angles ==========
-				double angle = getAngleFromPoints(location, centerOfRotation, this.origin);
+				this.rotateModule(module, centerOfRotation, turnAmount < 0);
 
-				// these 3 variables were from the old calculation code, but the x value of result helps us below
-				AffineTransform speedTransform = new AffineTransform();
-				speedTransform.rotate(-rotationInRadians);
-				Point2D result = speedTransform.transform(location, null);
-
-				/*
-				 * This basically says if we are turning left, then use if statement if module is above the line
-				 * containing the points centerOfRotation and this.origin, otherwise use else statement.
-				 * If we are turning right, use the above logic, except flip which statement is fired
-				 */
-				boolean isAbove = result.getX() > 0; // is module a front wheel based off the direction we are going
-//				SmartDashboard.putBoolean("module: " + module.getID() + " isAbove", isAbove); works
-				if(turnAmount < 0 == isAbove){
-					angle = angle + 90;
-				} else {
-					angle = 90 - angle;
-				}
-				module.setPosition(angle);
-//				SmartDashboard.putNumber("module " + module.getID() + " position", angle);
-			} else { // If we aren't turning at all, don't do unnecessary atan2 calculation
-				absSpeed = Math.abs(speed);
+			} else { // if we aren't turning, then we can't use centerOfRotation because it's null
+				newAbsSpeed = absSpeed;
 				module.setPosition(this.rotation);
 			}
 
-			// Set speed in speeds array
-			if(absSpeed > maxSpeed){
-				maxSpeed = absSpeed;
+			// Put speed in speeds array
+			if(newAbsSpeed > maxSpeed){
+				maxSpeed = newAbsSpeed;
 			}
-			speeds[i] = absSpeed;
+			speeds[i] = newAbsSpeed;
 
 		}
-		for(int i = 0; i < length; i++){ // simple for loop to set speeds from variable 'speeds'
+		// For loop to set calculated speeds
+		for(int i = 0; i < length; i++){
 			SwerveModule module = modules[i];
 			double moduleSpeed = Math.signum(speed) * speeds[i];
 			moduleSpeed /= maxSpeed;  // scale the speed down if the max speed is high. maxSpeed is 1 most of the time
 			module.setSpeed(moduleSpeed);
 //			SmartDashboard.putNumber("regularDrive module speed " + module.getID(), moduleSpeed);
 		}
+	}
+
+	/**
+	 * Used by the regular drive method
+	 *
+	 * @param module The module to rotate
+	 * @param centerOfRotation the that the module should rotate around
+	 * @param isLeft true if the robot is turning left, false otherwise
+	 */
+	private void rotateModule(SwerveModule module, Point2D centerOfRotation, boolean isLeft){
+		Point2D location = module.getLocation();
+		double angle = Math.atan2(location.getY() - centerOfRotation.getY(),
+			location.getX() - centerOfRotation.getX());
+
+		if(isLeft){
+			angle += 90;
+		} else {
+			angle -= 90;
+		}
+
+		module.setPosition(angle);
+		SmartDashboard.putNumber("module " + module.getID() + " position", angle);
 	}
 
 	/**
