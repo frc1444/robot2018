@@ -98,6 +98,7 @@ public class SwerveDrive {
 	 */
 	private void regularDrive(double speed, double turnAmount){
 
+
 		final double rotationInRadians = Math.toRadians(this.rotation);
 		final SwerveModule[] modules = this.getModules();
 		final int length = modules.length;
@@ -148,13 +149,14 @@ public class SwerveDrive {
 				 * If we are turning right, use the above logic, except flip which statement is fired
 				 */
 				boolean isAbove = result.getX() > 0; // is module a front wheel based off the direction we are going
-				SmartDashboard.putBoolean("module: " + module.getID() + " isAbove", isAbove);
+//				SmartDashboard.putBoolean("module: " + module.getID() + " isAbove", isAbove); works
 				if(turnAmount < 0 == isAbove){
 					angle = angle + 90;
 				} else {
 					angle = 90 - angle;
 				}
 				module.setPosition(angle);
+//				SmartDashboard.putNumber("module " + module.getID() + " position", angle);
 			} else { // If we aren't turning at all, don't do unnecessary atan2 calculation
 				absSpeed = Math.abs(speed);
 				module.setPosition(this.rotation);
