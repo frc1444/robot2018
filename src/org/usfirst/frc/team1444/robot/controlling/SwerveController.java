@@ -1,11 +1,15 @@
 package org.usfirst.frc.team1444.robot.controlling;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.Constants;
 import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.SwerveDrive;
 
+import java.awt.geom.Point2D;
+
 public class SwerveController implements RobotController {
 	private static final Double DEFAULT_DIRECTION = 90.0; // the default direction to go to when joystick isn't touched
+	private static final Point2D ZERO = new Point2D.Double(0, 0);
 
 	private ControllerInput controller;
 
@@ -58,8 +62,18 @@ public class SwerveController implements RobotController {
 		// Rotation rate is based fully on right joystick
 		double turnAmount = rightStickHorizontal();
 
+		Point2D centerWhileStill;
+		int pov = controller.dPad();
+		SmartDashboard.putNumber("pov:", pov);
+		if(pov != -1) {
+			centerWhileStill = new Point2D.Double(Math.cos(pov) * (drive.getWidth() / 2), Math.sin(pov) * (drive.getLength() / 2));
+		} else {
+			centerWhileStill = ZERO;
+		}
+
+
 		// Update the drive
-		drive.update(speed, direction, turnAmount);  // also, the values are debugged in here
+		drive.update(speed, direction, turnAmount, centerWhileStill);
 	}
 
 	// simple methods to get values for controller. Each should use this.controller

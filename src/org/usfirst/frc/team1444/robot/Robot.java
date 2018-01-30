@@ -62,15 +62,16 @@ public class Robot extends IterativeRobot {
 		final int flOffset = 100;
 		final int frOffset = 116;
 		final int rlOffset = 107;
-		final int rrOffset = 86;
+		final int rrOffset = 124;
 		
 		// Initialize the drive by passing in new TalonSRXs for each drive and steer motor
+		// length: 29.5 width: 20.5
 		drive = new SwerveDrive(
 				new TalonSRX(Constants.FrontLeftDriveId), new TalonSRX(Constants.FrontLeftSteerId),
 				new TalonSRX(Constants.FrontRightDriveId), new TalonSRX(Constants.FrontRightSteerId),
 				new TalonSRX(Constants.RearLeftDriveId), new TalonSRX(Constants.RearLeftSteerId),
 				new TalonSRX(Constants.RearRightDriveId), new TalonSRX(Constants.RearRightSteerId),
-				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset);
+				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset, 29.5, 20.5);
 		this.setRobotController(null);
 
 		// Setup dashboard autonomousChooser
