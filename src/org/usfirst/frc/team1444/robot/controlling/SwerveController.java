@@ -75,6 +75,16 @@ public class SwerveController implements RobotController {
 			STR = 0;
 		}
 		
+		// Apply gyro angle to gain field-centric command
+		// TODO Test this!
+		if (false)
+		{
+			double gyroR = Math.toRadians(gyro);
+			double temp = FWD * Math.cos(gyroR) + STR * Math.sin(gyroR);
+			STR = -FWD * Math.sin(gyroR) + STR * Math.cos(gyroR);
+			FWD = temp;
+		}
+		
 		double ROT = 0.5;
 		
 		// Run in "moon" mode
