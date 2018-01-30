@@ -14,6 +14,9 @@ public interface ControllerInput {
 	boolean leftBumper();
 	boolean rightBumper();
 
+	/**
+	 * @return always a number between 0 and 360
+	 */
 	int dPad();
 
 	double leftStickY();
