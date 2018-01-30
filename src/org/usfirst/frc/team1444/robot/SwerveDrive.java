@@ -271,7 +271,7 @@ public class SwerveDrive {
 		rlSpeed *= speed;
 		rrSpeed *= speed;
 		
-		// Calculate the angle for each wheel, make sure angle are 0-360		
+		// Calculate the angle for each wheel, make sure angles are 0-360		
 		double frAngle = Math.toDegrees(Math.atan2(A, D));
 		double flAngle = Math.toDegrees(Math.atan2(B, D));
 		double rlAngle = Math.toDegrees(Math.atan2(B, C));
@@ -303,7 +303,6 @@ public class SwerveDrive {
 		moduleArray[2].update(rlSpeed, rlAngle);
 		moduleArray[3].update(rrSpeed, rrAngle);
 		 
-		}
 	}
 
 }
