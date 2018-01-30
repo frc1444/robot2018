@@ -15,7 +15,8 @@ public class SwerveController implements RobotController {
 
 	@Override
 	public void update(Robot robot) {
-		this.drive(robot.getDrive());
+		//this.drive(robot.getDrive());
+		this.drive(robot.getDrive(), 0);
 	}
 
 	/**
@@ -62,6 +63,44 @@ public class SwerveController implements RobotController {
 		drive.update(speed, direction, turnAmount);  // also, the values are debugged in here
 	}
 
+	private void drive(SwerveDrive drive, double gyro)
+	{		
+		// TODO Add Scaling
+		double STR = 0.5 * leftStickX();
+		double FWD = 0.5 * leftStickY();	
+		
+		if (Math.hypot(STR, FWD) < Constants.DirectionDeadband)
+		{
+			FWD = 0;
+			STR = 0;
+		}
+		
+		double ROT = 0.5;
+		
+		// Run in "moon" mode
+		if (rightBumper()) {
+			STR = -rightStickHorizontal() * ROT;
+			// TODO Add radius
+		}
+		
+		// Run in "rotary mode"
+		else if (leftBumper()) {
+			FWD = rightStickHorizontal() * ROT;
+			// TODO Add radius
+		}
+		
+		else {
+			ROT = 0.5 * rightStickHorizontal();
+		}
+		
+		// TODO Use trigger or no?
+		double right = rightTrigger(); // forward speed (will be added to backwards)
+		double left = leftTrigger(); // backwards speed
+		double speed = 1.0; //Math.pow(right, 2) - Math.pow(left, 2);
+		
+		drive.vectorControl(FWD, STR, ROT, speed, gyro);
+	}
+	
 	// simple methods to get values for controller. Each should use this.controller
 	private double rightTrigger() {
 		double value = controller.rightTrigger();
@@ -84,10 +123,20 @@ public class SwerveController implements RobotController {
 
 	// Even though these methods don't use a deadband, we'll still keep them to keep our nice abstractions
 	private double leftStickX() {
-		return controller.leftStickX();
+		double value = controller.leftStickX();
+		if (Math.abs(value) < Constants.DirectionDeadband)
+		{
+			value = 0;
+		}
+		return value;
 	}
 	private double leftStickY() {
-		return controller.leftStickY();
+		double value = controller.leftStickY();
+		if (Math.abs(value) < Constants.DirectionDeadband)
+		{
+			value = 0;
+		}
+		return value;
 	}
 
 	private double rightStickHorizontal() {
@@ -102,6 +151,14 @@ public class SwerveController implements RobotController {
 
 	private boolean isFineMovement(){
 		return controller.leftBumper();
+	}
+	
+	private boolean leftBumper() {
+		return controller.leftBumper();
+	}
+	
+	private boolean rightBumper() {
+		return controller.rightBumper();
 	}
 
 	/**

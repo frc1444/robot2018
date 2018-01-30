@@ -218,5 +218,92 @@ public class SwerveDrive {
 			module.setPosition(position);
 		}
 	}
+	
+	public void vectorControl(double FWD, double STR, double ROT, double speed, double gyro)
+	{
+		// TODO Make these members or constants
+		final double L = 29;	// In inches, but dimensions don't matter since we are dealing with ratios
+		final double W = 20.5;
+		final double R = Math.hypot(L, W);
+		final double cosA = L / R;
+		final double sinA = W / R;
+		
+		// Calculate the necessary components separately to make the math cleaner		
+		double A = FWD - ROT * sinA;
+		double B = FWD + ROT * sinA;
+		double C = STR - ROT * cosA;
+		double D = STR + ROT * cosA;
+		
+		// Calculate the linear speeds for each wheel
+		double frSpeed = Math.hypot(A, D);
+		double flSpeed = Math.hypot(B, D);
+		double rlSpeed = Math.hypot(B, C);
+		double rrSpeed = Math.hypot(A, C);
+		
+		// Scale the outputs if the max is over 1
+		double max = flSpeed;
+		
+		if (frSpeed > max)
+		{
+			max = frSpeed;
+		}
+		
+		if (rlSpeed > max)
+		{
+			max = rlSpeed;
+		}
+		
+		if (rrSpeed > max)
+		{
+			max = rrSpeed;
+		}
+		
+		if (max > 1)
+		{
+			flSpeed /= max;
+			frSpeed /= max;
+			rlSpeed /= max;
+			rrSpeed /= max;
+		}
+		
+		flSpeed *= speed;
+		frSpeed *= speed;
+		rlSpeed *= speed;
+		rrSpeed *= speed;
+		
+		// Calculate the angle for each wheel, make sure angle are 0-360		
+		double frAngle = Math.toDegrees(Math.atan2(A, D));
+		double flAngle = Math.toDegrees(Math.atan2(B, D));
+		double rlAngle = Math.toDegrees(Math.atan2(B, C));
+		double rrAngle = Math.toDegrees(Math.atan2(A, C));
+		
+		if (frAngle < 0)
+		{
+			frAngle += 360;
+		}
+		
+		if (flAngle < 0)
+		{
+			flAngle += 360;
+		}
+		
+		if (rlAngle < 0)
+		{
+			rlAngle += 360;
+		}
+		
+		if (rrAngle < 0)
+		{
+			rrAngle += 360;
+		}
+		
+		// Update the drive modules
+		moduleArray[0].update(flSpeed, flAngle);
+		moduleArray[1].update(frSpeed, frAngle);
+		moduleArray[2].update(rlSpeed, rlAngle);
+		moduleArray[3].update(rrSpeed, rrAngle);
+		 
+		}
+	}
 
 }
