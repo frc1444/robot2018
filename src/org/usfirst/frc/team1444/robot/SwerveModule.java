@@ -13,8 +13,14 @@ import java.awt.geom.Point2D;
 // Two motor controllers are defined, drive and steer
 public class SwerveModule {
 	private static final int ENCODER_COUNTS = 1024;
-	/** If the requested encoder counts after converting is bigger than this, go back to 0 to avoid deadband */
-	private static final int MAX_ENCODER_COUNTS = 890;
+
+	private static final boolean SCALE_COUNTS = false; // if false, will not use MAX and MIN _ENCODER_COUNTS in setPosition
+	private static final int MAX_ENCODER_COUNTS = 898;
+	private static final int MIN_ENCODER_COUNTS = 12;
+
+	// if false, will use encoderOffset in the set position method. If true, will call the steer set selected position
+	private static final boolean USE_SET_SELECTED = true;
+
 
 	private BaseMotorController drive;
 	private BaseMotorController steer;
@@ -26,7 +32,10 @@ public class SwerveModule {
 
 	private int ID;
 	
-	private int encoderOffset;
+	private int encoderOffset; // the offset in encoder counts in not perfect world
+	private double offsetDegrees; // the offset in degrees, in our perfect world
+
+	private SensorCollection steerSensorCollection;
 
 	/**
 	 * Creates a SwerveModule with the given parameters
@@ -53,6 +62,7 @@ public class SwerveModule {
 		
 		// Manully measured encoder offset
 		this.encoderOffset = offset;
+		this.offsetDegrees = convertToDegrees(this.encoderOffset);
 		
 		// Set the Drive motor to use an incremental encoder (CIMcoder)
 		this.drive.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, Constants.PidIdx, Constants.TimeoutMs);
@@ -63,11 +73,13 @@ public class SwerveModule {
 		// Set steer motor to use an MA3 absolute encoder
 		this.steer.configSelectedFeedbackSensor(FeedbackDevice.Analog, Constants.PidIdx, Constants.TimeoutMs);
 		this.steer.configSetParameter(ParamEnum.eFeedbackNotContinuous, 0, 0, 0, Constants.TimeoutMs);
-		
+
 		// Zero encoder reading by applying the premeasured offsets
 		this.steerSensorCollection = new SensorCollection(this.steer);
-		
-		this.steer.setSelectedSensorPosition(this.steerSensorCollection.getAnalogInRaw() - this.encoderOffset, Constants.PidIdx, Constants.TimeoutMs);
+
+		if(USE_SET_SELECTED) {
+			this.steer.setSelectedSensorPosition(this.steerSensorCollection.getAnalogInRaw() - this.encoderOffset, Constants.PidIdx, Constants.TimeoutMs);
+		}
 		
 		// Set the Steer encoder phase
 		this.steer.setSensorPhase(false);
@@ -82,9 +94,7 @@ public class SwerveModule {
 	public Point2D getLocation(){ return this.location; }
 
 	public int getID() { return ID; }
-	
-	private int currentEncoderCount = 0;
-	private SensorCollection steerSensorCollection;
+
 
 	
 	/**
@@ -105,26 +115,65 @@ public class SwerveModule {
 	 * @param position A double in degrees where 90 degrees is straight forward and 0 is to the right 180 left etc.
 	 */
 	public void setPosition(double position){
+		if(SCALE_COUNTS && !USE_SET_SELECTED){
+			position += offsetDegrees;
+		}
 		
 		// Convert the input into 0 to 359
 		double actualPosition = position % 360;
 		actualPosition = actualPosition < 0 ? actualPosition + 360 : actualPosition;
 		
-		// Convert to a percentage 0 - 1
-		double targetPosition = (actualPosition / 360);
-		
 		// Convert desired position to encoder counts
-		int targetEncoderCounts = (int)(targetPosition * ENCODER_COUNTS);
-		
+		int targetEncoderCounts;
+		if(SCALE_COUNTS) { // scale targetEncoderCounts linearly using constant max and min values
+			// don't remove if, just change constant SCALE_COUNTS
+			targetEncoderCounts = (int) scaleFromDegrees(actualPosition);
+		} else {
+			actualPosition /= 360;
+			targetEncoderCounts = (int)(actualPosition * ENCODER_COUNTS); // 0 to 1024
+			if(!USE_SET_SELECTED) {
+				targetEncoderCounts += this.encoderOffset;
+			}
+		}
+
 		// Find the fastest path from the current position to the new position
-		currentEncoderCount = steer.getSelectedSensorPosition(steerPid.pidIdx);
-		
+		int currentEncoderCount = steer.getSelectedSensorPosition(steerPid.pidIdx);
 		// Add rotation offset factoring in the number of rotations (either positive or negative)
 		targetEncoderCounts += (int) Math.round((currentEncoderCount - targetEncoderCounts) / (double) ENCODER_COUNTS) * ENCODER_COUNTS;
-		
+
 		// Command a new steering position
 		steer.set(ControlMode.Position, targetEncoderCounts);
+		SmartDashboard.putNumber("setPosition " + ID, targetEncoderCounts);
 
+	}
+
+	/**
+	 * Uses the MAX and MIN encoder counts to give you a value between them
+	 * This returns a double so it doesn't lose precision when storing it. However, when setting it, cast it to an int
+	 * @param degrees Number to convert to real world encoder counts
+	 * @return Real world encoder counts between MIN and MAX assuming 0 <= degrees < 360
+	 */
+	private static double scaleFromDegrees(double degrees){
+		final int allowed = MAX_ENCODER_COUNTS - MIN_ENCODER_COUNTS;
+
+		double counts = (degrees / 360) * allowed;
+		counts += MIN_ENCODER_COUNTS;
+		return counts;
+	}
+
+	/**
+	 *
+	 * @param realWorldCounts The number of real world counts that should be between MIN and MAX encoder counts
+	 * @return Number in degrees in our perfect world
+	 */
+	private static double convertToDegrees(double realWorldCounts){
+		final int allowed = MAX_ENCODER_COUNTS - MIN_ENCODER_COUNTS;
+
+		realWorldCounts -= MIN_ENCODER_COUNTS;
+		realWorldCounts /= allowed;
+		realWorldCounts *= 360;
+
+		return realWorldCounts;
 	}
 
 	/**
@@ -145,7 +194,7 @@ public class SwerveModule {
 		SmartDashboard.putNumber("Raw Analog " + ID, this.steerSensorCollection.getAnalogInRaw());
 		
 		// Print the current, measured encoder count
-		SmartDashboard.putNumber("Encoder " + ID, currentEncoderCount);
+		SmartDashboard.putNumber("Encoder " + ID, steer.getSelectedSensorPosition(steerPid.pidIdx));
 		
 	}
 	

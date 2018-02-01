@@ -34,7 +34,7 @@ public interface RobotController {
 			return pov;
 		}
 		int r = -1 * (pov - 90);
-		if(r < 360){
+		if(r < 0){
 			r += 360;
 		}
 		return r;

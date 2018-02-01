@@ -70,7 +70,6 @@ public class SwerveDrive {
 	 *                         using the d-pad and the locations of the modules
 	 */
 	public void update(double speed, Double direction, double turnAmount, Point2D centerWhileStill) {
-		// TODO, if we need/want to we could try to change turnAmount to degrees/s but that'd make this more complex
 
 		if(direction != null){
 			this.rotation = direction;
@@ -82,6 +81,30 @@ public class SwerveDrive {
 		}
 	}
 
+
+	/**
+	 * Sets the same speed to each SwerveModule
+	 *
+	 * @param speed A number between -1 and 1
+	 */
+	public void setAllSpeeds(double speed) {
+		for (SwerveModule module : moduleArray) {
+			module.setSpeed(speed);
+		}
+	}
+	/**
+	 * Rotates all the SwerveModules to position
+	 *
+	 * @param position the position to rotate to in degrees
+	 */
+	public void rotateAll(double position) {
+		for(SwerveModule module : moduleArray){
+			module.setPosition(position);
+		}
+	}
+
+	// ================================ Start of Things for Josh's Method using regular drive ===================
+	// region Josh's Method
 	/**
 	 * Uses the provided parameters and this.rotation to set the motor speeds
 	 * @param speed A value from -1 to 1 representing the percent speed
@@ -89,74 +112,80 @@ public class SwerveDrive {
 	 * @param centerWhileStill The point that will be used to rotate around only if speed is 0
 	 */
 	private void regularDrive(final double speed, final double turnAmount, Point2D centerWhileStill){
-		final double absSpeed = Math.abs(speed); // should be used below instead of typing Math.abs(speed)
+		if(turnAmount == 0){
+			this.straightSubDrive(speed); // the only place where straightSubDrive is called
+			return;
+		} else if(speed == 0){
+			this.rotateAroundSubDrive(turnAmount / 3d, centerWhileStill, false);
+			return;
+		}
 		final double rotationInRadians = Math.toRadians(this.rotation);
+
+		Point2D centerOfRotation;
+
+		// Calculate centerOfRotation
+		double centerMagnitude = MAX_TURN_MAGNITUDE * (1 - Math.abs(turnAmount)) * -Math.signum(turnAmount);
+		centerOfRotation = new Point2D.Double(0, centerMagnitude);
+		AffineTransform centerTransform = new AffineTransform(); // let nice little object do rotating for us
+		centerTransform.rotate(rotationInRadians);
+		centerTransform.transform(centerOfRotation, centerOfRotation); // rotate centerOfRotation
+
+		SmartDashboard.putString("centerOfRotation", pointToString(centerOfRotation));
+
+		this.rotateAroundSubDrive(speed, centerOfRotation, turnAmount < 0);
+	}
+
+	/**
+	 * Uses the rotateModuleSub method and bases rotation around the point centerOfRotation
+	 * <p>
+	 * Note: isLeft is used to make sure that when changing direction, wheels won't do a 180
+	 *
+	 * @param speed The desired speed that will be scaled depending on where centerOfRotation is
+	 * @param centerOfRotation The point that you want to rotate around relative to origin (the middle of robot)
+	 * @param isLeft true if the robot is turning left, false otherwise
+	 */
+	private void rotateAroundSubDrive(double speed, Point2D centerOfRotation, boolean isLeft){
+		assert speed != 0 && centerOfRotation != null;
+
+		final double absSpeed = Math.abs(speed); // should be used below instead of typing Math.abs(speed)
+		final double centerDistanceToOrigin = centerOfRotation.distance(this.origin);
 
 		double[] absSpeedArray = new double[this.moduleArray.length];
 		double maxSpeed = 1;  // can be divided by to scale speeds down if some speeds are > 1.0 (set in for loop)
 
-		// Variables for angles
-		Point2D centerOfRotation = null; // if we aren't turning, this will be null
-		double centerDistanceToOrigin = 0; // should only be used if turnAmount != 0 or if centerOfRotation != null
-		if(turnAmount != 0){
-			if(speed == 0){
-				centerOfRotation = centerWhileStill;
-			} else {
-				// find centerOfRotation based on turnAmount and this.rotation (rotationInRadians)
-				double centerMagnitude = MAX_TURN_MAGNITUDE * (1 - Math.abs(turnAmount)) * -Math.signum(turnAmount);
-				centerOfRotation = new Point2D.Double(0, centerMagnitude);
-				AffineTransform centerTransform = new AffineTransform(); // let nice little object do rotating for us
-				centerTransform.rotate(rotationInRadians);
-				centerTransform.transform(centerOfRotation, centerOfRotation); // rotate centerOfRotation
-			}
-			centerDistanceToOrigin = centerOfRotation.distance(this.origin);
-		}
-		SmartDashboard.putString("centerOfRotation", centerOfRotation != null ? pointToString(centerOfRotation) : "null");
-
-
 		// For loop to calculate speeds and set rotation angles
 		for(SwerveModule module : this.moduleArray){
-			double newAbsSpeed; // variable for speed, used below if else clause
-			if(centerOfRotation != null) { // same thing as turnAmount != 0
-				Point2D location = module.getLocation();
+			Point2D location = module.getLocation();
 
-				// Calc speed
-				newAbsSpeed = absSpeed * (location.distance(centerOfRotation) / centerDistanceToOrigin);
-				if(newAbsSpeed == 0){
-					newAbsSpeed = Math.abs(turnAmount);
-				}
-				// Calc angle
-				this.rotateModule(module, centerOfRotation, turnAmount < 0);
+			// Rotate module
+			this.rotateModuleSub(module, centerOfRotation, isLeft);
 
-			} else { // if we aren't turning, then we can't use centerOfRotation because it's null
-				newAbsSpeed = absSpeed;
-				module.setPosition(this.rotation);
+			// Calc speed
+			double newAbsSpeed = absSpeed;
+			if(centerDistanceToOrigin != 0){
+				newAbsSpeed *= location.distance(centerOfRotation) / centerDistanceToOrigin;
 			}
+			if(newAbsSpeed > maxSpeed) maxSpeed = newAbsSpeed;
 
-			if(newAbsSpeed > maxSpeed){
-				maxSpeed = newAbsSpeed;
-			}
 			absSpeedArray[module.getID()] = newAbsSpeed;
 		}
-		// For loop to set calculated speeds
+		// Set calculated speeds
 		for(SwerveModule module : moduleArray){
 			int sig = (int) Math.signum(speed);
-			if(sig == 0) sig = 1;
 
 			double moduleSpeed = sig * absSpeedArray[module.getID()];
 			moduleSpeed /= maxSpeed;
 			module.setSpeed(moduleSpeed);
 		}
 	}
-
 	/**
-	 * Used by the regular drive method
+	 * Used by the regularDrive method
 	 *
 	 * @param module The module to rotate
 	 * @param centerOfRotation the that the module should rotate around
 	 * @param isLeft true if the robot is turning left, false otherwise
 	 */
-	private void rotateModule(SwerveModule module, Point2D centerOfRotation, boolean isLeft){
+	private void rotateModuleSub(SwerveModule module, Point2D centerOfRotation, boolean isLeft){
 		Point2D location = module.getLocation();
 		// use slope of line with points location and centerOfRotation to get angle
 		double angle = Math.atan2(location.getY() - centerOfRotation.getY(),
@@ -172,32 +201,20 @@ public class SwerveDrive {
 
 		module.setPosition(angle);
 	}
-
 	/**
-	 * Sets the same speed to each SwerveModule
+	 * Used by the regularDrive method
 	 *
-	 * @param speed A number between -1 and 1
+	 * Drives the robot in a straight line with the desired speed
+	 * @param speed desired speed
 	 */
-	public void setAllSpeeds(double speed) {
-		for (SwerveModule module : moduleArray) {
-			module.setSpeed(speed);
-		}
+	private void straightSubDrive(double speed){
+		this.rotateAll(this.rotation);
+		this.setAllSpeeds(speed);
 	}
-
-	/**
-	 * Rotates all the SwerveModules to position
-	 *
-	 * @param position the position to rotate to in degrees
-	 */
-	public void rotateAll(double position) {
-		for(SwerveModule module : moduleArray){
-			module.setPosition(position);
-		}
-	}
-
 	/** Simple method to convert a Point2D to a String usually used for debugging purposes */
 	private static String pointToString(Point2D point){
 		return String.format("(%s,%s)", point.getX(), point.getY());
 	}
-
+	// endregion
+	// ================================= End of things from Josh's method =======================
 }

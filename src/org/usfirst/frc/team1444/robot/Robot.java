@@ -52,17 +52,19 @@ public class Robot extends IterativeRobot {
 	public void robotInit() {
 		
 		drivePid = new PidParameters();
-		drivePid.KF = 0.3;
-		drivePid.KP = 1;
-		
+		drivePid.KF = 1;
+		drivePid.KP = 1.5;
+
 		steerPid = new PidParameters();
-		steerPid.KP = 2;
-		steerPid.KI = 0.001;
+		steerPid.KP = 4;
+		steerPid.KI = 0.003;
+		steerPid.KD = 80;
+
 		
-		final int flOffset = 100;
-		final int frOffset = 116;
-		final int rlOffset = 107;
-		final int rrOffset = 124;
+		final int flOffset = 930;
+		final int frOffset = 96;
+		final int rlOffset = 83;
+		final int rrOffset = 97;
 		
 		// Initialize the drive by passing in new TalonSRXs for each drive and steer motor
 		// length: 29.5 width: 20.5
