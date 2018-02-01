@@ -64,7 +64,7 @@ public class PS4Controller implements ControllerInput {
 
 	@Override
 	public int dPad() {
-		return stick.getPOV();
+		return RobotController.calculatePov(stick.getPOV());
 	}
 
 	@Override

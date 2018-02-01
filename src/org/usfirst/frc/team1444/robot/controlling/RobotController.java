@@ -23,6 +23,21 @@ public interface RobotController {
 	void update(Robot robot);
 	// later we could make this return RobotController (if we wanted to change it when we press a button)
 	// (return this or null to keep it the same if we choose to change it to that)
-	
+
+	/**
+	 *
+	 * @param pov the value in degrees from Joystick#getPov();
+	 * @return The correct value in degrees based off of how degrees should work OR -1 if passed pov is -1
+	 */
+	static int calculatePov(int pov){
+		if(pov == -1){
+			return pov;
+		}
+		int r = -1 * (pov - 90);
+		if(r < 0){
+			r += 360;
+		}
+		return r;
+	}
 	
 }

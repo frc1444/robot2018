@@ -1,11 +1,15 @@
 package org.usfirst.frc.team1444.robot.controlling;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.Constants;
 import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.SwerveDrive;
 
+import java.awt.geom.Point2D;
+
 public class SwerveController implements RobotController {
 	private static final Double DEFAULT_DIRECTION = 90.0; // the default direction to go to when joystick isn't touched
+	private static final Point2D ZERO = new Point2D.Double(0, 0);
 
 	private ControllerInput controller;
 
@@ -58,8 +62,61 @@ public class SwerveController implements RobotController {
 		// Rotation rate is based fully on right joystick
 		double turnAmount = rightStickHorizontal();
 
+		Point2D centerWhileStill;
+		int pov = controller.dPad();
+		SmartDashboard.putNumber("pov:", pov);
+		if(pov != -1) {
+//			double width = drive.getWidth();
+//			double length = drive.getLength();
+//			centerWhileStill = new Point2D.Double(Math.cos(pov) * (width / 2), Math.sin(pov) * (length / 2));
+			Point2D point1, point2 = null; // point2 may not always be used
+
+			// this switch statement is used to get the most accurate results event if points are changed in a module
+			switch(pov / 45){
+				case 0:
+					point1 = drive.getFrontRight().getLocation();
+					point2 = drive.getRearRight().getLocation();
+					break;
+				case 1:
+					point1 = drive.getFrontRight().getLocation();
+					break;
+				case 2: // 90 degrees
+					point1 = drive.getFrontLeft().getLocation();
+					point2 = drive.getFrontRight().getLocation();
+					break;
+				case 3:
+					point1 = drive.getFrontLeft().getLocation();
+					break;
+				case 4: // 180 (left)
+					point1 = drive.getFrontLeft().getLocation();
+					point2 = drive.getRearLeft().getLocation();
+					break;
+				case 5:
+					point1 = drive.getRearLeft().getLocation();
+					break;
+				case 6:
+					point1 = drive.getRearLeft().getLocation();
+					point2 = drive.getRearRight().getLocation();
+					break;
+				case 7:
+					point1 = drive.getRearRight().getLocation();
+					break;
+				default:
+					throw new RuntimeException("Unexpected pov number: " + pov + " make sure controller class is correct");
+			}
+			if(point2 == null){
+				centerWhileStill = point1;
+			} else {
+				centerWhileStill = new Point2D.Double((point1.getX() + point2.getX()) / 2,
+						(point1.getY() + point2.getY()) / 2);
+			}
+		} else {
+			centerWhileStill = ZERO;
+		}
+
+
 		// Update the drive
-		drive.update(speed, direction, turnAmount);  // also, the values are debugged in here
+		drive.update(speed, direction, turnAmount, centerWhileStill);
 	}
 
 	// simple methods to get values for controller. Each should use this.controller
