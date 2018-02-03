@@ -43,7 +43,6 @@ public class Robot extends IterativeRobot {
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
 		super();
-		defaultController = new PS4Controller(1);  // set the default controller to a PS4Controller
 	}
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -55,12 +54,25 @@ public class Robot extends IterativeRobot {
 		drivePid = new PidParameters();
 		drivePid.KF = 1;
 		drivePid.KP = 1.5;
+<<<<<<< HEAD
 
+		steerPid = new PidParameters();
+		steerPid.KP = 4;
+		steerPid.KI = 0.003;
+		steerPid.KD = 80;
+
+		
+		final int flOffset = 930;
+		final int frOffset = 96;
+		final int rlOffset = 83;
+		final int rrOffset = 97;
+=======
+		
 		steerPid = new PidParameters();
 		steerPid.KP = 8;
 		steerPid.KI = 0.008;
 		//steerPid.KD = 10;
-
+		
 //		final int flOffset = 135;
 //		final int frOffset = 552;
 //		final int rlOffset = 116; 
@@ -70,6 +82,7 @@ public class Robot extends IterativeRobot {
 		final int frOffset = 554;
 		final int rlOffset = 552; 
 		final int rrOffset = 135;
+>>>>>>> vector-swerve-control
 		
 		// Initialize the drive by passing in new TalonSRXs for each drive and steer motor
 		// length: 29.5 width: 20.5
@@ -78,7 +91,7 @@ public class Robot extends IterativeRobot {
 				new TalonSRX(Constants.FrontRightDriveId), new TalonSRX(Constants.FrontRightSteerId),
 				new TalonSRX(Constants.RearLeftDriveId), new TalonSRX(Constants.RearLeftSteerId),
 				new TalonSRX(Constants.RearRightDriveId), new TalonSRX(Constants.RearRightSteerId),
-				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset);
+				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset, 29.5, 20.5);
 		this.setRobotController(null);
 
 		// Setup dashboard autonomousChooser

@@ -211,10 +211,14 @@ public class SwerveDrive {
 		this.rotateAll(this.rotation);
 		this.setAllSpeeds(speed);
 	}
+<<<<<<< HEAD
 	/** Simple method to convert a Point2D to a String usually used for debugging purposes */
 	private static String pointToString(Point2D point){
 		return String.format("(%s,%s)", point.getX(), point.getY());
 	}
+	// endregion
+	// ================================= End of things from Josh's method =======================
+=======
 	
 	public void vectorControl(double FWD, double STR, double ROT, double speed, double gyro)
 	{		
@@ -318,4 +322,5 @@ public class SwerveDrive {
 		}
 	}
 
+>>>>>>> vector-swerve-control
 }
