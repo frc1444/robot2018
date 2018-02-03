@@ -5,14 +5,14 @@ public final class Constants {
 	
 	// CAN IDs
 	
-	public static final int FrontLeftDriveId = 1;
-	public static final int FrontRightDriveId = 2;
-	public static final int RearLeftDriveId = 3;
-	public static final int RearRightDriveId = 4;
-	public static final int FrontLeftSteerId = 5;
-	public static final int FrontRightSteerId = 6;
-	public static final int RearLeftSteerId = 7;
-	public static final int RearRightSteerId = 8;
+	public static final int FrontLeftDriveId = 4;
+	public static final int FrontRightDriveId = 3;
+	public static final int RearLeftDriveId = 2;
+	public static final int RearRightDriveId = 1;
+	public static final int FrontLeftSteerId = 8;
+	public static final int FrontRightSteerId = 7;
+	public static final int RearLeftSteerId = 6;
+	public static final int RearRightSteerId = 5;
 	
 	public static final int PdbId = 9;
 	
@@ -40,6 +40,9 @@ public final class Constants {
 	public static final int CtreUnitConversion = 600; // Conversion to CTRE units of 100 units/ms
 	public static final int MaxCimRpm = 5300;
 	public static final int CimCoderCountsPerRev = 80;	// Talon SRX counts every edge of the quadrature encoder, so 4 * 20
+	
+	// Steer Motor Constants
+	public static final int SteerCountsPerRev = 1657;	// Determined from PG71 gearmotor with 7 CPR encoder
 	
 
 	// Controls

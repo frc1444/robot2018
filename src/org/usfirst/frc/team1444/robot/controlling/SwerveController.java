@@ -66,8 +66,8 @@ public class SwerveController implements RobotController {
 	private void drive(SwerveDrive drive, double gyro)
 	{		
 		// TODO Add Scaling
-		double STR = 0.5 * leftStickX();
-		double FWD = 0.5 * leftStickY();	
+		double STR = leftStickX();
+		double FWD = leftStickY();	
 		
 		if (Math.hypot(STR, FWD) < Constants.DirectionDeadband)
 		{
@@ -94,21 +94,27 @@ public class SwerveController implements RobotController {
 		}
 		
 		// Run in "rotary mode"
-		else if (leftBumper()) {
-			FWD = rightStickHorizontal() * ROT;
-			// TODO Add radius
-		}
+//		else if (leftBumper()) {
+//			FWD = rightStickHorizontal() * ROT;
+//			// TODO Add radius
+//		}
 		
 		else {
-			ROT = 0.5 * rightStickHorizontal();
+			ROT = rightStickHorizontal();
 		}
 		
 		// TODO Use trigger or no?
 		double right = rightTrigger(); // forward speed (will be added to backwards)
 		double left = leftTrigger(); // backwards speed
-		double speed = 1.0; //Math.pow(right, 2) - Math.pow(left, 2);
+		double speed = Math.pow(right, 2) - Math.pow(left, 2);
 		
 		drive.vectorControl(FWD, STR, ROT, speed, gyro);
+	
+		if (controller.leftBumper())
+		{
+			drive.switchToQuad();
+		}
+		
 	}
 	
 	// simple methods to get values for controller. Each should use this.controller

@@ -220,7 +220,7 @@ public class SwerveDrive {
 	}
 	
 	public void vectorControl(double FWD, double STR, double ROT, double speed, double gyro)
-	{
+	{		
 		// TODO Make these members or constants
 		final double L = 29;	// In inches, but dimensions don't matter since we are dealing with ratios
 		final double W = 20.5;
@@ -302,7 +302,23 @@ public class SwerveDrive {
 		moduleArray[1].update(frSpeed, frAngle);
 		moduleArray[2].update(rlSpeed, rlAngle);
 		moduleArray[3].update(rrSpeed, rrAngle);
+		
+		for (int i = 0; i < moduleArray.length; ++i) {
+			moduleArray[i].debug();
+		}
 		 
+	}
+	
+	public void switchToQuad() {
+		for (int i = 0; i < moduleArray.length; ++i) {
+			moduleArray[i].switchToQuad();
+		}
+	}
+	
+	public void switchToAnalog() {
+		for (int i = 0; i < moduleArray.length; ++i) {
+			moduleArray[i].switchToAnalog();
+		}
 	}
 
 }

@@ -12,9 +12,9 @@ import java.awt.geom.Point2D;
 // SwerveModule defines one corner of a swerve drive
 // Two motor controllers are defined, drive and steer
 public class SwerveModule {
-	private static final int ENCODER_COUNTS = 1024;
-	/** If the requested encoder counts after converting is bigger than this, go back to 0 to avoid deadband */
-	private static final int MAX_ENCODER_COUNTS = 890;
+	
+	// 
+	private static final int ENCODER_COUNTS = 1657;
 
 	private BaseMotorController drive;
 	private BaseMotorController steer;
@@ -27,6 +27,8 @@ public class SwerveModule {
 	private int ID;
 	
 	private int encoderOffset;
+	
+	private boolean setToQuad = false;
 
 	/**
 	 * Creates a SwerveModule with the given parameters
@@ -51,7 +53,7 @@ public class SwerveModule {
 		// Unique ID for this module - mainly used for debugging
 		this.ID = id;
 		
-		// Manully measured encoder offset
+		// Manually measured encoder offset
 		this.encoderOffset = offset;
 		
 		// Set the Drive motor to use an incremental encoder (CIMcoder)
@@ -68,6 +70,8 @@ public class SwerveModule {
 		this.steerSensorCollection = new SensorCollection(this.steer);
 		
 		this.steer.setSelectedSensorPosition(this.steerSensorCollection.getAnalogInRaw() - this.encoderOffset, Constants.PidIdx, Constants.TimeoutMs);
+		
+		
 		
 		// Set the Steer encoder phase
 		this.steer.setSensorPhase(false);
@@ -114,7 +118,7 @@ public class SwerveModule {
 		double targetPosition = (actualPosition / 360);
 		
 		// Convert desired position to encoder counts
-		int targetEncoderCounts = (int)(targetPosition * ENCODER_COUNTS);
+		int targetEncoderCounts = (int)(targetPosition * ENCODER_COUNTS);		
 		
 		// Find the fastest path from the current position to the new position
 		currentEncoderCount = steer.getSelectedSensorPosition(steerPid.pidIdx);
@@ -165,6 +169,33 @@ public class SwerveModule {
 		steer.config_kI(steerPid.pidIdx, steerPid.KI, Constants.TimeoutMs);
 		steer.config_kD(steerPid.pidIdx, steerPid.KD, Constants.TimeoutMs);
 		steer.config_kF(steerPid.pidIdx, steerPid.KF, Constants.TimeoutMs);
+	}
+	
+	public void switchToQuad() {
+		if (setToQuad) {
+			return;
+		}
+		
+		this.steer.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, Constants.PidIdx, Constants.TimeoutMs);
+		this.steer.configSetParameter(ParamEnum.eFeedbackNotContinuous, 0, 0, 0, Constants.TimeoutMs);
+		this.steer.setSelectedSensorPosition(0, Constants.PidIdx, Constants.TimeoutMs);
+		this.steer.setSensorPhase(true);
+		
+		setToQuad = true;
+	}
+	
+	public void switchToAnalog() {
+		if (!setToQuad) {
+			return;
+		}
+		
+		this.steer.configSelectedFeedbackSensor(FeedbackDevice.Analog, Constants.PidIdx, Constants.TimeoutMs);
+		this.steer.configSetParameter(ParamEnum.eFeedbackNotContinuous, 0, 0, 0, Constants.TimeoutMs);
+		this.steer.setSelectedSensorPosition(this.steerSensorCollection.getAnalogInRaw() - this.encoderOffset, Constants.PidIdx, Constants.TimeoutMs);
+		this.steer.setSensorPhase(false);
+		
+		setToQuad = false;
+			
 	}
 
 }
