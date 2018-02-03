@@ -17,6 +17,9 @@ public class SwerveDrive {
 	private double rotation;
 
 	private final Point2D origin;
+	
+	private double cosA;			// Sine and cosine used in swerve equations - constants based on robot dimensions
+	private double sinA;
 
 	/**
 	 * Initializes SwerveDrive and creates SwerveModules. Even though each parameter is a BaseMotorController,
@@ -28,10 +31,10 @@ public class SwerveDrive {
 	                   BaseMotorController rrDrive, BaseMotorController rrSteer,
 	                   PidParameters drivePid, PidParameters steerPid,
 	                   int flOffset, int frOffset, int rlOffset, int rrOffset,
-	                   double length, double width) {
+	                   double wheelBase, double trackWidth) {
 
-		double x = width / 2;
-		double y = length / 2;
+		double x = trackWidth / 2;
+		double y = wheelBase / 2;
 		moduleArray = new SwerveModule[]{
 				new SwerveModule(flDrive, flSteer, drivePid, steerPid, new Point2D.Double(-x, y), 0, flOffset),
 				new SwerveModule(frDrive, frSteer, drivePid, steerPid, new Point2D.Double(x, y), 1, frOffset),
@@ -41,6 +44,12 @@ public class SwerveDrive {
 		// note, changing IDs will break code in regularDrive below
 
 		this.origin = new Point2D.Double(0, 0);
+		
+		// Calculate sine and cosine for swerve equations from robot dimensions
+		double robotDiagonal = Math.hypot(wheelBase, trackWidth);
+		this.cosA = wheelBase / robotDiagonal;
+		this.sinA = trackWidth / robotDiagonal;
+		
 	}
 
 	public SwerveModule getFrontLeft() {
@@ -218,18 +227,12 @@ public class SwerveDrive {
 	
 	public void vectorControl(double FWD, double STR, double ROT, double speed, double gyro)
 	{		
-		// TODO Make these members or constants
-		final double L = 29;	// In inches, but dimensions don't matter since we are dealing with ratios
-		final double W = 20.5;
-		final double R = Math.hypot(L, W);
-		final double cosA = L / R;
-		final double sinA = W / R;
-		
+	
 		// Calculate the necessary components separately to make the math cleaner		
-		double A = FWD - ROT * sinA;
-		double B = FWD + ROT * sinA;
-		double C = STR - ROT * cosA;
-		double D = STR + ROT * cosA;
+		double A = FWD - ROT * this.sinA;
+		double B = FWD + ROT * this.sinA;
+		double C = STR - ROT * this.cosA;
+		double D = STR + ROT * this.cosA;
 		
 		// Calculate the linear speeds for each wheel
 		double frSpeed = Math.hypot(A, D);
