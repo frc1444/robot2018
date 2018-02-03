@@ -15,7 +15,10 @@ public final class Constants {
 	public static final int RearRightSteerId = 5;
 	
 	public static final int PdbId = 9;
-	
+
+	// TODO move this field to somewhere else in this class.
+	public static int GyroPort = 1; // can only be 0 or 1
+
 	// TODO: some of these may become PWM outputs
 	public static final int BoxElevatorId = 10;
 	public static final int LeftIntakeId = 11;
@@ -42,10 +45,13 @@ public final class Constants {
 	public static final int CimCoderCountsPerRev = 80;	// Talon SRX counts every edge of the quadrature encoder, so 4 * 20
 	
 	// Steer Motor Constants
-	public static final int SteerCountsPerRev = 1657;	// Determined from PG71 gearmotor with 7 CPR encoder
+	public static final int QuadSteerCountsPerRev = 1657;	// Determined from PG71 gearmotor with 7 CPR encoder
+	public static final int AnalogSteerCountsPerRev = 1024; // Number of counts while using absolute encoder
 	
 
 	// Controls
+	public static final int JoystickPortNumber = 1;
+
 	public static final double TriggerDeadband = 0.05; // Deadband for main drive velocity input
 	public static final double DirectionDeadband = 0.3; // big because only change direction if hyp big enough
 	public static final double RotationRateDeadband = 0.05;

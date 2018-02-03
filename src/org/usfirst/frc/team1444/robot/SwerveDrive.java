@@ -10,7 +10,7 @@ import java.awt.geom.Point2D;
 // SwerveDrive defines the drive for the entire robot
 // This class will take control input and assign motor outputs
 public class SwerveDrive {
-	private static final double MAX_TURN_MAGNITUDE = 100; // in inches (or whatever unit length and width are in)
+	private static final double MAX_TURN_MAGNITUDE = 100; // in inches. Used in Josh's method (regularDrive())
 
 
 	private final SwerveModule[] moduleArray;
@@ -112,7 +112,6 @@ public class SwerveDrive {
 		}
 	}
 
-	// ================================ Start of Things for Josh's Method using regular drive ===================
 	// region Josh's Method
 	/**
 	 * Uses the provided parameters and this.rotation to set the motor speeds
@@ -224,6 +223,7 @@ public class SwerveDrive {
 	private static String pointToString(Point2D point){
 		return String.format("(%s,%s)", point.getX(), point.getY());
 	}
+	// endregion
 	
 	public void vectorControl(double FWD, double STR, double ROT, double speed, double gyro)
 	{		
@@ -276,7 +276,9 @@ public class SwerveDrive {
 		double flAngle = Math.toDegrees(Math.atan2(B, D));
 		double rlAngle = Math.toDegrees(Math.atan2(B, C));
 		double rrAngle = Math.toDegrees(Math.atan2(A, C));
-		
+
+		/* We don't really need these lines because we already do this at a lower level.
+		If you think we do need these, remove comment, otherwise remove entirely.
 		if (frAngle < 0)
 		{
 			frAngle += 360;
@@ -296,6 +298,7 @@ public class SwerveDrive {
 		{
 			rrAngle += 360;
 		}
+		*/
 		
 		// Update the drive modules
 		moduleArray[0].update(flSpeed, flAngle);

@@ -1,5 +1,6 @@
 package org.usfirst.frc.team1444.robot.controlling;
 
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.Constants;
 import org.usfirst.frc.team1444.robot.Robot;
@@ -11,16 +12,42 @@ public class SwerveController implements RobotController {
 	private static final Double DEFAULT_DIRECTION = 90.0; // the default direction to go to when joystick isn't touched
 	private static final Point2D ZERO = new Point2D.Double(0, 0);
 
+	private static final String VECTOR_CONTROL = "Vector Control";
+	private static final String POINT_CONTROL = "Point Control";
+	private static SendableChooser<String> controlChooser;
+
 	private ControllerInput controller;
 
 	public SwerveController(ControllerInput controller){
 		this.controller = controller;
+
+		initControlChooser();
+	}
+	private static void initControlChooser(){
+		if(controlChooser != null){
+			return;
+		}
+		controlChooser = new SendableChooser<>();
+		controlChooser.addDefault(VECTOR_CONTROL, VECTOR_CONTROL);
+		controlChooser.addObject(POINT_CONTROL, POINT_CONTROL);
+		SmartDashboard.putData("Control Type", controlChooser);
 	}
 
 	@Override
 	public void update(Robot robot) {
-		//this.drive(robot.getDrive());
-		this.drive(robot.getDrive(), 0);
+		SwerveDrive swerveDrive = robot.getDrive();
+
+		String mode = controlChooser.getSelected();
+		switch (mode){
+			case VECTOR_CONTROL:
+				this.drive(swerveDrive, 0);
+				break;
+			case POINT_CONTROL:
+				this.drive(swerveDrive);
+				break;
+			default:
+				throw new RuntimeException("Unknown control mode: " + mode);
+		}
 	}
 
 	/**
@@ -67,9 +94,6 @@ public class SwerveController implements RobotController {
 		int pov = controller.dPad();
 		SmartDashboard.putNumber("pov:", pov);
 		if(pov != -1) {
-//			double width = drive.getWidth();
-//			double length = drive.getLength();
-//			centerWhileStill = new Point2D.Double(Math.cos(pov) * (width / 2), Math.sin(pov) * (length / 2));
 			Point2D point1, point2 = null; // point2 may not always be used
 
 			// this switch statement is used to get the most accurate results event if points are changed in a module
