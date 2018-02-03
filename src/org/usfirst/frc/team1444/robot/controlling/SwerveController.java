@@ -151,10 +151,10 @@ public class SwerveController implements RobotController {
 		}
 		
 		// Run in "rotary mode"
-//		else if (leftBumper()) {
-//			FWD = rightStickHorizontal() * ROT;
-//			// TODO Add radius
-//		}
+		else if (leftBumper()) {
+			FWD = rightStickHorizontal() * ROT;
+			// TODO Add radius
+		}
 		
 		else {
 			ROT = rightStickHorizontal();
@@ -167,7 +167,7 @@ public class SwerveController implements RobotController {
 		
 		drive.vectorControl(FWD, STR, ROT, speed, gyro);
 	
-		if (controller.leftBumper())
+		if (controller.rightThumbLeft())
 		{
 			drive.switchToQuad();
 		}
@@ -220,6 +220,10 @@ public class SwerveController implements RobotController {
 		}
 
 		return value;
+	}
+	
+	private boolean rightThumbLeft() {
+		return controller.rightThumbLeft();
 	}
 
 	private boolean isFineMovement(){

@@ -43,7 +43,6 @@ public class Robot extends IterativeRobot {
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
 		super();
-		defaultController = new PS4Controller(1);  // set the default controller to a PS4Controller
 	}
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -59,12 +58,6 @@ public class Robot extends IterativeRobot {
 		steerPid = new PidParameters();
 		steerPid.KP = 8;
 		steerPid.KI = 0.008;
-		//steerPid.KD = 10;
-
-//		final int flOffset = 135;
-//		final int frOffset = 552;
-//		final int rlOffset = 116; 
-//		final int rrOffset = 289;
 		
 		final int flOffset = 728;
 		final int frOffset = 554;
@@ -78,7 +71,7 @@ public class Robot extends IterativeRobot {
 				new TalonSRX(Constants.FrontRightDriveId), new TalonSRX(Constants.FrontRightSteerId),
 				new TalonSRX(Constants.RearLeftDriveId), new TalonSRX(Constants.RearLeftSteerId),
 				new TalonSRX(Constants.RearRightDriveId), new TalonSRX(Constants.RearRightSteerId),
-				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset);
+				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset, 29, 20.5);
 		this.setRobotController(null);
 
 		// Setup dashboard autonomousChooser

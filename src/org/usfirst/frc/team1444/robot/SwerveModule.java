@@ -15,8 +15,7 @@ public class SwerveModule {
 	
 
 	private static final boolean SCALE_COUNTS = false; // if false, will not use MAX and MIN _ENCODER_COUNTS in setPosition
-	// 
-	private static final int ENCODER_COUNTS = 1657;
+	
 	private static final int MAX_ENCODER_COUNTS = 898;
 	private static final int MIN_ENCODER_COUNTS = 12;
 
@@ -136,7 +135,7 @@ public class SwerveModule {
 			targetEncoderCounts = (int) scaleFromDegrees(actualPosition);
 		} else {
 			actualPosition /= 360;
-			targetEncoderCounts = (int)(actualPosition * ENCODER_COUNTS); // 0 to 1024
+			targetEncoderCounts = (int)(actualPosition * Constants.SteerCountsPerRev);
 			if(!USE_SET_SELECTED) {
 				targetEncoderCounts += this.encoderOffset;
 			}
@@ -145,7 +144,7 @@ public class SwerveModule {
 		// Find the fastest path from the current position to the new position
 		int currentEncoderCount = steer.getSelectedSensorPosition(steerPid.pidIdx);
 		// Add rotation offset factoring in the number of rotations (either positive or negative)
-		targetEncoderCounts += (int) Math.round((currentEncoderCount - targetEncoderCounts) / (double) ENCODER_COUNTS) * ENCODER_COUNTS;
+		targetEncoderCounts += (int) Math.round((currentEncoderCount - targetEncoderCounts) / (double) Constants.SteerCountsPerRev) * Constants.SteerCountsPerRev;
 
 		// Command a new steering position
 		steer.set(ControlMode.Position, targetEncoderCounts);
