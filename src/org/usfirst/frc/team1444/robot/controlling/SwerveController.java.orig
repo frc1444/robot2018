@@ -1,5 +1,6 @@
 package org.usfirst.frc.team1444.robot.controlling;
 
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.Constants;
 import org.usfirst.frc.team1444.robot.Robot;
@@ -11,18 +12,61 @@ public class SwerveController implements RobotController {
 	private static final Double DEFAULT_DIRECTION = 90.0; // the default direction to go to when joystick isn't touched
 	private static final Point2D ZERO = new Point2D.Double(0, 0);
 
+	private static final String VECTOR_CONTROL = "Vector Control";
+	private static final String POINT_CONTROL = "Point Control";
+	private static SendableChooser<String> controlChooser;
+
 	private ControllerInput controller;
 
 	public SwerveController(ControllerInput controller){
 		this.controller = controller;
+
+		initControlChooser();
+	}
+	private static void initControlChooser(){
+		if(controlChooser != null){
+			return;
+		}
+		controlChooser = new SendableChooser<>();
+		controlChooser.addDefault(VECTOR_CONTROL, VECTOR_CONTROL);
+		controlChooser.addObject(POINT_CONTROL, POINT_CONTROL);
+		SmartDashboard.putData("Control Type", controlChooser);
 	}
 
 	@Override
-	public void update(Robot robot) {
+<<<<<<< HEAD
+	public void update(Robot robot, double gyro) {
 		//this.drive(robot.getDrive());
-		this.drive(robot.getDrive(), 0);
+		this.drive(robot.getDrive(), gyro);
+=======
+	public void update(Robot robot) {
+		SwerveDrive swerveDrive = robot.getDrive();
+
+		this.onDrive(swerveDrive);
+		String mode = controlChooser.getSelected();
+		switch (mode){
+			case VECTOR_CONTROL:
+//				System.out.println("Using vector");
+				this.drive(swerveDrive, 0);
+				break;
+			case POINT_CONTROL:
+//				System.out.println("Using point");
+				this.drive(swerveDrive);
+				break;
+			default:
+				throw new RuntimeException("Unknown control mode: " + mode);
+		}
+>>>>>>> 561df5a77c8bdb594b4fb7a91f1296078a6f9f51
 	}
 
+	/** Will be called when using either driving mode */
+	private void onDrive(SwerveDrive drive){
+		if (controller.rightThumbLeft())
+		{
+			drive.switchToQuad();
+		}
+
+	}
 	/**
 	 * Controls: left trigger - forwards, right trigger - backwards
 	 * lstick - direction of all wheels, rstick(x axis only) - turn robot
@@ -48,7 +92,7 @@ public class SwerveController implements RobotController {
 
 
 		// ========== Calculate direction of wheels ==========
-		// Direction is determined by the vector produced by the left joystick
+		// Direction is determined by the vector produced by the left joystick TODO this comment is wrong
 		double x = leftStickX(); // these values don't have a deadband applied yet
 		double y = leftStickY();
 
@@ -67,9 +111,6 @@ public class SwerveController implements RobotController {
 		int pov = controller.dPad();
 		SmartDashboard.putNumber("pov:", pov);
 		if(pov != -1) {
-//			double width = drive.getWidth();
-//			double length = drive.getLength();
-//			centerWhileStill = new Point2D.Double(Math.cos(pov) * (width / 2), Math.sin(pov) * (length / 2));
 			Point2D point1, point2 = null; // point2 may not always be used
 
 			// this switch statement is used to get the most accurate results event if points are changed in a module
@@ -133,14 +174,10 @@ public class SwerveController implements RobotController {
 		}
 		
 		// Apply gyro angle to gain field-centric command
-		// TODO Test this!
-		if (false)
-		{
-			double gyroR = Math.toRadians(gyro);
-			double temp = FWD * Math.cos(gyroR) + STR * Math.sin(gyroR);
-			STR = -FWD * Math.sin(gyroR) + STR * Math.cos(gyroR);
-			FWD = temp;
-		}
+		double gyroR = Math.toRadians(gyro);
+		double temp = FWD * Math.cos(gyroR) + STR * Math.sin(gyroR);
+		STR = -FWD * Math.sin(gyroR) + STR * Math.cos(gyroR);
+		FWD = temp;
 		
 		double ROT = 0.5;
 		
@@ -151,10 +188,10 @@ public class SwerveController implements RobotController {
 		}
 		
 		// Run in "rotary mode"
-//		else if (leftBumper()) {
-//			FWD = rightStickHorizontal() * ROT;
-//			// TODO Add radius
-//		}
+		else if (leftBumper()) {
+			FWD = rightStickHorizontal() * ROT;
+			// TODO Add radius
+		}
 		
 		else {
 			ROT = rightStickHorizontal();
@@ -166,11 +203,7 @@ public class SwerveController implements RobotController {
 		double speed = Math.pow(right, 2) - Math.pow(left, 2);
 		
 		drive.vectorControl(FWD, STR, ROT, speed, gyro);
-	
-		if (controller.leftBumper())
-		{
-			drive.switchToQuad();
-		}
+
 		
 	}
 	
@@ -197,18 +230,18 @@ public class SwerveController implements RobotController {
 	// Even though these methods don't use a deadband, we'll still keep them to keep our nice abstractions
 	private double leftStickX() {
 		double value = controller.leftStickX();
-		if (Math.abs(value) < Constants.DirectionDeadband)
-		{
-			value = 0;
-		}
+//		if (Math.abs(value) < Constants.DirectionDeadband)
+//		{
+//			value = 0;
+//		}
 		return value;
 	}
 	private double leftStickY() {
 		double value = controller.leftStickY();
-		if (Math.abs(value) < Constants.DirectionDeadband)
-		{
-			value = 0;
-		}
+//		if (Math.abs(value) < Constants.DirectionDeadband)
+//		{
+//			value = 0;
+//		}
 		return value;
 	}
 
@@ -220,6 +253,10 @@ public class SwerveController implements RobotController {
 		}
 
 		return value;
+	}
+	
+	private boolean rightThumbLeft() {
+		return controller.rightThumbLeft();
 	}
 
 	private boolean isFineMovement(){

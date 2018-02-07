@@ -36,17 +36,17 @@ public class SwerveController implements RobotController {
 	@Override
 	public void update(Robot robot, double gyro) {
 		SwerveDrive swerveDrive = robot.getDrive();
-		this.drive(robot.getDrive(), gyro);
+		//this.drive(robot.getDrive(), gyro);
 		this.onDrive(swerveDrive);
 		String mode = controlChooser.getSelected();
 		switch (mode){
 			case VECTOR_CONTROL:
 //				System.out.println("Using vector");
-				this.drive(swerveDrive, 0);
+				this.vectorDrive(swerveDrive, gyro);
 				break;
 			case POINT_CONTROL:
 //				System.out.println("Using point");
-				this.drive(swerveDrive);
+				this.pointDrive(swerveDrive, gyro);
 				break;
 			default:
 				throw new RuntimeException("Unknown control mode: " + mode);
@@ -71,7 +71,7 @@ public class SwerveController implements RobotController {
 	 *
 	 * @param drive the SwerveDrive object
 	 */
-	private void drive(SwerveDrive drive) {
+	private void pointDrive(SwerveDrive drive, double gyro) {
 
 		// ========== Calculate speed ==========
 		boolean isFineMovement = isFineMovement(); // are we going to move really slow?
@@ -96,10 +96,14 @@ public class SwerveController implements RobotController {
 		} else if (Math.hypot(x, y) > Constants.DirectionDeadband) {
 			direction = Math.toDegrees(Math.atan2(y, x)); // even if negative, fixed at lower level
 		}
+		if(direction != null) {
+			direction += gyro;
+		}
 
 
 		// Rotation rate is based fully on right joystick
 		double turnAmount = rightStickHorizontal();
+		SmartDashboard.putNumber("turnAmount", turnAmount);
 
 		Point2D centerWhileStill;
 		int pov = controller.dPad();
@@ -155,7 +159,7 @@ public class SwerveController implements RobotController {
 		drive.update(speed, direction, turnAmount, centerWhileStill);
 	}
 
-	private void drive(SwerveDrive drive, double gyro)
+	private void vectorDrive(SwerveDrive drive, double gyro)
 	{		
 		// TODO Add Scaling
 		double STR = leftStickX();

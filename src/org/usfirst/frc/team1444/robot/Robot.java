@@ -46,8 +46,6 @@ public class Robot extends IterativeRobot {
 
 	private PidParameters drivePid;
 	private PidParameters steerPid;
-	
-	private Gyro gyro;
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
 		super();
@@ -58,11 +56,9 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
-//		this.gyro = new ADXRS450_Gyro(); idk what this class is for, I think we use the line below
-		this.gyro = new AnalogGyro(Constants.GyroPort);
-		gyro.reset(); // call this method somewhere else whenever we reset the position
 
 		gyro = new ADXRS450_Gyro(Port.kOnboardCS0);
+		gyro.calibrate();
 		
 		drivePid = new PidParameters();
 		drivePid.KF = 1;
@@ -101,8 +97,6 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void disabledInit() {
 		setRobotController(null);
-		
-		gyro.calibrate();
 	}
 
 	public SwerveDrive getDrive() {
