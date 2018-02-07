@@ -8,6 +8,7 @@
 package org.usfirst.frc.team1444.robot;
 
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.AnalogGyro;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -39,8 +40,9 @@ public class Robot extends IterativeRobot {
 	private SendableChooser<String> controllerInputChooser = new SendableChooser<>();
 
 	private SwerveDrive drive;
-	private RobotController robotController;  // use ***Init to change this to something that fits that mode
+	private Gyro gyro;
 
+	private RobotController robotController;  // use ***Init to change this to something that fits that mode
 
 	private PidParameters drivePid;
 	private PidParameters steerPid;
@@ -56,7 +58,10 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
-		
+//		this.gyro = new ADXRS450_Gyro(); idk what this class is for, I think we use the line below
+		this.gyro = new AnalogGyro(Constants.GyroPort);
+		gyro.reset(); // call this method somewhere else whenever we reset the position
+
 		gyro = new ADXRS450_Gyro(Port.kOnboardCS0);
 		
 		drivePid = new PidParameters();
@@ -90,7 +95,7 @@ public class Robot extends IterativeRobot {
 		controllerInputChooser.addDefault(PS4_CONTROLLER, PS4_CONTROLLER);
 		controllerInputChooser.addObject(SINGLE_JOYSTICK, SINGLE_JOYSTICK);
 		SmartDashboard.putData("Controller Type", controllerInputChooser);
-		
+
 	}
 
 	@Override
@@ -103,6 +108,10 @@ public class Robot extends IterativeRobot {
 	public SwerveDrive getDrive() {
 		return drive;
 	}
+	public Gyro getGyro(){
+		return gyro;
+	}
+
 	public void setRobotController(RobotController robotController){
 		this.robotController = robotController;
 		if(this.robotController == null){
@@ -144,7 +153,7 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopInit() {
-		robotController = new SwerveController(createControllerInput(1));
+		robotController = new SwerveController(createControllerInput(Constants.JoystickPortNumber));
 		gyro.reset();
 	}
 
