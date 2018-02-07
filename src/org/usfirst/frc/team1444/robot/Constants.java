@@ -16,9 +16,6 @@ public final class Constants {
 	
 	public static final int PdbId = 9;
 
-	// TODO move this field to somewhere else in this class.
-	public static int GyroPort = 1; // can only be 0 or 1
-
 	// TODO: some of these may become PWM outputs
 	public static final int BoxElevatorId = 10;
 	public static final int LeftIntakeId = 11;

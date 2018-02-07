@@ -11,7 +11,7 @@ public class InputTester implements RobotController {
 	}
 
 	@Override
-	public void update(Robot robot, double gyro) {
+	public void update(Robot robot) {
 		SmartDashboard.putString("rthumb top, bottom, left, right", String.format("%s, %s, %s, %s",
 				controller.rightThumbTop(), controller.rightThumbBottom(),
 				controller.rightThumbLeft(), controller.rightThumbRight()));

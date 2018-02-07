@@ -34,8 +34,10 @@ public class SwerveController implements RobotController {
 	}
 
 	@Override
-	public void update(Robot robot, double gyro) {
+	public void update(Robot robot) {
 		SwerveDrive swerveDrive = robot.getDrive();
+		double gyro = robot.getGyro().getAngle();
+
 		//this.drive(robot.getDrive(), gyro);
 		this.onDrive(swerveDrive);
 		String mode = controlChooser.getSelected();
@@ -86,7 +88,7 @@ public class SwerveController implements RobotController {
 
 
 		// ========== Calculate direction of wheels ==========
-		// Direction is determined by the vector produced by the left joystick TODO this comment is wrong
+		// Direction is determined by the vector produced by the left joystick
 		double x = leftStickX(); // these values don't have a deadband applied yet
 		double y = leftStickY();
 

@@ -7,8 +7,8 @@
 
 package org.usfirst.frc.team1444.robot;
 
+import com.sun.corba.se.impl.orbutil.closure.Constant;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
-import edu.wpi.first.wpilibj.AnalogGyro;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -40,6 +40,8 @@ public class Robot extends IterativeRobot {
 	private SendableChooser<String> controllerInputChooser = new SendableChooser<>();
 
 	private SwerveDrive drive;
+	private Intake intake;
+	private Lift lift;
 	private Gyro gyro;
 
 	private RobotController robotController;  // use ***Init to change this to something that fits that mode
@@ -81,6 +83,9 @@ public class Robot extends IterativeRobot {
 				new TalonSRX(Constants.RearLeftDriveId), new TalonSRX(Constants.RearLeftSteerId),
 				new TalonSRX(Constants.RearRightDriveId), new TalonSRX(Constants.RearRightSteerId),
 				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset, 28, 17.5);
+
+		this.intake = new Intake();
+		this.lift = new Lift();
 		this.setRobotController(null);
 
 		// Setup dashboard autonomousChooser
@@ -105,6 +110,12 @@ public class Robot extends IterativeRobot {
 	public Gyro getGyro(){
 		return gyro;
 	}
+	public Intake getIntake(){
+		return intake;
+	}
+	public Lift getLift(){
+		return lift;
+	}
 
 	public void setRobotController(RobotController robotController){
 		this.robotController = robotController;
@@ -116,7 +127,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void robotPeriodic() {
 		if(robotController != null) {
-			robotController.update(this, gyro.getAngle());
+			robotController.update(this);
 		}
 		
 		SmartDashboard.putNumber("Gyro", gyro.getAngle());
@@ -147,7 +158,8 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopInit() {
-		robotController = new SwerveController(createControllerInput(Constants.JoystickPortNumber));
+		robotController = new TeleopController(createControllerInput(Constants.JoystickPortNumber), null);
+//		robotController = new SwerveController(createControllerInput(Constants.JoystickPortNumber));
 		gyro.reset();
 	}
 

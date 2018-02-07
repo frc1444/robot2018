@@ -17,11 +17,10 @@ public interface RobotController {
 
 	/**
 	 * Called whenever this class is the controller in Robot
+	 *  @param robot The main Robot class that contains SwerveDrive etc.
 	 *
-	 * @param robot The main Robot class that contains SwerveDrive etc.
-	 * @param gyro Angle determined from onboard gyro
 	 */
-	void update(Robot robot, double gyro);
+	void update(Robot robot);
 	// later we could make this return RobotController (if we wanted to change it when we press a button)
 	// (return this or null to keep it the same if we choose to change it to that)
 
