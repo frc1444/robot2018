@@ -7,10 +7,14 @@
 
 package org.usfirst.frc.team1444.robot;
 
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.controlling.*;
+
+import edu.wpi.first.wpilibj.interfaces.Gyro;
 
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
@@ -40,6 +44,8 @@ public class Robot extends IterativeRobot {
 
 	private PidParameters drivePid;
 	private PidParameters steerPid;
+	
+	private Gyro gyro;
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
 		super();
@@ -50,6 +56,8 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
+		
+		gyro = new ADXRS450_Gyro(Port.kOnboardCS0);
 		
 		drivePid = new PidParameters();
 		drivePid.KF = 1;
@@ -62,16 +70,16 @@ public class Robot extends IterativeRobot {
 		final int flOffset = 728;
 		final int frOffset = 554;
 		final int rlOffset = 552; 
-		final int rrOffset = 135;
+		final int rrOffset = 346;
 		
 		// Initialize the drive by passing in new TalonSRXs for each drive and steer motor
-		// length: 29.5 width: 20.5
+		// length: 28 width: 17.5
 		drive = new SwerveDrive(
 				new TalonSRX(Constants.FrontLeftDriveId), new TalonSRX(Constants.FrontLeftSteerId),
 				new TalonSRX(Constants.FrontRightDriveId), new TalonSRX(Constants.FrontRightSteerId),
 				new TalonSRX(Constants.RearLeftDriveId), new TalonSRX(Constants.RearLeftSteerId),
 				new TalonSRX(Constants.RearRightDriveId), new TalonSRX(Constants.RearRightSteerId),
-				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset, 29, 20.5);
+				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset, 28, 17.5);
 		this.setRobotController(null);
 
 		// Setup dashboard autonomousChooser
@@ -88,6 +96,8 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void disabledInit() {
 		setRobotController(null);
+		
+		gyro.calibrate();
 	}
 
 	public SwerveDrive getDrive() {
@@ -103,8 +113,10 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void robotPeriodic() {
 		if(robotController != null) {
-			robotController.update(this);
+			robotController.update(this, gyro.getAngle());
 		}
+		
+		SmartDashboard.putNumber("Gyro", gyro.getAngle());
 	}
 
 	@Override
@@ -133,6 +145,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopInit() {
 		robotController = new SwerveController(createControllerInput(1));
+		gyro.reset();
 	}
 
 	/**

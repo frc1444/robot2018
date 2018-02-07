@@ -39,6 +39,9 @@ public class SwerveModule {
 	private SensorCollection steerSensorCollection;
 	
 	private boolean setToQuad = false;
+	
+	// Current position in degrees of the module
+	private double position = 0;
 
 	/**
 	 * Creates a SwerveModule with the given parameters
@@ -140,6 +143,8 @@ public class SwerveModule {
 				targetEncoderCounts += this.encoderOffset;
 			}
 		}
+		
+		this.position = actualPosition;
 
 		// Find the fastest path from the current position to the new position
 		int currentEncoderCount = steer.getSelectedSensorPosition(steerPid.pidIdx);
@@ -188,7 +193,7 @@ public class SwerveModule {
 	 * @param position Desired position of module in degrees: 0 - 360
 	 */
 	public void update(double speed, double position) {
-
+		
 		this.setSpeed(speed);
 		this.setPosition(position);
 		

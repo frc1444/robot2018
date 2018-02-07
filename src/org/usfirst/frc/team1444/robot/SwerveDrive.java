@@ -225,6 +225,14 @@ public class SwerveDrive {
 		return String.format("(%s,%s)", point.getX(), point.getY());
 	}
 	
+	/**
+	 * Swerve drive control using vector math
+	 * @param FWD Magnitude of forward vector from joystick -1 to 1
+	 * @param STR Magnitude of strafe vector from joystick -1 to 1
+	 * @param ROT Magnitude of rotation vector from joystick -1 to 1
+	 * @param speed Speed multiplier from control 0 to 1
+	 * @param gyro Angle of robot from gyro - used for field centric control
+	 */
 	public void vectorControl(double FWD, double STR, double ROT, double speed, double gyro)
 	{		
 	

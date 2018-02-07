@@ -18,9 +18,9 @@ public class SwerveController implements RobotController {
 	}
 
 	@Override
-	public void update(Robot robot) {
+	public void update(Robot robot, double gyro) {
 		//this.drive(robot.getDrive());
-		this.drive(robot.getDrive(), 0);
+		this.drive(robot.getDrive(), gyro);
 	}
 
 	/**
@@ -133,14 +133,10 @@ public class SwerveController implements RobotController {
 		}
 		
 		// Apply gyro angle to gain field-centric command
-		// TODO Test this!
-		if (false)
-		{
-			double gyroR = Math.toRadians(gyro);
-			double temp = FWD * Math.cos(gyroR) + STR * Math.sin(gyroR);
-			STR = -FWD * Math.sin(gyroR) + STR * Math.cos(gyroR);
-			FWD = temp;
-		}
+		double gyroR = Math.toRadians(gyro);
+		double temp = FWD * Math.cos(gyroR) + STR * Math.sin(gyroR);
+		STR = -FWD * Math.sin(gyroR) + STR * Math.cos(gyroR);
+		FWD = temp;
 		
 		double ROT = 0.5;
 		
