@@ -37,12 +37,15 @@ public class SwerveController implements RobotController {
 	public void update(Robot robot) {
 		SwerveDrive swerveDrive = robot.getDrive();
 
+		this.onDrive(swerveDrive);
 		String mode = controlChooser.getSelected();
 		switch (mode){
 			case VECTOR_CONTROL:
+//				System.out.println("Using vector");
 				this.drive(swerveDrive, 0);
 				break;
 			case POINT_CONTROL:
+//				System.out.println("Using point");
 				this.drive(swerveDrive);
 				break;
 			default:
@@ -50,6 +53,14 @@ public class SwerveController implements RobotController {
 		}
 	}
 
+	/** Will be called when using either driving mode */
+	private void onDrive(SwerveDrive drive){
+		if (controller.rightThumbLeft())
+		{
+			drive.switchToQuad();
+		}
+
+	}
 	/**
 	 * Controls: left trigger - forwards, right trigger - backwards
 	 * lstick - direction of all wheels, rstick(x axis only) - turn robot
@@ -75,7 +86,7 @@ public class SwerveController implements RobotController {
 
 
 		// ========== Calculate direction of wheels ==========
-		// Direction is determined by the vector produced by the left joystick
+		// Direction is determined by the vector produced by the left joystick TODO this comment is wrong
 		double x = leftStickX(); // these values don't have a deadband applied yet
 		double y = leftStickY();
 
@@ -190,11 +201,7 @@ public class SwerveController implements RobotController {
 		double speed = Math.pow(right, 2) - Math.pow(left, 2);
 		
 		drive.vectorControl(FWD, STR, ROT, speed, gyro);
-	
-		if (controller.rightThumbLeft())
-		{
-			drive.switchToQuad();
-		}
+
 		
 	}
 	
@@ -221,18 +228,18 @@ public class SwerveController implements RobotController {
 	// Even though these methods don't use a deadband, we'll still keep them to keep our nice abstractions
 	private double leftStickX() {
 		double value = controller.leftStickX();
-		if (Math.abs(value) < Constants.DirectionDeadband)
-		{
-			value = 0;
-		}
+//		if (Math.abs(value) < Constants.DirectionDeadband)
+//		{
+//			value = 0;
+//		}
 		return value;
 	}
 	private double leftStickY() {
 		double value = controller.leftStickY();
-		if (Math.abs(value) < Constants.DirectionDeadband)
-		{
-			value = 0;
-		}
+//		if (Math.abs(value) < Constants.DirectionDeadband)
+//		{
+//			value = 0;
+//		}
 		return value;
 	}
 

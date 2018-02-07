@@ -89,7 +89,7 @@ public class Robot extends IterativeRobot {
 		controllerInputChooser.addDefault(PS4_CONTROLLER, PS4_CONTROLLER);
 		controllerInputChooser.addObject(SINGLE_JOYSTICK, SINGLE_JOYSTICK);
 		SmartDashboard.putData("Controller Type", controllerInputChooser);
-		
+
 	}
 
 	@Override

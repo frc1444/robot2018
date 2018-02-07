@@ -97,14 +97,16 @@ public class SwerveModule {
 		actualPosition = actualPosition < 0 ? actualPosition + 360 : actualPosition;
 
 		actualPosition /= 360; // actualPosition is now a number between 0 and 1
-		
+
+		if(setToQuad == null) throw new IllegalStateException("why is setToQuad null?");
+
 		int encoderCounts;
 		if(!setToQuad){ // absolute encoder
 			encoderCounts = Constants.AnalogSteerCountsPerRev;
 		} else {
 			encoderCounts = Constants.QuadSteerCountsPerRev;
 		}
-		int targetEncoderCounts = (int) actualPosition * encoderCounts;
+		int targetEncoderCounts = (int) (actualPosition * encoderCounts);
 
 		// Find the fastest path from the current position to the new position
 		int currentEncoderCount = steer.getSelectedSensorPosition(steerPid.pidIdx);
@@ -113,7 +115,6 @@ public class SwerveModule {
 
 		// Command a new steering position
 		steer.set(ControlMode.Position, targetEncoderCounts);
-		SmartDashboard.putNumber("setPosition " + ID, targetEncoderCounts);
 
 	}
 
@@ -136,7 +137,8 @@ public class SwerveModule {
 		
 		// Print the current, measured encoder count
 		SmartDashboard.putNumber("Encoder " + ID, steer.getSelectedSensorPosition(steerPid.pidIdx));
-		
+
+		SmartDashboard.putString("is quad encoder? id: " + ID, "" + this.setToQuad);
 	}
 	
 	private void UpdateDrivePid(PidParameters pid) {
