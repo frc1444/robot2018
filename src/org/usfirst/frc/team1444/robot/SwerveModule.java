@@ -31,8 +31,6 @@ public class SwerveModule {
 	// null means not initialized, true means it is a quad encoder, false means it is an analog encoder
 	private Boolean setToQuad = null;
 	
-	// Current position in degrees of the module
-	private double position = 0;
 
 	/**
 	 * Creates a SwerveModule with the given parameters
@@ -103,15 +101,10 @@ public class SwerveModule {
 
 		if(setToQuad == null) throw new IllegalStateException("why is setToQuad null?");
 
-		int encoderCounts;
-		if(!setToQuad){ // absolute encoder
-			encoderCounts = Constants.AnalogSteerCountsPerRev;
-		} else {
-			encoderCounts = Constants.QuadSteerCountsPerRev;
-		}
+		int encoderCounts = this.getUsedEncoderCounts();
 		int targetEncoderCounts = (int) (actualPosition * encoderCounts);
 		
-		this.position = actualPosition;
+//		this.position = actualPosition;
 
 		// Find the fastest path from the current position to the new position
 		int currentEncoderCount = steer.getSelectedSensorPosition(steerPid.pidIdx);
@@ -121,6 +114,31 @@ public class SwerveModule {
 		// Command a new steering position
 		steer.set(ControlMode.Position, targetEncoderCounts);
 
+	}
+
+	/**
+	 * While in analog mode, this method won't return an accurate result unless it is near 0. (This will never get with
+	 * in 4 degrees of 0 if the raw analog value is 0 when at 0 degrees)
+	 *
+	 * @return The position of the steering in degrees.
+	 */
+	public double getSensorPositionDegrees(){
+		int encoderCounts = getUsedEncoderCounts();
+
+		int position = steer.getSelectedSensorPosition(steerPid.pidIdx);
+		position %= encoderCounts;
+		position = position < 0 ? position + encoderCounts : position;
+
+		return position / (double) encoderCounts;
+	}
+	private int getUsedEncoderCounts(){
+		int encoderCounts;
+		if(!setToQuad){ // absolute encoder
+			encoderCounts = Constants.AnalogSteerCountsPerRev;
+		} else {
+			encoderCounts = Constants.QuadSteerCountsPerRev;
+		}
+		return encoderCounts;
 	}
 
 	/**
@@ -193,6 +211,13 @@ public class SwerveModule {
 		
 		setToQuad = false;
 			
+	}
+
+	public boolean isQuad(){
+		if(setToQuad == null){
+			throw new IllegalStateException("This SwerveModule has not yet had a FeedbackDevice set.");
+		}
+		return setToQuad;
 	}
 
 }

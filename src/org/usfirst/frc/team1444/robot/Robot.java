@@ -9,6 +9,7 @@ package org.usfirst.frc.team1444.robot;
 
 import com.sun.corba.se.impl.orbutil.closure.Constant;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -39,10 +40,13 @@ public class Robot extends IterativeRobot {
 
 	private SendableChooser<String> controllerInputChooser = new SendableChooser<>();
 
+
 	private SwerveDrive drive;
 	private Intake intake;
 	private Lift lift;
 	private Gyro gyro;
+
+	private GameData gameData; // Should only be used after match has started (Shouldn't be used in disabled mode)
 
 	private RobotController robotController;  // use ***Init to change this to something that fits that mode
 
@@ -88,6 +92,8 @@ public class Robot extends IterativeRobot {
 		this.lift = new Lift();
 		this.setRobotController(null);
 
+		this.gameData = new GameData(DriverStation.getInstance());
+
 		// Setup dashboard autonomousChooser
 		autonomousChooser.addDefault(DEFAULT_AUTO, DEFAULT_AUTO); // since DEFAULT_AUTO is a String, use for both
 		autonomousChooser.addObject(RAMPAGE_AUTO, RAMPAGE_AUTO);
@@ -115,6 +121,11 @@ public class Robot extends IterativeRobot {
 	}
 	public Lift getLift(){
 		return lift;
+	}
+	public GameData getGameData(){
+		if(isDisabled()) throw new IllegalStateException("GameData may not be accurate while disabled.");
+
+		return gameData;
 	}
 
 	public void setRobotController(RobotController robotController){
