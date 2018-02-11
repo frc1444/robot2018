@@ -17,13 +17,17 @@ public class SwerveDrive {
 	private double rotation;
 
 	private final Point2D origin;
-	
+	private final double robotDiagonal; // should be twice the distance from the origin to one of the SwerveModules
+
 	private double cosA;			// Sine and cosine used in swerve equations - constants based on robot dimensions
 	private double sinA;
 
 	/**
 	 * Initializes SwerveDrive and creates SwerveModules. Even though each parameter is a BaseMotorController,
 	 * we can still pass it a TalonSRX
+	 *
+	 * @param wheelBase distance from left to right wheels on the robot in inches
+	 * @param trackWidth distance from front to back wheels on the robot in inches
 	 */
 	public SwerveDrive(BaseMotorController flDrive, BaseMotorController flSteer,
 	                   BaseMotorController frDrive, BaseMotorController frSteer,
@@ -33,6 +37,7 @@ public class SwerveDrive {
 	                   int flOffset, int frOffset, int rlOffset, int rrOffset,
 	                   double wheelBase, double trackWidth) {
 
+		// TODO I think wheelBase and trackWidth are flipped since shouldn't wheelBase be front to back?
 		double x = trackWidth / 2;
 		double y = wheelBase / 2;
 		moduleArray = new SwerveModule[]{
@@ -41,12 +46,11 @@ public class SwerveDrive {
 				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, new Point2D.Double(-x,-y), 2, rlOffset),
 				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, new Point2D.Double(x, -y), 3, rrOffset)
 		};
-		// note, changing IDs will break code in regularDrive below
 
 		this.origin = new Point2D.Double(0, 0);
 		
 		// Calculate sine and cosine for swerve equations from robot dimensions
-		double robotDiagonal = Math.hypot(wheelBase, trackWidth);
+		robotDiagonal = Math.hypot(wheelBase, trackWidth);
 		this.cosA = wheelBase / robotDiagonal;
 		this.sinA = trackWidth / robotDiagonal;
 		
@@ -68,6 +72,63 @@ public class SwerveDrive {
 	public SwerveModule[] getModules() {
 		return moduleArray;
 	}
+
+	/**
+	 * This is used in Josh's method in SwerveController to get the exact location of a module using degrees, or the
+	 * exact point because two modules
+	 *
+	 * @param rotation The rotation in degrees. That is a multiple of 45
+	 * @return The exact location, or the exact location between two modules' locations
+	 */
+	public Point2D getLocationUsingRotation(int rotation){
+		rotation = rotation % 360;
+		rotation = rotation < 0 ? rotation + 360 : rotation;
+
+		if(rotation % 45 != 0){
+			throw new IllegalArgumentException("The argument rotation (" + rotation + ") must be a multiple of 45");
+		}
+
+		Point2D point1, point2 = null; // point2 may not always be used
+
+		// this switch statement is used to get the most accurate results event if points are changed in a module
+		switch(rotation / 45){
+			case 0:
+				point1 = this.getFrontRight().getLocation();
+				point2 = this.getRearRight().getLocation();
+				break;
+			case 1:
+				point1 = this.getFrontRight().getLocation();
+				break;
+			case 2: // 90 degrees
+				point1 = this.getFrontLeft().getLocation();
+				point2 = this.getFrontRight().getLocation();
+				break;
+			case 3:
+				point1 = this.getFrontLeft().getLocation();
+				break;
+			case 4: // 180 (left)
+				point1 = this.getFrontLeft().getLocation();
+				point2 = this.getRearLeft().getLocation();
+				break;
+			case 5:
+				point1 = this.getRearLeft().getLocation();
+				break;
+			case 6:
+				point1 = this.getRearLeft().getLocation();
+				point2 = this.getRearRight().getLocation();
+				break;
+			case 7:
+				point1 = this.getRearRight().getLocation();
+				break;
+			default:
+				throw new RuntimeException("Unexpected pov number: " + rotation + " make sure controller class is correct");
+		}
+		if(point2 == null) {
+			return point1;
+		}
+		return new Point2D.Double((point1.getX() + point2.getX()) / 2, (point1.getY() + point2.getY()) / 2);
+	}
+
 
 	/**
 	 * 
@@ -130,13 +191,15 @@ public class SwerveDrive {
 		final double rotationInRadians = Math.toRadians(this.rotation);
 
 		Point2D centerOfRotation;
-
-		// Calculate centerOfRotation
+		// region Calculate centerOfRotation
 		double centerMagnitude = MAX_TURN_MAGNITUDE * (1 - Math.abs(turnAmount)) * -Math.signum(turnAmount);
+		centerMagnitude += this.robotDiagonal / 2;
+
 		centerOfRotation = new Point2D.Double(0, centerMagnitude);
 		AffineTransform centerTransform = new AffineTransform(); // let nice little object do rotating for us
 		centerTransform.rotate(rotationInRadians);
 		centerTransform.transform(centerOfRotation, centerOfRotation); // rotate centerOfRotation
+		// endregion
 
 		SmartDashboard.putString("centerOfRotation", pointToString(centerOfRotation));
 

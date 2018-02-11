@@ -8,6 +8,9 @@ import org.usfirst.frc.team1444.robot.SwerveDrive;
 
 import java.awt.geom.Point2D;
 
+/**
+ * RobotController that handles the drive and nothing else
+ */
 public class SwerveController implements RobotController {
 	private static final Double DEFAULT_DIRECTION = 90.0; // the default direction to go to when joystick isn't touched
 	private static final Point2D ZERO = new Point2D.Double(0, 0);
@@ -23,6 +26,7 @@ public class SwerveController implements RobotController {
 
 		initControlChooser();
 	}
+	/** Simple method to initialize controlChooser */
 	private static void initControlChooser(){
 		if(controlChooser != null){
 			return;
@@ -38,16 +42,14 @@ public class SwerveController implements RobotController {
 		SwerveDrive swerveDrive = robot.getDrive();
 		double gyro = robot.getGyro().getAngle();
 
-		//this.drive(robot.getDrive(), gyro);
 		this.onDrive(swerveDrive);
+
 		String mode = controlChooser.getSelected();
 		switch (mode){
 			case VECTOR_CONTROL:
-//				System.out.println("Using vector");
 				this.vectorDrive(swerveDrive, gyro);
 				break;
 			case POINT_CONTROL:
-//				System.out.println("Using point");
 				this.pointDrive(swerveDrive, gyro);
 				break;
 			default:
@@ -74,8 +76,7 @@ public class SwerveController implements RobotController {
 	 * @param drive the SwerveDrive object
 	 */
 	private void pointDrive(SwerveDrive drive, double gyro) {
-
-		// ========== Calculate speed ==========
+		// region Calculate speed
 		boolean isFineMovement = isFineMovement(); // are we going to move really slow?
 		final double powAmount = isFineMovement ? 1 : 2; // if fine, make acceleration linear
 
@@ -85,9 +86,9 @@ public class SwerveController implements RobotController {
 		if(isFineMovement){
 			speed *= Constants.FineScaleAmount;
 		}
+		// endregion
 
-
-		// ========== Calculate direction of wheels ==========
+		// region Calculate Direction
 		// Direction is determined by the vector produced by the left joystick
 		double x = leftStickX(); // these values don't have a deadband applied yet
 		double y = leftStickY();
@@ -101,7 +102,7 @@ public class SwerveController implements RobotController {
 		if(direction != null) {
 			direction += gyro;
 		}
-
+		// endregion
 
 		// Rotation rate is based fully on right joystick
 		double turnAmount = rightStickHorizontal();
@@ -111,53 +112,11 @@ public class SwerveController implements RobotController {
 		int pov = controller.dPad();
 		SmartDashboard.putNumber("pov:", pov);
 		if(pov != -1) {
-			Point2D point1, point2 = null; // point2 may not always be used
-
-			// this switch statement is used to get the most accurate results event if points are changed in a module
-			switch(pov / 45){
-				case 0:
-					point1 = drive.getFrontRight().getLocation();
-					point2 = drive.getRearRight().getLocation();
-					break;
-				case 1:
-					point1 = drive.getFrontRight().getLocation();
-					break;
-				case 2: // 90 degrees
-					point1 = drive.getFrontLeft().getLocation();
-					point2 = drive.getFrontRight().getLocation();
-					break;
-				case 3:
-					point1 = drive.getFrontLeft().getLocation();
-					break;
-				case 4: // 180 (left)
-					point1 = drive.getFrontLeft().getLocation();
-					point2 = drive.getRearLeft().getLocation();
-					break;
-				case 5:
-					point1 = drive.getRearLeft().getLocation();
-					break;
-				case 6:
-					point1 = drive.getRearLeft().getLocation();
-					point2 = drive.getRearRight().getLocation();
-					break;
-				case 7:
-					point1 = drive.getRearRight().getLocation();
-					break;
-				default:
-					throw new RuntimeException("Unexpected pov number: " + pov + " make sure controller class is correct");
-			}
-			if(point2 == null){
-				centerWhileStill = point1;
-			} else {
-				centerWhileStill = new Point2D.Double((point1.getX() + point2.getX()) / 2,
-						(point1.getY() + point2.getY()) / 2);
-			}
+			centerWhileStill = drive.getLocationUsingRotation(pov);
 		} else {
 			centerWhileStill = ZERO;
 		}
 
-
-		// Update the drive
 		drive.update(speed, direction, turnAmount, centerWhileStill);
 	}
 
@@ -255,10 +214,6 @@ public class SwerveController implements RobotController {
 		return value;
 	}
 	
-	private boolean rightThumbLeft() {
-		return controller.rightThumbLeft();
-	}
-
 	private boolean isFineMovement(){
 		return controller.leftBumper();
 	}

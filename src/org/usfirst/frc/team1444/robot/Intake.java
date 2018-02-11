@@ -11,7 +11,15 @@ public class Intake {
 
 	}
 
-	// It'd sure be a lot of fun to use sensors and be able to control two motors speeds at once
+	/**
+	 * Sets each motor speed individually
+	 *
+	 * @param leftSpeed The speed of the intake wheels on the left of the robot (nearest front left SwerveModule)
+	 * @param rightSpeed The speed of the intake wheels on the right of the robot (nearest front right SwerveModule)
+	 */
+	public void setSpeeds(double leftSpeed, double rightSpeed){
+
+	}
 
 
 }

@@ -4,6 +4,9 @@ import org.usfirst.frc.team1444.robot.Intake;
 import org.usfirst.frc.team1444.robot.Lift;
 import org.usfirst.frc.team1444.robot.Robot;
 
+/**
+ * Class that handles the intake and lift
+ */
 public class CubeController implements RobotController{
 
 	private ControllerInput controller;
@@ -18,7 +21,14 @@ public class CubeController implements RobotController{
 	public void update(Robot robot) {
 		Intake intake = robot.getIntake();
 		Lift lift = robot.getLift();
-		// Do stuff with these here
-		// If we are going to do the crazy two wheeled thing, make sure we separate this stuff into another method at some point
+
+		intakeUpdate(intake);
+		liftUpdate(lift);
+	}
+	private void intakeUpdate(Intake intake){
+
+	}
+	private void liftUpdate(Lift lift){
+
 	}
 }
