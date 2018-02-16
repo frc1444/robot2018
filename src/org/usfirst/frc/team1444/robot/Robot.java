@@ -18,7 +18,7 @@ import org.usfirst.frc.team1444.robot.controlling.*;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 
 import com.mach.LightDrive.LightDrive2812;
-import com.mach.LightDrive.LightDriveCAN;
+import com.mach.LightDrive.Color;
 
 import org.usfirst.frc.team1444.robot.BNO055;
 import org.usfirst.frc.team1444.robot.BNO055.MODES;
