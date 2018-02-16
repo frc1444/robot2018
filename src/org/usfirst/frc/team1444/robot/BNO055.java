@@ -74,7 +74,11 @@ public class BNO055 {
 	};
 	
 	/**
-	 * Read and return latest Euler vector data from IMU	
+	 * Read and return latest Euler vector data from IMU.
+	 * All units are in Radians.<br>
+	 * Heading - Yaw/Heading value: 0 - 2PI Clockwise+.<br>
+	 * Roll - Roll Value: -PI/2 - PI/2 Clockwise+.<br>
+	 * Pitch - Pitch Value: -PI - PI.<br>
 	 * @return a EulerData class representing the 3 Euler angles
 	 */
 	public EulerData GetEulerData() {
@@ -95,6 +99,12 @@ public class BNO055 {
 	private I2C m_i2c;
 	private int page;
 
+	/*
+	 * Object for holding Euler heading data.
+	 * heading - Yaw/Heading value: 0 - 2PI Clockwise+.
+	 * Roll - Roll Value: -PI/2 - PI/2 Clockwise+.
+	 * Pitch - Pitch Value: -PI - PI.
+	 */
 	static class EulerData {
 		public double heading;
 		public double roll;
