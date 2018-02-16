@@ -6,24 +6,44 @@ import java.nio.*;
 
 public class BNO055 {
 
+	/**
+	 * Construct a BNO055 IMU object and initialize.
+	 */
 	public BNO055() {
+		page = 0;
 		m_i2c = new I2C(I2C.Port.kOnboard, 0x28);
 		//Select page 0
 		m_i2c.write(REG_PAGE0.PAGE_ID, 0);
 		//Set units for m/s2, Rps, Radians, degC,
 		//Pitch: -Pi to Pi Clockwise+, Roll: -Pi/2 - Pi/2, Heading/Yaw: 0-2Pi clockwise+
 		m_i2c.write(REG_PAGE0.UNIT_SELECT, 0x6);
-		
-		
 	};
 	
-	public void Calibrate() {
-		
+	/**
+	 * Construct a BNO055 IMU object and initialize.
+	 * @param addr Specify address of IMU (0x28 default or 0x29)
+	 */
+	public BNO055(int addr) {
+		page = 0;
+		m_i2c = new I2C(I2C.Port.kOnboard, addr);
+		//Select page 0
+		m_i2c.write(REG_PAGE0.PAGE_ID, 0);
+		//Set units for m/s2, Rps, Radians, degC,
+		//Pitch: -Pi to Pi Clockwise+, Roll: -Pi/2 - Pi/2, Heading/Yaw: 0-2Pi clockwise+
+		m_i2c.write(REG_PAGE0.UNIT_SELECT, 0x6);
 	};
 	
+	/**
+	 * Check state of System Calibration
+	 * @return Returns true if Fully Calibrated
+	 */
 	public boolean isCalibrated() {
 		byte[] result = {0};
-		m_i2c.write(REG_PAGE0.PAGE_ID, 0);
+		if(page != 0) {
+			page = 0;
+			m_i2c.write(REG_PAGE0.PAGE_ID, 0);
+		}
+		
 		m_i2c.read(REG_PAGE0.CALIB_STAT, 1, result);
 		//This actually returns <SYS><GYR><ACC><MAG>
 		//3=Calibrated, 0=not. We check SYS status.
@@ -31,56 +51,68 @@ public class BNO055 {
 		return (result[0]>0x3F);
 	};
 	
+	/**
+	 * Set IMU operating mode
+	 * @param mode operating mode of IMU. Use BNO055.MODES...
+	 */
+	/*
 	public void SetMode(int mode) {
-		m_i2c.write(REG_PAGE0.PAGE_ID, 0);
+		if(page != 0) {
+			page = 0;
+			m_i2c.write(REG_PAGE0.PAGE_ID, 0);
+		}
 		m_i2c.write(REG_PAGE0.SYS_MODE, (byte)mode);
 	};
+	*/
 	
-	public int GetRawMagHeading() {
-		byte[] result = {0,0,0,0,0,0};
-		int value;
-		m_i2c.write(REG_PAGE0.PAGE_ID, 0);
-		m_i2c.read(REG_PAGE0.MAG_X_LB, 6, result);
-		
-		value = (result[1]<<8) | result[0];
-		return value;
+	/**
+	 * Set IMU operating mode
+	 * @param mode Operating mode for IMU.
+	 */
+	public void SetMode(MODES mode) {
+		if(page != 0) {
+			page = 0;
+			m_i2c.write(REG_PAGE0.PAGE_ID, 0);
+		}
+		m_i2c.write(REG_PAGE0.SYS_MODE, (byte)mode.val);
 	};
 	
-	public double GetEulerHeading() {
+	/**
+	 * Read and return latest Euler vector data from IMU	
+	 * @return a EulerData class representing the 3 Euler angles
+	 */
+	public EulerData GetEulerData() {
 		ByteBuffer result = ByteBuffer.allocateDirect(6);
 		result.order(ByteOrder.LITTLE_ENDIAN);
-		double value;
-		m_i2c.write(REG_PAGE0.PAGE_ID, 0);
+		if(page != 0) {
+			page = 0;
+			m_i2c.write(REG_PAGE0.PAGE_ID, 0);
+		}
+		
 		m_i2c.read(REG_PAGE0.EUL_HEAD_LB, 6, result);
 		
-		//1rad = 900LSB
-		value = result.getShort(0)/900.0;
-		return value;
-	};
-
-	public int GetEulerRoll() {
-		byte[] result = {0,0,0,0,0,0};
-		int value;
-		m_i2c.write(REG_PAGE0.PAGE_ID, 0);
-		m_i2c.read(REG_PAGE0.EUL_HEAD_LB, 6, result);
+		EulerData ed = new EulerData(result);
 		
-		value = (result[3]<<8) | result[2];
-		return value;		
-	};
-
-	public int GetEulerPitch() {
-		byte[] result = new byte[6];
-		int value;
-		m_i2c.write(REG_PAGE0.PAGE_ID, 0);
-		m_i2c.read(REG_PAGE0.EUL_HEAD_LB, 6, result);
-		
-		value = (result[5]<<8) | result[4];
-		return value;		
-	};
+		return ed;	
+	}
 	
 	private I2C m_i2c;
+	private int page;
 
-	class MODES {
+	static class EulerData {
+		public double heading;
+		public double roll;
+		public double pitch;
+		
+		public EulerData(ByteBuffer data) {
+			heading = data.getShort(0) / 900.0;
+			roll = data.getShort(2) / 900.0;
+			pitch = data.getShort(4) / 900.0;
+		}
+	}
+
+	/*
+	static class MODES {
 		static final int CONFIG = 0;
 		static final int ACCONLY = 1;
 		static final int MAG_ONLY = 2;
@@ -95,9 +127,31 @@ public class BNO055 {
 		static final int NDOF_FMC_OFF = 11;
 		static final int NDOF = 12;
 	}
+	*/
+	static enum MODES {
+		CONFIG(0),
+		ACCONLY(1),
+		MAG_ONLY(2),
+		GYR_ONLY(3),
+		ACC_MAG(4),
+		ACC_GYR(5),
+		MAG_GYR(6),
+		A_M_G(7),
+		IMU(8),
+		COMPASS(9),
+		M4G(10),
+		NDOF_FMC_OFF(11),
+		NDOF(12);
+		
+		public final byte val;
+		
+		MODES(int x){
+			this.val = (byte)x;
+		}
+	}
 	
 	//Most config is on PAGE 1
-	class REG_PAGE1 {
+	static class REG_PAGE1 {
 		static final int PAGE_ID = 7;	//Write this to change PAGE (0,1)
 		static final int ACC_SET = 8;	//Ah to have structs... 
 		static final int MAG_SET = 9;
@@ -128,7 +182,7 @@ public class BNO055 {
 	}
 	
 	//Most of the Data Output is on Page 0
-	class REG_PAGE0{
+	static class REG_PAGE0{
 		static final int CHIP_ID = 0;
 		static final int ACC_ID = 1;
 		static final int MAG_ID = 2;
