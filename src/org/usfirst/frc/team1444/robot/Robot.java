@@ -17,6 +17,12 @@ import org.usfirst.frc.team1444.robot.controlling.*;
 
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 
+import com.mach.LightDrive.LightDrive2812;
+import com.mach.LightDrive.LightDriveCAN;
+
+import org.usfirst.frc.team1444.robot.BNO055;
+import org.usfirst.frc.team1444.robot.BNO055.MODES;
+
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
 /**
@@ -44,6 +50,8 @@ public class Robot extends IterativeRobot {
 	private Intake intake;
 	private Lift lift;
 	private Gyro gyro;
+	private BNO055 IMU;
+	private LightDrive2812 LEDs;
 
 	private GameData gameData; // Should only be used after match has started (Shouldn't be used in disabled mode)
 
@@ -64,6 +72,11 @@ public class Robot extends IterativeRobot {
 
 		gyro = new ADXRS450_Gyro(Port.kOnboardCS0);
 		gyro.calibrate();
+		
+		IMU = new BNO055();
+		IMU.SetMode(MODES.NDOF);
+		
+		LEDs = new LightDrive2812();
 		
 		drivePid = new PidParameters();
 		drivePid.KF = 1;
