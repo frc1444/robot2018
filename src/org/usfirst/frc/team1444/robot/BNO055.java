@@ -45,14 +45,15 @@ public class BNO055 {
 		return value;
 	};
 	
-	public int GetEulerHeading() {
+	public double GetEulerHeading() {
 		ByteBuffer result = ByteBuffer.allocateDirect(6);
 		result.order(ByteOrder.LITTLE_ENDIAN);
-		int value;
+		double value;
 		m_i2c.write(REG_PAGE0.PAGE_ID, 0);
 		m_i2c.read(REG_PAGE0.EUL_HEAD_LB, 6, result);
 		
-		value = result.getShort(0);
+		//1rad = 900LSB
+		value = result.getShort(0)/900.0;
 		return value;
 	};
 
