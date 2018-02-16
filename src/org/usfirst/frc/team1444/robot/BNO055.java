@@ -50,11 +50,7 @@ public class BNO055 {
 
 		return (result[0]>0x3F);
 	};
-	
-	/**
-	 * Set IMU operating mode
-	 * @param mode operating mode of IMU. Use BNO055.MODES...
-	 */
+
 	/*
 	public void SetMode(int mode) {
 		if(page != 0) {
@@ -83,13 +79,13 @@ public class BNO055 {
 	 */
 	public EulerData GetEulerData() {
 		ByteBuffer result = ByteBuffer.allocateDirect(6);
-		result.order(ByteOrder.LITTLE_ENDIAN);
 		if(page != 0) {
 			page = 0;
 			m_i2c.write(REG_PAGE0.PAGE_ID, 0);
 		}
 		
 		m_i2c.read(REG_PAGE0.EUL_HEAD_LB, 6, result);
+		result.order(ByteOrder.LITTLE_ENDIAN);
 		
 		EulerData ed = new EulerData(result);
 		
