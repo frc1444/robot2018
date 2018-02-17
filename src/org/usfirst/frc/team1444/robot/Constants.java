@@ -15,14 +15,12 @@ public final class Constants {
 	public static final int RearRightSteerId = 5;
 	
 	public static final int PdbId = 9;
-
-	// TODO: some of these may become PWM outputs
-	public static final int BoxElevatorId = 10;
-	public static final int LeftIntakeId = 11;
-	public static final int RightIntakeId = 12;
-	public static final int BoxGrabberId = 13;
-	public static final int BoxEjectId = 14; 
-	public static final int ClimbId = 15;
+	
+	public static final int MainBoomMasterId = 10;
+	public static final int MainBoomSlaveId = 11;
+	public static final int SecondaryBoomId = 12;
+	public static final int IntakeLeftId = 13;
+	public static final int IntakeRightId = 14;
 	
 	// Digital Outputs
 	
