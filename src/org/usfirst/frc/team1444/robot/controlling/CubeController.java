@@ -9,7 +9,7 @@ import org.usfirst.frc.team1444.robot.Robot;
  */
 public class CubeController implements RobotController{
 
-	private ControllerInput controller;
+	private ControllerInput controller; // later, we might want multiple controllers here
 
 	public CubeController(ControllerInput controller){
 		this.controller = controller;
@@ -29,6 +29,8 @@ public class CubeController implements RobotController{
 
 	}
 	private void liftUpdate(Lift lift){
-
+		double liftSpeed = controller.leftStickY(); // if single joystick, just joystick y
+		liftSpeed *= .3;
+		lift.setMainStageSpeed(liftSpeed);
 	}
 }

@@ -48,6 +48,7 @@ public final class Constants {
 
 	// Controls
 	public static final int JoystickPortNumber = 1;
+	public static final int CubeJoystickPortNumber = 2;
 
 	public static final double TriggerDeadband = 0.05; // Deadband for main drive velocity input
 	public static final double DirectionDeadband = 0.05; // big because only change direction if hyp big enough

@@ -11,6 +11,7 @@ import java.awt.geom.Point2D;
 // This class will take control input and assign motor outputs
 public class SwerveDrive {
 	private static final double MAX_TURN_MAGNITUDE = 100; // in inches. Used in Josh's method (regularDrive())
+	private static final double TURN_POW_AMOUNT = .9;
 
 
 	private final SwerveModule[] moduleArray;
@@ -192,7 +193,7 @@ public class SwerveDrive {
 
 		Point2D centerOfRotation;
 		// region Calculate centerOfRotation
-		double centerMagnitude = MAX_TURN_MAGNITUDE * (1 - Math.abs(turnAmount)) * -Math.signum(turnAmount);
+		double centerMagnitude = MAX_TURN_MAGNITUDE * (Math.pow(1 - Math.abs(turnAmount), TURN_POW_AMOUNT)) * -Math.signum(turnAmount);
 		centerMagnitude += this.robotDiagonal / 2;
 
 		centerOfRotation = new Point2D.Double(0, centerMagnitude);
