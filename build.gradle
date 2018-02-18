@@ -29,6 +29,11 @@ deploy {
         }
     }
 }
+repositories{
+    flatDir{
+        dirs '.'
+    }
+}
 
 // Defining my dependencies. In this case, WPILib (+ friends), CTRE Phoenix (Talon SRX)
 // and NavX.
@@ -37,6 +42,7 @@ dependencies {
     compile ctre()
     compile navx()
     compile openrio.powerup.matchData()
+    compile name: 'LightDrive'
 }
 
 // Setting up my Jar File. In this case, adding all libraries into the main jar ('fat jar')

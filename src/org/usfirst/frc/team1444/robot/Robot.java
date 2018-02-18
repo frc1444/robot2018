@@ -102,10 +102,10 @@ public class Robot extends IterativeRobot {
 		steerPid.KP = 8;
 		steerPid.KI = 0.008;
 		
-		final int flOffset = 728;
-		final int frOffset = 554;
-		final int rlOffset = 552; 
-		final int rrOffset = 346;
+		final int flOffset = 515;
+		final int frOffset = 703;
+		final int rlOffset = 559;
+		final int rrOffset = 333;
 		
 		// Initialize the drive by passing in new TalonSRXs for each drive and steer motor
 		// length: 28 width: 17.5
@@ -117,7 +117,7 @@ public class Robot extends IterativeRobot {
 				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset, 28, 17.5);
 
 		this.intake = new Intake();
-		this.lift = new Lift();
+		this.lift = new Lift(null, null, null); // TODO
 		this.setRobotController(null);
 
 		this.gameData = new GameData(DriverStation.getInstance());
@@ -211,9 +211,11 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopInit() {
-		robotController = new TeleopController(createControllerInput(Constants.JoystickPortNumber), null);
-//		robotController = new SwerveController(createControllerInput(Constants.JoystickPortNumber));
-		gyro.reset();
+		ControllerInput driveInput = createControllerInput(Constants.JoystickPortNumber);
+		ControllerInput manipulatorInput = new SingleJoystickInput(Constants.CubeJoystickPortNumber);
+		robotController = new TeleopController(driveInput, manipulatorInput);
+
+		gyro.reset(); // TODO don't reset gyro here. Do it somewhere else
 	}
 
 	/**

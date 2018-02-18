@@ -4,17 +4,20 @@ import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.SwerveDrive;
 import org.usfirst.frc.team1444.robot.SwerveModule;
 import org.usfirst.frc.team1444.robot.controlling.RobotController;
+import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
 
 /**
  * In the autonomous package because this doesn't use any ControllerInputs
  * Since this would take less than a second, we might be able to do it in the 15 seconds autonomous mode.
  */
-public class ResetEncoderController implements RobotController {
+public class ResetEncoderController extends RobotControllerProcess {
 
-	private static final double ALLOWED_DEGREES_FOR_ZERO = 2; // can be within -x and x including -x and x
+	private static final double ALLOWED_DEGREES_FOR_ZERO = 1.5; // can be within -x and x including -x and x
 
-	public ResetEncoderController(){
+	private boolean done = false;
 
+	public ResetEncoderController(RobotController nextController){
+		super(nextController);
 	}
 
 	@Override
@@ -38,7 +41,13 @@ public class ResetEncoderController implements RobotController {
 		if(allReady){
 			// TODO add delay so modules that are able to, get closer to 0 degrees before we switch
 			drive.switchToQuad();
+			this.done = true;
 		}
 
+	}
+
+	@Override
+	protected boolean isDone() {
+		return this.done;
 	}
 }

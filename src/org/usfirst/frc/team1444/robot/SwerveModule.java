@@ -13,6 +13,7 @@ import java.awt.geom.Point2D;
 // SwerveModule defines one corner of a swerve drive
 // Two motor controllers are defined, drive and steer
 public class SwerveModule {
+	private static final boolean USE_QUICK_REVERSE = false;
 
 
 	private BaseMotorController drive;
@@ -31,6 +32,8 @@ public class SwerveModule {
 
 	// null means not initialized, true means it is a quad encoder, false means it is an analog encoder
 	private Boolean setToQuad = null;
+	private boolean isSpeedInReverse = false; // TODO this is not checked unless we call setSpeed
+	//                                           so if we only call setSpeed once, it may give us bugs
 	
 
 	/**
@@ -74,7 +77,9 @@ public class SwerveModule {
 
 	public int getID() { return ID; }
 
-
+	private boolean canUseQuickReverse(){
+		return setToQuad != null && setToQuad && USE_QUICK_REVERSE;
+	}
 	
 	/**
 	 * Update the setpoint for the drive PID control
@@ -84,6 +89,9 @@ public class SwerveModule {
 		
 		// Convert input percentage to CTRE units/100ms		
 		double targetSpeed = (speed * Constants.CimCoderCountsPerRev * Constants.MaxCimRpm) / Constants.CtreUnitConversion;
+		if(this.isSpeedInReverse){
+			targetSpeed *= -1;
+		}
 		
 		// Update the drive PID setpoints
 		drive.set(ControlMode.Velocity, targetSpeed);
@@ -100,17 +108,25 @@ public class SwerveModule {
 
 		actualPosition /= 360; // actualPosition is now a number between 0 and 1
 
+
+
 		if(setToQuad == null) throw new IllegalStateException("why is setToQuad null?");
 
-		int encoderCounts = this.getUsedEncoderCounts();
+		final int encoderCounts = this.getUsedEncoderCounts();
 		int targetEncoderCounts = (int) (actualPosition * encoderCounts);
-		
-//		this.position = actualPosition;
 
 		// Find the fastest path from the current position to the new position
-		int currentEncoderCount = steer.getSelectedSensorPosition(steerPid.pidIdx);
+		final int currentEncoderCount = steer.getSelectedSensorPosition(steerPid.pidIdx);
 		// Add rotation offset factoring in the number of rotations (either positive or negative)
-		targetEncoderCounts += (int) Math.round((currentEncoderCount - targetEncoderCounts) / (double) encoderCounts) * encoderCounts;
+		if(this.canUseQuickReverse()){
+			int halfRotationsAway = (int) Math.round((currentEncoderCount - targetEncoderCounts) / (double) (encoderCounts * 2));
+			targetEncoderCounts += halfRotationsAway * (encoderCounts / 2.0);
+			this.isSpeedInReverse = halfRotationsAway % 2 != 0; // if it's odd, then reverse speed
+		} else {
+			int rotationsAway = (int) Math.round((currentEncoderCount - targetEncoderCounts) / (double) encoderCounts);
+			targetEncoderCounts += rotationsAway * encoderCounts;
+			this.isSpeedInReverse = false;
+		}
 
 		// Command a new steering position
 		steer.set(ControlMode.Position, targetEncoderCounts);
