@@ -29,7 +29,7 @@ public class SwerveModule {
 	
 	private int encoderOffset; // offset for absolute encoder
 
-	private SensorCollection steerSensorCollection;
+//	private SensorCollection steerSensorCollection; use built in sensor collection instead
 
 	// null means not initialized, true means it is a quad encoder, false means it is an analog encoder
 	private Boolean setToQuad = null;
@@ -64,7 +64,7 @@ public class SwerveModule {
 		// Manually measured encoder offset
 		this.encoderOffset = offset;
 
-		this.steerSensorCollection = new SensorCollection(this.steer);
+//		this.steerSensorCollection = new SensorCollection(this.steer);
 		this.switchToAnalog();
 
 		// Set the drive PID parameters
@@ -182,7 +182,7 @@ public class SwerveModule {
 	
 	public void debug() {	
 		// Get the raw analog encoder count (can be removed later once drive is sorted out)
-		SmartDashboard.putNumber("Raw Analog " + ID, this.steerSensorCollection.getAnalogInRaw());
+		SmartDashboard.putNumber("Raw Analog " + ID, steer.getSensorCollection().getAnalogInRaw());
 		
 		// Print the current, measured encoder count
 		SmartDashboard.putNumber("Encoder " + ID, steer.getSelectedSensorPosition(steerPid.pidIdx));
@@ -193,19 +193,21 @@ public class SwerveModule {
 	private void UpdateDrivePid(PidParameters pid) {
 		this.drivePid = pid;
 		
-		drive.config_kP(drivePid.pidIdx, drivePid.KP, Constants.TimeoutMs);
-		drive.config_kI(drivePid.pidIdx, drivePid.KI, Constants.TimeoutMs);
-		drive.config_kD(drivePid.pidIdx, drivePid.KD, Constants.TimeoutMs);
-		drive.config_kF(drivePid.pidIdx, drivePid.KF, Constants.TimeoutMs);
+//		drive.config_kP(drivePid.pidIdx, drivePid.KP, Constants.TimeoutMs);
+//		drive.config_kI(drivePid.pidIdx, drivePid.KI, Constants.TimeoutMs);
+//		drive.config_kD(drivePid.pidIdx, drivePid.KD, Constants.TimeoutMs);
+//		drive.config_kF(drivePid.pidIdx, drivePid.KF, Constants.TimeoutMs);
+		drivePid.apply(drive);
 	}
 	
 	private void UpdateSteerPid(PidParameters pid) {
 		this.steerPid = pid;
 		
-		steer.config_kP(steerPid.pidIdx, steerPid.KP, Constants.TimeoutMs);
-		steer.config_kI(steerPid.pidIdx, steerPid.KI, Constants.TimeoutMs);
-		steer.config_kD(steerPid.pidIdx, steerPid.KD, Constants.TimeoutMs);
-		steer.config_kF(steerPid.pidIdx, steerPid.KF, Constants.TimeoutMs);
+//		steer.config_kP(steerPid.pidIdx, steerPid.KP, Constants.TimeoutMs);
+//		steer.config_kI(steerPid.pidIdx, steerPid.KI, Constants.TimeoutMs);
+//		steer.config_kD(steerPid.pidIdx, steerPid.KD, Constants.TimeoutMs);
+//		steer.config_kF(steerPid.pidIdx, steerPid.KF, Constants.TimeoutMs);
+		steerPid.apply(steer);
 	}
 
 	/**
@@ -232,7 +234,7 @@ public class SwerveModule {
 		
 		this.steer.configSelectedFeedbackSensor(FeedbackDevice.Analog, Constants.PidIdx, Constants.TimeoutMs);
 		this.steer.configSetParameter(ParamEnum.eFeedbackNotContinuous, 0, 0, 0, Constants.TimeoutMs);
-		this.steer.setSelectedSensorPosition(this.steerSensorCollection.getAnalogInRaw() - this.encoderOffset, Constants.PidIdx, Constants.TimeoutMs);
+		this.steer.setSelectedSensorPosition(steer.getSensorCollection().getAnalogInRaw() - this.encoderOffset, Constants.PidIdx, Constants.TimeoutMs);
 		this.steer.setSensorPhase(false);
 		
 		setToQuad = false;

@@ -13,7 +13,7 @@ import java.awt.geom.Point2D;
  */
 public class SwerveController implements RobotController {
 	private static final Double DEFAULT_DIRECTION = 90.0; // the default direction to go to when joystick isn't touched
-	private static final Point2D ZERO = new Point2D.Double(0, 0);
+//	private static final Point2D ZERO = new Point2D.Double(0, 0);
 
 	private static final String VECTOR_CONTROL = "Vector Control";
 	private static final String POINT_CONTROL = "Point Control";
@@ -114,7 +114,7 @@ public class SwerveController implements RobotController {
 		if(pov != -1) {
 			centerWhileStill = drive.getLocationUsingRotation(pov);
 		} else {
-			centerWhileStill = ZERO;
+			centerWhileStill = null;
 		}
 
 		drive.update(speed, direction, turnAmount, centerWhileStill);

@@ -18,9 +18,12 @@ import org.usfirst.frc.team1444.robot.controlling.*;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 
 import com.mach.LightDrive.LightDrive2812;
-import com.mach.LightDrive.Color;
+import java.awt.Color;
+
+import javax.management.ImmutableDescriptor;
 
 import org.usfirst.frc.team1444.robot.BNO055;
+import org.usfirst.frc.team1444.robot.BNO055.EulerData;
 import org.usfirst.frc.team1444.robot.BNO055.MODES;
 
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
@@ -49,16 +52,20 @@ public class Robot extends IterativeRobot {
 	private SwerveDrive drive;
 	private Intake intake;
 	private Lift lift;
-	private Gyro gyro;
 	private BNO055 IMU;
-	private LightDrive2812 LEDs;
+	private LEDHandler ledHandler;
+
+//	private LightDrive2812 LEDs;
+//	private int timer = 0;
+//	private int timer2 = 0;
+//	private Color[] colorwheel;
 
 	private GameData gameData; // Should only be used after match has started (Shouldn't be used in disabled mode)
 
 	private RobotController robotController;  // use ***Init to change this to something that fits that mode
 
-	private PidParameters drivePid;
-	private PidParameters steerPid;
+//	private PidParameters drivePid;
+//	private PidParameters steerPid;
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
 		super();
@@ -70,19 +77,29 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void robotInit() {
 
-		gyro = new ADXRS450_Gyro(Port.kOnboardCS0);
-		gyro.calibrate();
-		
+		//gyro = new ADXRS450_Gyro(Port.kOnboardCS0);
+		//gyro.calibrate();
+
 		IMU = new BNO055();
 		IMU.SetMode(MODES.NDOF);
+
+		this.ledHandler = new LEDHandler(new LightDrive2812());
+//		LEDs = new LightDrive2812();
+//
+//		colorwheel = new Color[6];
+//		colorwheel[0] = Color.RED;
+//		colorwheel[1] = Color.GREEN;
+//		colorwheel[2] = Color.CYAN;
+//		colorwheel[3] = Color.ORANGE;
+//		colorwheel[4] = Color.PINK;
+//		colorwheel[5] = Color.WHITE;
+//
 		
-		LEDs = new LightDrive2812();
-		
-		drivePid = new PidParameters();
+		PidParameters drivePid = new PidParameters();
 		drivePid.KF = 1;
 		drivePid.KP = 1.5;
 
-		steerPid = new PidParameters();
+		PidParameters steerPid = new PidParameters();
 		steerPid.KP = 8;
 		steerPid.KI = 0.008;
 		
@@ -100,12 +117,19 @@ public class Robot extends IterativeRobot {
 				new TalonSRX(Constants.RearRightDriveId), new TalonSRX(Constants.RearRightSteerId),
 				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset, 28, 17.5);
 
-		this.intake = new Intake();
-		this.lift = new Lift(new TalonSRX(Constants.MainBoomMasterId), new TalonSRX(Constants.MainBoomSlaveId),
-				new TalonSRX(Constants.SecondaryBoomId));
-		this.setRobotController(null);
+		this.intake = new Intake(new TalonSRX(Constants.IntakeLeftId), new TalonSRX(Constants.IntakeRightId));
+
+		PidParameters mainPid = new PidParameters();
+		PidParameters secondPid = new PidParameters();
+		this.lift = new Lift(
+				new TalonSRX(Constants.MainBoomMasterId), new TalonSRX(Constants.MainBoomSlaveId),
+				new TalonSRX(Constants.SecondaryBoomId),
+				mainPid, secondPid);
 
 		this.gameData = new GameData(DriverStation.getInstance());
+
+		this.setRobotController(null);
+
 
 		// Setup dashboard autonomousChooser
 		autonomousChooser.addDefault(DEFAULT_AUTO, DEFAULT_AUTO); // since DEFAULT_AUTO is a String, use for both
@@ -121,13 +145,23 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void disabledInit() {
 		setRobotController(null);
+		this.ledHandler.getLEDs().ClearLEDs();
+		this.ledHandler.setMode(LEDHandler.LEDMode.RAINBOW);
+	}
+	
+	public void disabledPeriodic() {
+		//EulerData ed = IMU.GetEulerData();
+		//System.out.format("Heading: %1.3f. Raw: %d\r\n", ed.heading, LEDs.GetRaw()[3]);
+		//LEDs.SetRange(Color.GREEN, 10, (int)(ed.heading*3)+1);
+		this.ledHandler.update(this); // TODO also update this in robotPeriodic below
+		
 	}
 
 	public SwerveDrive getDrive() {
 		return drive;
 	}
 	public Gyro getGyro(){
-		return gyro;
+		return this.IMU;
 	}
 	public Intake getIntake(){
 		return intake;
@@ -136,8 +170,7 @@ public class Robot extends IterativeRobot {
 		return lift;
 	}
 	public GameData getGameData(){
-		if(isDisabled()) throw new IllegalStateException("GameData may not be accurate while disabled.");
-
+//		if(isDisabled()) throw new IllegalStateException("GameData may not be accurate while disabled.");
 		return gameData;
 	}
 
@@ -158,7 +191,7 @@ public class Robot extends IterativeRobot {
 			}
 		}
 		
-		SmartDashboard.putNumber("Gyro", gyro.getAngle());
+		SmartDashboard.putNumber("Gyro (IMU)", IMU.getAngle());
 	}
 
 	@Override
@@ -190,7 +223,7 @@ public class Robot extends IterativeRobot {
 		ControllerInput manipulatorInput = new SingleJoystickInput(Constants.CubeJoystickPortNumber);
 		robotController = new TeleopController(driveInput, manipulatorInput);
 
-		gyro.reset(); // TODO don't reset gyro here. Do it somewhere else
+		IMU.reset(); // TODO don't reset gyro here. Do it somewhere else
 	}
 
 	/**

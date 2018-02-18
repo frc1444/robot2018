@@ -14,6 +14,12 @@ public class GameData {
 		this.station = station;
 	}
 
+	/**
+	 * @return whether or not the data will be accurate. return station.isFMSAttached() && !station.isDisabled()
+	 */
+	public boolean isAccurate(){
+		return station.isFMSAttached() && !station.isDisabled();
+	}
 
 	public DriverStation.Alliance getAlliance(){
 		return station.getAlliance();

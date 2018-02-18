@@ -2,12 +2,16 @@ package org.usfirst.frc.team1444.robot.controlling.autonomous;
 
 import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.SwerveDrive;
+import org.usfirst.frc.team1444.robot.SwerveModule;
 import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
 
 public class DistanceDriveController extends RobotControllerProcess {
 
-	private double distance; // in inches
-	private double heading; // in degrees
+	private final double distance; // in inches
+	private final double heading; // in degrees
+
+	private Double startingDistance = null; // initialized on first call to update
+	private boolean done = false;
 
 	/**
 	 *
@@ -23,11 +27,23 @@ public class DistanceDriveController extends RobotControllerProcess {
 	@Override
 	public void update(Robot robot) {
 		SwerveDrive drive = robot.getDrive();
+		SwerveModule referenceModule = drive.getFrontLeft();
+		double currentDistance = referenceModule.getTotalDistanceGone();
+		if(startingDistance == null){
+			startingDistance = currentDistance;
+		}
+		// use abs because if quick reverse is enabled, it might possibly go backwards. TODO maybe change quick reverse
+		if(Math.abs(currentDistance - startingDistance) > distance){
+			done = true;
+		} else {
+			drive.update(.5, heading, 0, null);
+		}
+
 	}
 
 	@Override
 	protected boolean isDone() {
-		return false;
+		return done;
 	}
 
 }

@@ -10,6 +10,8 @@ import java.awt.geom.Point2D;
 // SwerveDrive defines the drive for the entire robot
 // This class will take control input and assign motor outputs
 public class SwerveDrive {
+	private static final Point2D ZERO = new Point2D.Double(0, 0);
+
 	private static final double MAX_TURN_MAGNITUDE = 100; // in inches. Used in Josh's method (regularDrive())
 	private static final double TURN_POW_AMOUNT = .9;
 
@@ -138,9 +140,12 @@ public class SwerveDrive {
 	 *                  this isn't between 0 and 360, it will take the most efficient path.
 	 * @param turnAmount a number from -1 to 1 representing how much you want to turn.
 	 * @param centerWhileStill The center of rotation. This is only applied when speed is 0 and is usually calculated
-	 *                         using the d-pad and the locations of the modules
+	 *                         using the d-pad and the locations of the modules. if null then same as (0, 0)
 	 */
 	public void update(double speed, Double direction, double turnAmount, Point2D centerWhileStill) {
+		if(centerWhileStill == null){
+			centerWhileStill = ZERO;
+		}
 
 		if(direction != null){
 			this.rotation = direction;

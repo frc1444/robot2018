@@ -2,6 +2,10 @@ package org.usfirst.frc.team1444.robot.controlling;
 
 import edu.wpi.first.wpilibj.Joystick;
 
+/**
+ * @deprecated this class tries to map a single joystick to a ps4 or xbox style controller. This is not recommended for use
+ */
+@Deprecated
 public class SingleJoystickInput implements ControllerInput{
 
 	// Axis constants

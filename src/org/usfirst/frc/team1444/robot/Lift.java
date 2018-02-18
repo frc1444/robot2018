@@ -13,12 +13,18 @@ public class Lift {
 
 	private BaseMotorController secondStageMotor;
 
+	private PidParameters mainPid;
+	private PidParameters secondPid;
+
 	public Lift(TalonSRX mainStageMaster, BaseMotorController mainStageSlave,
-	            TalonSRX secondStageMotor){
+	            TalonSRX secondStageMotor,
+	            PidParameters mainStagePid, PidParameters secondStagePid){
 
 		// set instance variables
 		this.mainStageMaster = mainStageMaster;
 		this.secondStageMotor = secondStageMotor;
+		this.mainPid = mainStagePid;
+		this.secondPid = secondStagePid;
 
 		// configure the heck out of passed controllers
 		// main stage
@@ -26,10 +32,11 @@ public class Lift {
 		mainStageMaster.configForwardSoftLimitThreshold(MAIN_STAGE_ENCODER_COUNTS, Constants.TimeoutMs);
 		mainStageMaster.configForwardSoftLimitEnable(true, Constants.TimeoutMs);
 		mainStageMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, Constants.PidIdx, Constants.TimeoutMs);
-		mainStageMaster.setInverted(true);
+		mainStageMaster.setInverted(true); // Needs to be inverted
+		mainStagePid.apply(mainStageMaster); // apply pid values
 
 		mainStageSlave.follow(mainStageMaster);
-		mainStageSlave.setInverted(true);
+		mainStageSlave.setInverted(true); // Inverted relative to master - tested and works
 
 
 		// second stage
@@ -37,8 +44,19 @@ public class Lift {
 		secondStageMotor.configForwardSoftLimitThreshold(SECOND_STAGE_ENCODER_COUNTS, Constants.TimeoutMs);
 		secondStageMotor.configForwardSoftLimitEnable(true, Constants.TimeoutMs);
 		secondStageMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, Constants.PidIdx, Constants.TimeoutMs);
-		secondStageMotor.setInverted(false);
+		secondStageMotor.setInverted(false); // needs to be tested
+		secondStagePid.apply(secondStageMotor); // apply pid values
 
+
+//		try { Mike's code for the lift. Was his tested?
+//			mainStageMaster.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen, Constants.TimeoutMs);
+//			mainStageMaster.setInverted(false);
+//
+//			mainStageSlave.follow(mainStageMainMotor);
+//			mainStageSlave.setInverted(true);
+//		} catch (NullPointerException e) { also, would we really just want to print this out? We should make this crash our program
+//			System.err.println("ERROR in Lift.java: Invalid Motor Controller Instance given!");
+//		}
 
 	}
 
@@ -48,10 +66,10 @@ public class Lift {
 	 */
 	public void update(){
 		if(mainStageMaster.getSensorCollection().isRevLimitSwitchClosed()){
-			mainStageMaster.setSelectedSensorPosition(0, Constants.PidIdx, Constants.TimeoutMs);
+			mainStageMaster.setSelectedSensorPosition(0, mainPid.pidIdx, Constants.TimeoutMs);
 		}
 		if(secondStageMotor.getSensorCollection().isRevLimitSwitchClosed()){
-			secondStageMotor.setSelectedSensorPosition(0, Constants.PidIdx, Constants.TimeoutMs);
+			secondStageMotor.setSelectedSensorPosition(0, secondPid.pidIdx, Constants.TimeoutMs);
 		}
 	}
 
@@ -72,11 +90,11 @@ public class Lift {
 		this.secondStageMotor.set(ControlMode.Position, position * SECOND_STAGE_ENCODER_COUNTS);
 	}
 
-	public double getMainStagePosition(){ // TODO if this method is not used, make it private or remove it
-		throw new UnsupportedOperationException("Getting the position is not yet implemented"); // to make it compile
+	public double getMainStagePosition(){
+		return mainStageMaster.getSelectedSensorPosition(mainPid.pidIdx) / (double) MAIN_STAGE_ENCODER_COUNTS;
 	}
 	public double getSecondStagePosition(){
-		throw new UnsupportedOperationException("Getting the position is not yet implemented"); // to make it compile
+		return secondStageMotor.getSelectedSensorPosition(secondPid.pidIdx) / (double) SECOND_STAGE_ENCODER_COUNTS;
 	}
 	// endregion
 
