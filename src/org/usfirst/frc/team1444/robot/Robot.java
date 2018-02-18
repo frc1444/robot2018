@@ -18,9 +18,12 @@ import org.usfirst.frc.team1444.robot.controlling.*;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 
 import com.mach.LightDrive.LightDrive2812;
-import com.mach.LightDrive.Color;
+import java.awt.Color;
+
+import javax.management.ImmutableDescriptor;
 
 import org.usfirst.frc.team1444.robot.BNO055;
+import org.usfirst.frc.team1444.robot.BNO055.EulerData;
 import org.usfirst.frc.team1444.robot.BNO055.MODES;
 
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
@@ -52,6 +55,10 @@ public class Robot extends IterativeRobot {
 	private Gyro gyro;
 	private BNO055 IMU;
 	private LightDrive2812 LEDs;
+	
+	private int timer = 0;
+	private int timer2 = 0;
+	private Color[] colorwheel;
 
 	private GameData gameData; // Should only be used after match has started (Shouldn't be used in disabled mode)
 
@@ -77,6 +84,15 @@ public class Robot extends IterativeRobot {
 		IMU.SetMode(MODES.NDOF);
 		
 		LEDs = new LightDrive2812();
+		
+		colorwheel = new Color[6];
+		colorwheel[0] = Color.RED;
+		colorwheel[1] = Color.GREEN;
+		colorwheel[2] = Color.CYAN;
+		colorwheel[3] = Color.ORANGE;
+		colorwheel[4] = Color.PINK;
+		colorwheel[5] = Color.WHITE;
+		
 		
 		drivePid = new PidParameters();
 		drivePid.KF = 1;
@@ -120,6 +136,20 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void disabledInit() {
 		setRobotController(null);
+		LEDs.ClearLEDs();
+	}
+	
+	public void disabledPeriodic() {
+		//EulerData ed = IMU.GetEulerData();
+		//System.out.format("Heading: %1.3f. Raw: %d\r\n", ed.heading, LEDs.GetRaw()[3]);
+		//LEDs.SetRange(Color.GREEN, 10, (int)(ed.heading*3)+1);
+		if(timer++ > 5) {
+			LEDs.SetRange(colorwheel[timer2%6], timer2%50, 50 - (timer2%50));
+			timer = 0;
+			if(timer2++ > 100)
+				timer2 = 0;
+		}
+		
 	}
 
 	public SwerveDrive getDrive() {
