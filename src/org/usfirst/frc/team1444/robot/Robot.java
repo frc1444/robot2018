@@ -77,8 +77,9 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void robotInit() {
 
-		gyro = new ADXRS450_Gyro(Port.kOnboardCS0);
-		gyro.calibrate();
+		//gyro = new ADXRS450_Gyro(Port.kOnboardCS0);
+		//gyro.calibrate();
+		gyro = new BNO055();
 		
 		IMU = new BNO055();
 		IMU.SetMode(MODES.NDOF);

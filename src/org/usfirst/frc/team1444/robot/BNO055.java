@@ -1,10 +1,11 @@
 package org.usfirst.frc.team1444.robot;
 
+import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.I2C;
 
 import java.nio.*;
 
-public class BNO055 {
+public class BNO055 implements Gyro {
 
 	/**
 	 * Construct a BNO055 IMU object and initialize.
@@ -14,9 +15,11 @@ public class BNO055 {
 		m_i2c = new I2C(I2C.Port.kOnboard, 0x28);
 		//Select page 0
 		m_i2c.write(REG_PAGE0.PAGE_ID, 0);
-		//Set units for m/s2, Rps, Radians, degC,
-		//Pitch: -Pi to Pi Clockwise+, Roll: -Pi/2 - Pi/2, Heading/Yaw: 0-2Pi clockwise+
-		m_i2c.write(REG_PAGE0.UNIT_SELECT, 0x6);
+		//Set units for m/s2, Deg/s, degrees, degC,
+		//Pitch: -180 to 180 Clockwise+, Roll: -90 - 90, Heading/Yaw: 0-360 clockwise+
+		m_i2c.write(REG_PAGE0.UNIT_SELECT, 0x0);
+		
+		gyro_heading_offset = 0.0;
 	};
 	
 	/**
@@ -96,8 +99,33 @@ public class BNO055 {
 		return ed;	
 	}
 	
+	/* Begin Gyro Implementation */
+	public double getRate() {
+		//Not currently implemented
+		return 0.0;
+	}
+	
+	public double getAngle() {
+		return GetEulerData().heading - gyro_heading_offset;
+	}
+	
+	public void free() {
+		//Nah
+	}
+	
+	public void calibrate() {
+		//The BNO055 IMU auto-calibrates
+	}
+	
+	public void reset() {
+		gyro_heading_offset = GetEulerData().heading;
+	}
+	
+	/* End Gyro Implementation */
+	
 	private I2C m_i2c;
 	private int page;
+	private double gyro_heading_offset;
 
 	/*
 	 * Object for holding Euler heading data.
@@ -111,9 +139,14 @@ public class BNO055 {
 		public double pitch;
 		
 		public EulerData(ByteBuffer data) {
-			heading = data.getShort(0) / 900.0;
+			heading = (data.getShort(0) / 16.0);
+			roll = data.getShort(2) / 16.0;
+			pitch = data.getShort(4) / 16.0;	
+			/*
+			heading = (data.getShort(0) / 900.0);
 			roll = data.getShort(2) / 900.0;
 			pitch = data.getShort(4) / 900.0;
+			*/
 		}
 	}
 

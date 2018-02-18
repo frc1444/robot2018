@@ -22,12 +22,16 @@ public class Lift {
 
 		// configure the heck out of passed controllers
 		// main stage
-		mainStageMainMotor.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen, Constants.TimeoutMs);
-		mainStageMainMotor.setInverted(false);
-
-		mainStageSecondMotor.follow(mainStageMainMotor);
-		mainStageSecondMotor.setInverted(true);
-
+		
+		try {
+			mainStageMainMotor.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen, Constants.TimeoutMs);
+			mainStageMainMotor.setInverted(false);
+	
+			mainStageSecondMotor.follow(mainStageMainMotor);
+			mainStageSecondMotor.setInverted(true);
+		} catch (NullPointerException e) {
+			System.err.println("ERROR in Lift.java: Invalid Motor Controller Instance given!");
+		}
 		// second stage
 
 
