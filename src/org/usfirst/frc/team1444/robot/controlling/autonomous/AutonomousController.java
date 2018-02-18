@@ -6,6 +6,9 @@ import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
 
 public class AutonomousController extends RobotControllerProcess {
 
+	/*
+	 * This may not be used all because we can just use different RobotControllerProcesses
+	 */
 
 	public AutonomousController(){
 		super();

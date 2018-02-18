@@ -13,8 +13,9 @@ import java.awt.geom.Point2D;
 // SwerveModule defines one corner of a swerve drive
 // Two motor controllers are defined, drive and steer
 public class SwerveModule {
-	private static final boolean USE_QUICK_REVERSE = false;
+	private static final boolean USE_QUICK_REVERSE = false; // TODO test this today
 
+	private final double wheelCircumference = 9; // in inches // TODO change this to make more accurate
 
 	private BaseMotorController drive;
 	private BaseMotorController steer;
@@ -77,6 +78,13 @@ public class SwerveModule {
 
 	public int getID() { return ID; }
 
+	/**
+	 * @return the total distance the drive wheel has gone in inches
+	 */
+	public double getTotalDistanceGone(){
+		return (this.drive.getSelectedSensorPosition(drivePid.pidIdx) / (double) getUsedEncoderCounts()) * wheelCircumference;
+	}
+
 	private boolean canUseQuickReverse(){
 		return setToQuad != null && setToQuad && USE_QUICK_REVERSE;
 	}
@@ -119,8 +127,9 @@ public class SwerveModule {
 		final int currentEncoderCount = steer.getSelectedSensorPosition(steerPid.pidIdx);
 		// Add rotation offset factoring in the number of rotations (either positive or negative)
 		if(this.canUseQuickReverse()){
-			int halfRotationsAway = (int) Math.round((currentEncoderCount - targetEncoderCounts) / (double) (encoderCounts * 2));
-			targetEncoderCounts += halfRotationsAway * (encoderCounts / 2.0);
+			final double halfRotationCounts = encoderCounts / 2;
+			int halfRotationsAway = (int) Math.round((currentEncoderCount - targetEncoderCounts) / halfRotationCounts);
+			targetEncoderCounts += halfRotationsAway * halfRotationCounts;
 			this.isSpeedInReverse = halfRotationsAway % 2 != 0; // if it's odd, then reverse speed
 		} else {
 			int rotationsAway = (int) Math.round((currentEncoderCount - targetEncoderCounts) / (double) encoderCounts);

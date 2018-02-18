@@ -101,7 +101,8 @@ public class Robot extends IterativeRobot {
 				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset, 28, 17.5);
 
 		this.intake = new Intake();
-		this.lift = new Lift(null, null, null); // TODO
+		this.lift = new Lift(new TalonSRX(Constants.MainBoomMasterId), new TalonSRX(Constants.MainBoomSlaveId),
+				new TalonSRX(Constants.SecondaryBoomId));
 		this.setRobotController(null);
 
 		this.gameData = new GameData(DriverStation.getInstance());
@@ -149,8 +150,12 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void robotPeriodic() {
+		lift.update();
 		if(robotController != null) {
 			robotController.update(this);
+			if(robotController instanceof RobotControllerProcess){
+				robotController = ((RobotControllerProcess) robotController).getNext();
+			}
 		}
 		
 		SmartDashboard.putNumber("Gyro", gyro.getAngle());

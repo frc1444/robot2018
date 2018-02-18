@@ -10,6 +10,7 @@ public class EncoderDebug implements RobotController {
 		for(SwerveModule module : robot.getDrive().getModules()) {
 			module.debug();
 		}
+		robot.getLift().debug();
 		
 	}
 	

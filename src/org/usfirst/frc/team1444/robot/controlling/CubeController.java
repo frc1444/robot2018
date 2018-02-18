@@ -30,7 +30,8 @@ public class CubeController implements RobotController{
 	}
 	private void liftUpdate(Lift lift){
 		double liftSpeed = controller.leftStickY(); // if single joystick, just joystick y
-		liftSpeed *= .3;
+		liftSpeed *= 1.;
 		lift.setMainStageSpeed(liftSpeed);
+		lift.debug();
 	}
 }
