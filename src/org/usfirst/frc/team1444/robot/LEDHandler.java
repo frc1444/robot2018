@@ -61,6 +61,8 @@ public class LEDHandler implements RobotController { // even though it implement
 
 				break;
 		}
+		
+		LEDs.Update();
 	}
 
 	public enum LEDMode{
