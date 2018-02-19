@@ -5,6 +5,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.Constants;
 import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.SwerveDrive;
+import org.usfirst.frc.team1444.robot.controlling.input.ControllerInput;
 
 import java.awt.geom.Point2D;
 
@@ -20,6 +21,8 @@ public class SwerveController implements RobotController {
 	private static SendableChooser<String> controlChooser;
 
 	private ControllerInput controller;
+
+	private boolean firstPerson = false;
 
 	public SwerveController(ControllerInput controller){
 		this.controller = controller;
@@ -42,7 +45,17 @@ public class SwerveController implements RobotController {
 		SwerveDrive swerveDrive = robot.getDrive();
 		double gyro = robot.getGyro().getAngle();
 
-		this.onDrive(swerveDrive);
+//		this.onDrive(swerveDrive);
+		if(controller.rightThumbTop()){
+			this.firstPerson = true;
+		} else if(controller.rightThumbRight()){
+			this.firstPerson = false;
+		}
+
+		if(firstPerson){
+			gyro = 0;
+		}
+		SmartDashboard.putBoolean("In First Person", firstPerson);
 
 		String mode = controlChooser.getSelected();
 		switch (mode){
@@ -57,14 +70,14 @@ public class SwerveController implements RobotController {
 		}
 	}
 
-	/** Will be called when using either driving mode */
-	private void onDrive(SwerveDrive drive){
-		if (controller.rightThumbLeft())
-		{
-			drive.switchToQuad();
-		}
-
-	}
+//	/** Will be called when using either driving mode */
+//	private void onDrive(SwerveDrive drive){
+//		if (controller.rightThumbLeft())
+//		{
+//			drive.switchToQuad();
+//		}
+//
+//	}
 	/**
 	 * Controls: left trigger - forwards, right trigger - backwards
 	 * lstick - direction of all wheels, rstick(x axis only) - turn robot

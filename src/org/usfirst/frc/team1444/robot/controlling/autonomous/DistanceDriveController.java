@@ -9,6 +9,7 @@ public class DistanceDriveController extends RobotControllerProcess {
 
 	private final double distance; // in inches
 	private final double heading; // in degrees
+	private final double percentSpeed;
 
 	private Double startingDistance = null; // initialized on first call to update
 	private boolean done = false;
@@ -18,9 +19,10 @@ public class DistanceDriveController extends RobotControllerProcess {
 	 * @param distanceInInches distance in inches to move the robot
 	 * @param headingInDegrees rotation in degrees relative to the gyro
 	 */
-	public DistanceDriveController(double distanceInInches, double headingInDegrees){
+	public DistanceDriveController(double distanceInInches, double headingInDegrees, double percentSpeed){
 		this.distance = distanceInInches;
 		this.heading = headingInDegrees;
+		this.percentSpeed = percentSpeed;
 	}
 
 
@@ -35,8 +37,9 @@ public class DistanceDriveController extends RobotControllerProcess {
 		// use abs because if quick reverse is enabled, it might possibly go backwards. TODO maybe change quick reverse
 		if(Math.abs(currentDistance - startingDistance) > distance){
 			done = true;
+			drive.update(0, null, 0, null);
 		} else {
-			drive.update(.5, heading, 0, null);
+			drive.update(percentSpeed, heading, 0, null);
 		}
 
 	}

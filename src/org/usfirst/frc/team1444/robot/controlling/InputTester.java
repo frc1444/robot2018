@@ -2,6 +2,7 @@ package org.usfirst.frc.team1444.robot.controlling;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.Robot;
+import org.usfirst.frc.team1444.robot.controlling.input.ControllerInput;
 
 public class InputTester implements RobotController {
 	private ControllerInput controller;

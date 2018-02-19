@@ -1,12 +1,14 @@
-package org.usfirst.frc.team1444.robot.controlling;
+package org.usfirst.frc.team1444.robot.controlling.input;
 
 import edu.wpi.first.wpilibj.Joystick;
+import org.usfirst.frc.team1444.robot.controlling.RobotController;
+import org.usfirst.frc.team1444.robot.controlling.input.ControllerInput;
 
 /**
  * @deprecated this class tries to map a single joystick to a ps4 or xbox style controller. This is not recommended for use
  */
 @Deprecated
-public class SingleJoystickInput implements ControllerInput{
+public class SingleJoystickControllerInput implements ControllerInput {
 
 	// Axis constants
 	private static final int X_AXIS = 0;
@@ -21,7 +23,7 @@ public class SingleJoystickInput implements ControllerInput{
 
 	private Joystick stick;
 
-	public SingleJoystickInput(int port){
+	public SingleJoystickControllerInput(int port){
 		this.stick = new Joystick(port);
 	}
 

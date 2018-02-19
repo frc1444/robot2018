@@ -3,9 +3,7 @@ package org.usfirst.frc.team1444.robot;
 import com.ctre.phoenix.ParamEnum;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-import com.ctre.phoenix.motorcontrol.SensorCollection;
 import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
-
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.awt.geom.Point2D;
@@ -15,7 +13,7 @@ import java.awt.geom.Point2D;
 public class SwerveModule {
 	private static final boolean USE_QUICK_REVERSE = false; // TODO test this today
 
-	private final double wheelCircumference = 9; // in inches // TODO change this to make more accurate
+	private final double wheelCircumference = 2 * Math.PI; // in inches
 
 	private BaseMotorController drive;
 	private BaseMotorController steer;
@@ -155,7 +153,7 @@ public class SwerveModule {
 		position %= encoderCounts;
 		position = position < 0 ? position + encoderCounts : position;
 
-		return position / (double) encoderCounts;
+		return (position / (double) encoderCounts) * 360;
 	}
 	private int getUsedEncoderCounts(){
 		int encoderCounts;

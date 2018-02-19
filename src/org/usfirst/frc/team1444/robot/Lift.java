@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Lift {
 	private static final int MAIN_STAGE_ENCODER_COUNTS = 27000;
-	private static final int SECOND_STAGE_ENCODER_COUNTS = 999;
+	private static final int SECOND_STAGE_ENCODER_COUNTS = 22600;
 
 	private BaseMotorController mainStageMaster;
 
@@ -28,11 +28,13 @@ public class Lift {
 
 		// configure the heck out of passed controllers
 		// main stage
+		mainStageMaster.configReverseSoftLimitEnable(false, Constants.TimeoutMs);
 		mainStageMaster.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen, Constants.TimeoutMs);
 		mainStageMaster.configForwardSoftLimitThreshold(MAIN_STAGE_ENCODER_COUNTS, Constants.TimeoutMs);
 		mainStageMaster.configForwardSoftLimitEnable(true, Constants.TimeoutMs);
 		mainStageMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, Constants.PidIdx, Constants.TimeoutMs);
 		mainStageMaster.setInverted(true); // Needs to be inverted
+		mainStageMaster.setNeutralMode(NeutralMode.Brake);
 		mainStagePid.apply(mainStageMaster); // apply pid values
 
 		mainStageSlave.follow(mainStageMaster);
@@ -40,23 +42,16 @@ public class Lift {
 
 
 		// second stage
+		secondStageMotor.configReverseSoftLimitEnable(false, Constants.TimeoutMs);
 		secondStageMotor.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen, Constants.TimeoutMs);
 		secondStageMotor.configForwardSoftLimitThreshold(SECOND_STAGE_ENCODER_COUNTS, Constants.TimeoutMs);
 		secondStageMotor.configForwardSoftLimitEnable(true, Constants.TimeoutMs);
+
 		secondStageMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, Constants.PidIdx, Constants.TimeoutMs);
 		secondStageMotor.setInverted(false); // needs to be tested
+		secondStageMotor.setSensorPhase(false);
+		secondStageMotor.setNeutralMode(NeutralMode.Brake);
 		secondStagePid.apply(secondStageMotor); // apply pid values
-
-
-//		try { Mike's code for the lift. Was his tested?
-//			mainStageMaster.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, LimitSwitchNormal.NormallyOpen, Constants.TimeoutMs);
-//			mainStageMaster.setInverted(false);
-//
-//			mainStageSlave.follow(mainStageMainMotor);
-//			mainStageSlave.setInverted(true);
-//		} catch (NullPointerException e) { also, would we really just want to print this out? We should make this crash our program
-//			System.err.println("ERROR in Lift.java: Invalid Motor Controller Instance given!");
-//		}
 
 	}
 
@@ -102,17 +97,46 @@ public class Lift {
 	 * @param speed Speed of the main stage. (-1 to 1) positive raises lift
 	 */
 	public void setMainStageSpeed(double speed){
+		double position = getMainStagePosition(); // a value from 0 to 1
+		if(position < .2 && speed < 0){
+			double scale = (position + .05) / .3;
+			if(scale >= 0){ // we don't want to reverse the speed
+				speed *= scale;
+			}
+		} else if(position > .8 && speed > 0){
+			double scale = ((1 - position) + .05) / .3;
+			if(scale >= 0){ // we don't want to reverse the speed
+				speed *= scale;
+			}
+		}
 		this.mainStageMaster.set(ControlMode.PercentOutput, speed);
 //		SmartDashboard.putNumber("main stage speed", speed);
 //		SmartDashboard.putNumber("main stage id", this.mainStageMaster.getDeviceID());
 	}
 	public void setSecondStageSpeed(double speed){
+		double position = getSecondStagePosition(); // update this code when above code is updated
+		if(position < .2 && speed < 0){
+			double scale = (position + .05) / .3;
+			if(scale >= 0){ // we don't want to reverse the speed
+				speed *= scale;
+			}
+		} else if(position > .8 && speed > 0){
+			double scale = ((1 - position) + .05) / .3;
+			if(scale >= 0){ // we don't want to reverse the speed
+				speed *= scale;
+			}
+		}
+		SmartDashboard.putNumber("second statge speed: ", speed);
 		this.secondStageMotor.set(ControlMode.PercentOutput, speed);
 	}
+
 
 	public void debug(){
 		SmartDashboard.putNumber("Main stage motor encoder counts", mainStageMaster.getSelectedSensorPosition(Constants.PidIdx));
 		SmartDashboard.putNumber("Second stage motor encoder counts", secondStageMotor.getSelectedSensorPosition(Constants.PidIdx));
+		SensorCollection sensor = secondStageMotor.getSensorCollection();
+		SmartDashboard.putBoolean("rev sensor", sensor.isRevLimitSwitchClosed());
+		SmartDashboard.putBoolean("forward sensor", sensor.isFwdLimitSwitchClosed());
 	}
 
 

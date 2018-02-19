@@ -1,6 +1,8 @@
-package org.usfirst.frc.team1444.robot.controlling;
+package org.usfirst.frc.team1444.robot.controlling.input;
 
 import edu.wpi.first.wpilibj.Joystick;
+import org.usfirst.frc.team1444.robot.controlling.RobotController;
+import org.usfirst.frc.team1444.robot.controlling.input.ControllerInput;
 
 /**
  * A ControllerInput class made just for the PS4 Controller

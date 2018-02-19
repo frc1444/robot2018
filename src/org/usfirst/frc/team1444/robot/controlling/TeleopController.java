@@ -1,6 +1,8 @@
 package org.usfirst.frc.team1444.robot.controlling;
 
 import org.usfirst.frc.team1444.robot.Robot;
+import org.usfirst.frc.team1444.robot.controlling.input.ControllerInput;
+import org.usfirst.frc.team1444.robot.controlling.input.JoystickInput;
 
 public class TeleopController implements RobotController {
 
@@ -9,7 +11,7 @@ public class TeleopController implements RobotController {
 	private SwerveController swerveController;
 	private CubeController cubeController;
 
-	public TeleopController(ControllerInput driveInput, ControllerInput manipulatorInput){
+	public TeleopController(ControllerInput driveInput, JoystickInput manipulatorInput){
 		this(new SwerveController(driveInput), new CubeController(manipulatorInput));
 	}
 	TeleopController(SwerveController swerveController, CubeController cubeController){

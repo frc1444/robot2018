@@ -1,4 +1,4 @@
-package org.usfirst.frc.team1444.robot.controlling;
+package org.usfirst.frc.team1444.robot.controlling.input;
 
 /**
  * Should be used in different RobotController subclasses to check when a button is pressed

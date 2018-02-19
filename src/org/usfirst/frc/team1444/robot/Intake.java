@@ -11,6 +11,9 @@ public class Intake {
 	public Intake(BaseMotorController left, BaseMotorController right){
 		this.left = left;
 		this.right = right;
+
+		left.setInverted(true);
+		right.setInverted(true);
 	}
 
 	/**
@@ -28,6 +31,7 @@ public class Intake {
 	 * @param rightSpeed The speed of the intake wheels on the right of the robot (nearest front right SwerveModule)
 	 */
 	public void setSpeeds(double leftSpeed, double rightSpeed){
+//		leftSpeed = 0;
 		this.left.set(ControlMode.PercentOutput, leftSpeed);
 		this.right.set(ControlMode.PercentOutput, rightSpeed);
 	}

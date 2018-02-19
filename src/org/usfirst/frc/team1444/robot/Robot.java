@@ -7,26 +7,22 @@
 
 package org.usfirst.frc.team1444.robot;
 
-import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.mach.LightDrive.LightDrive2812;
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoSource;
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
-import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import org.usfirst.frc.team1444.robot.controlling.*;
-
-import edu.wpi.first.wpilibj.interfaces.Gyro;
-
-import com.mach.LightDrive.LightDrive2812;
-import java.awt.Color;
-
-import javax.management.ImmutableDescriptor;
-
-import org.usfirst.frc.team1444.robot.BNO055;
-import org.usfirst.frc.team1444.robot.BNO055.EulerData;
 import org.usfirst.frc.team1444.robot.BNO055.MODES;
-
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import org.usfirst.frc.team1444.robot.controlling.EncoderDebug;
+import org.usfirst.frc.team1444.robot.controlling.RobotController;
+import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
+import org.usfirst.frc.team1444.robot.controlling.TeleopController;
+import org.usfirst.frc.team1444.robot.controlling.autonomous.ResetEncoderController;
+import org.usfirst.frc.team1444.robot.controlling.input.*;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -76,7 +72,14 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
-
+		try{
+			UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+			camera.setResolution(640, 480);
+			camera.setFPS(15);
+		} catch(Exception e){
+			e.printStackTrace();
+			System.err.println("Unable to start camera server.");
+		}
 		//gyro = new ADXRS450_Gyro(Port.kOnboardCS0);
 		//gyro.calibrate();
 
@@ -150,9 +153,7 @@ public class Robot extends IterativeRobot {
 	}
 	
 	public void disabledPeriodic() {
-		//EulerData ed = IMU.GetEulerData();
-		//System.out.format("Heading: %1.3f. Raw: %d\r\n", ed.heading, LEDs.GetRaw()[3]);
-		//LEDs.SetRange(Color.GREEN, 10, (int)(ed.heading*3)+1);
+
 		this.ledHandler.update(this); // TODO also update this in robotPeriodic below
 		
 	}
@@ -160,7 +161,7 @@ public class Robot extends IterativeRobot {
 	public SwerveDrive getDrive() {
 		return drive;
 	}
-	public Gyro getGyro(){
+	public BNO055 getGyro(){
 		return this.IMU;
 	}
 	public Intake getIntake(){
@@ -220,8 +221,10 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopInit() {
 		ControllerInput driveInput = createControllerInput(Constants.JoystickPortNumber);
-		ControllerInput manipulatorInput = new SingleJoystickInput(Constants.CubeJoystickPortNumber);
-		robotController = new TeleopController(driveInput, manipulatorInput);
+//		ControllerInput manipulatorInput = new SingleJoystickControllerInput(Constants.CubeJoystickPortNumber);
+		JoystickInput manipulatorInput = new LogitechExtremeJoystickInput(Constants.CubeJoystickPortNumber);
+//		setRobotController(new TeleopController(driveInput, manipulatorInput));
+		setRobotController(new ResetEncoderController(new TeleopController(driveInput, manipulatorInput)));
 
 		IMU.reset(); // TODO don't reset gyro here. Do it somewhere else
 	}
@@ -235,7 +238,7 @@ public class Robot extends IterativeRobot {
 			case PS4_CONTROLLER:
 				return new PS4Controller(port);
 			case SINGLE_JOYSTICK:
-				return new SingleJoystickInput(port);
+				return new SingleJoystickControllerInput(port);
 			default:
 				break;
 		}
