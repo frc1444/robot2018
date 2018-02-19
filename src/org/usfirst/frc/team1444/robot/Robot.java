@@ -60,7 +60,7 @@ public class Robot extends IterativeRobot {
 
 	private RobotController robotController;  // use ***Init to change this to something that fits that mode
 	
-	private enum Robot_State {
+	public enum Robot_State {
 		TELEOP,
 		AUTO,
 		TEST,
@@ -183,6 +183,11 @@ public class Robot extends IterativeRobot {
 	public Lift getLift(){
 		return lift;
 	}
+	
+	public Robot_State getState() {
+		return this.robot_state;
+	}
+	
 	public GameData getGameData(){
 //		if(isDisabled()) throw new IllegalStateException("GameData may not be accurate while disabled.");
 		return gameData;
