@@ -22,6 +22,9 @@ public class TeleopController implements RobotController {
 	public SwerveController getSwerveController(){
 		return swerveController;
 	}
+	public CubeController getCubeController(){
+		return cubeController;
+	}
 
 
 	@Override

@@ -5,10 +5,11 @@ import org.usfirst.frc.team1444.robot.SwerveDrive;
 import org.usfirst.frc.team1444.robot.SwerveModule;
 import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
 
-public class DistanceDriveController extends RobotControllerProcess {
+public class DistanceDrive extends RobotControllerProcess {
 
 	private final double distance; // in inches
 	private final double heading; // in degrees
+	private final boolean makeRelativeToGyro;
 	private final double percentSpeed;
 
 	private Double startingDistance = null; // initialized on first call to update
@@ -17,11 +18,15 @@ public class DistanceDriveController extends RobotControllerProcess {
 	/**
 	 *
 	 * @param distanceInInches distance in inches to move the robot
-	 * @param headingInDegrees rotation in degrees relative to the gyro
+	 * @param headingInDegrees rotation in degrees relative to the gyro. 90 is forward, 0 is right, 180 is left
+	 * @param makeRelativeToGyro Should headingInDegrees be relative to the gyro. (If false, headingInDegrees will be left
+	 *                           alone when passed to SwerveDrive)
+	 * @param percentSpeed The percent speed of the wheels
 	 */
-	public DistanceDriveController(double distanceInInches, double headingInDegrees, double percentSpeed){
+	public DistanceDrive(double distanceInInches, double headingInDegrees, boolean makeRelativeToGyro, double percentSpeed){
 		this.distance = distanceInInches;
 		this.heading = headingInDegrees;
+		this.makeRelativeToGyro = makeRelativeToGyro;
 		this.percentSpeed = percentSpeed;
 	}
 
@@ -39,6 +44,10 @@ public class DistanceDriveController extends RobotControllerProcess {
 			done = true;
 			drive.update(0, null, 0, null);
 		} else {
+			double heading = this.heading;
+			if(makeRelativeToGyro){
+				heading += robot.getGyro().getAngle();
+			}
 			drive.update(percentSpeed, heading, 0, null);
 		}
 

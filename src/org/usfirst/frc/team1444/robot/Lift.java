@@ -9,6 +9,8 @@ public class Lift {
 	private static final int MAIN_STAGE_ENCODER_COUNTS = 27000;
 	private static final int SECOND_STAGE_ENCODER_COUNTS = 22600;
 
+	private static final double SAFETY_SPEED = .2;
+
 	private BaseMotorController mainStageMaster;
 
 	private BaseMotorController secondStageMotor;
@@ -105,11 +107,15 @@ public class Lift {
 			double scale = (position + .05) / .3;
 			if(scale >= 0){ // we don't want to reverse the speed
 				speed *= scale;
+			} else {
+				speed *= SAFETY_SPEED;
 			}
 		} else if(position > .8 && speed > 0){
 			double scale = ((1 - position) + .05) / .3;
 			if(scale >= 0){ // we don't want to reverse the speed
 				speed *= scale;
+			} else {
+				speed *= SAFETY_SPEED;
 			}
 		}
 		this.mainStageMaster.set(ControlMode.PercentOutput, speed);
@@ -120,11 +126,15 @@ public class Lift {
 			double scale = (position + .05) / .3;
 			if(scale >= 0){ // we don't want to reverse the speed
 				speed *= scale;
+			} else {
+				speed *= SAFETY_SPEED;
 			}
 		} else if(position > .8 && speed > 0){
 			double scale = ((1 - position) + .05) / .3;
 			if(scale >= 0){ // we don't want to reverse the speed
 				speed *= scale;
+			} else {
+				speed *= SAFETY_SPEED;
 			}
 		}
 		this.secondStageMotor.set(ControlMode.PercentOutput, speed);
@@ -135,9 +145,16 @@ public class Lift {
 	public void debug(){
 		SmartDashboard.putNumber("Main stage motor encoder counts", mainStageMaster.getSelectedSensorPosition(Constants.PidIdx));
 		SmartDashboard.putNumber("Second stage motor encoder counts", secondStageMotor.getSelectedSensorPosition(Constants.PidIdx));
-		SensorCollection sensor = secondStageMotor.getSensorCollection();
-		SmartDashboard.putBoolean("rev sensor", sensor.isRevLimitSwitchClosed());
-		SmartDashboard.putBoolean("forward sensor", sensor.isFwdLimitSwitchClosed());
+
+		SensorCollection secondSensor = secondStageMotor.getSensorCollection();
+		SmartDashboard.putBoolean("2nd rev sensor", secondSensor.isRevLimitSwitchClosed());
+		SmartDashboard.putBoolean("2nd forward sensor", secondSensor.isFwdLimitSwitchClosed());
+
+		SensorCollection mainSensor = mainStageMaster.getSensorCollection();
+		SmartDashboard.putBoolean("main rev sensor", mainSensor.isRevLimitSwitchClosed());
+
+		SmartDashboard.putNumber("main stage position", getMainStagePosition());
+		SmartDashboard.putNumber("second stage position", getSecondStagePosition());
 	}
 
 

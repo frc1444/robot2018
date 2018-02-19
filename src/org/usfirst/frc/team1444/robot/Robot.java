@@ -10,7 +10,6 @@ package org.usfirst.frc.team1444.robot;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.mach.LightDrive.LightDrive2812;
 import edu.wpi.cscore.UsbCamera;
-import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -18,11 +17,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.BNO055.MODES;
 import org.usfirst.frc.team1444.robot.LEDHandler.LEDMode;
-import org.usfirst.frc.team1444.robot.controlling.EncoderDebug;
-import org.usfirst.frc.team1444.robot.controlling.RobotController;
-import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
-import org.usfirst.frc.team1444.robot.controlling.SwerveController;
-import org.usfirst.frc.team1444.robot.controlling.TeleopController;
+import org.usfirst.frc.team1444.robot.controlling.*;
+import org.usfirst.frc.team1444.robot.controlling.autonomous.AutonomousController;
 import org.usfirst.frc.team1444.robot.controlling.autonomous.ResetEncoderController;
 import org.usfirst.frc.team1444.robot.controlling.input.*;
 
@@ -41,6 +37,10 @@ public class Robot extends IterativeRobot {
 	// For controllerInputChooser
 	private static final String PS4_CONTROLLER = "PS4 Controller";
 	private static final String SINGLE_JOYSTICK = "Single Joystick";
+
+	private final double frameWidth = 28.0;
+	private final double frameDepth = 33.0;
+	private final double intakeExtendsDistance = 16.0; // TODO measure this
 
 	private SendableChooser<String> autonomousChooser = new SendableChooser<>();
 
@@ -94,18 +94,15 @@ public class Robot extends IterativeRobot {
 		IMU = new BNO055();
 		IMU.SetMode(MODES.NDOF);
 
-		this.ledHandler = new LEDHandler(new LightDrive2812());
-//		LEDs = new LightDrive2812();
-//
-//		colorwheel = new Color[6];
-//		colorwheel[0] = Color.RED;
-//		colorwheel[1] = Color.GREEN;
-//		colorwheel[2] = Color.CYAN;
-//		colorwheel[3] = Color.ORANGE;
-//		colorwheel[4] = Color.PINK;
-//		colorwheel[5] = Color.WHITE;
-//
-		
+		try {
+			LightDrive2812 lightDrive = new LightDrive2812();
+			this.ledHandler = new LEDHandler(lightDrive);
+		} catch(Exception ex){
+			System.err.println("\nStart error message for Light Drive");
+			ex.printStackTrace();
+			System.err.println("MIIIIIIIKE!, Fix the LightDrive!!\nEnd error for light drive\n");
+		}
+
 		PidParameters drivePid = new PidParameters();
 		drivePid.KF = 1;
 		drivePid.KP = 1.5;
@@ -165,6 +162,15 @@ public class Robot extends IterativeRobot {
 	public void disabledPeriodic() {
 
 	}
+	public double getFrameWidth(){
+		return frameWidth;
+	}
+	public double getFrameDepth(){
+		return frameDepth;
+	}
+	public double getIntakeExtendsDistance(){
+		return intakeExtendsDistance;
+	}
 
 	public SwerveDrive getDrive() {
 		return drive;
@@ -173,7 +179,17 @@ public class Robot extends IterativeRobot {
 	public RobotController getController() {
 		return this.robotController;
 	}
-	
+
+	/**
+	 * Note that the return value of getAngle will be 0 when facing straight (which is 90 degrees in most of the code)
+	 * This means that when adding the gyro value, it has no side effects and no need to add or subtract 90. However
+	 * if you want to get your current heading, you should add 90 to the return value of getAngle()
+	 * <p>
+	 * This is not saying that the implementation of Gyro should account for this, it's saying the opposite. The reason
+	 * for this is that unlike the SwerveModules, we don't want to have to turn the robot sideways to 0 the gyro
+	 *
+	 * @return the gyro this robot uses.
+	 */
 	public BNO055 getGyro(){
 		return this.IMU;
 	}
@@ -204,14 +220,30 @@ public class Robot extends IterativeRobot {
 	public void robotPeriodic() {
 		lift.update();
 
-		if(this.robot_state == Robot_State.DISABLED) { // TODO we could just use isDisabled()
-			ledHandler.setMode(LEDMode.TEAM_COLOR);
-		} else if(Math.abs(manipulatorInput.joystickY()) > 0.1) { // TODO replace with a call to CubeController
-			ledHandler.setMode(LEDMode.MOVE_WITH_LIFT);
+		if(ledHandler != null) {
+			SmartDashboard.putBoolean("LED working:", true);
+			if (this.robot_state == Robot_State.DISABLED) { // TODO we could just use isDisabled()
+				ledHandler.setMode(LEDMode.RAINBOW); // just for testing right now
+			} else if (this.robot_state == Robot_State.TELEOP) {
+				TeleopController controller = (TeleopController) this.robotController;
+				if (controller.getCubeController().getLiftMode() != CubeController.LiftMode.NONE) {
+					ledHandler.setMode(LEDMode.MOVE_WITH_LIFT);
+				} else {
+					ledHandler.setMode(LEDMode.DRIVE_SPEED);
+				}
+			} else {
+//			ledHandler.setMode(LEDMode.RAINBOW);
+				ledHandler.setMode(LEDMode.TEAM_COLOR);
+			}
+			try {
+				this.ledHandler.update(this);
+			} catch (NullPointerException ex) {
+				ex.printStackTrace();
+				SmartDashboard.putBoolean("LED working:", false);
+			}
 		} else {
-			ledHandler.setMode(LEDMode.DRIVE_SPEED);
+			SmartDashboard.putBoolean("LED working:", false);
 		}
-		this.ledHandler.update(this);
 		
 		if(robotController != null) {
 			robotController.update(this);
@@ -225,8 +257,8 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void autonomousInit() {
-		setRobotController(null);
 		this.robot_state = Robot_State.AUTO;
+		setRobotController(new ResetEncoderController(new AutonomousController()));
 	}
 
 	/**

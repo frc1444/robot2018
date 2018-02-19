@@ -72,11 +72,11 @@ public class LEDHandler implements RobotController { // even though it implement
 			case RAINBOW:
 			default:
 				long time = System.currentTimeMillis();
-				final double slowMultiplier = .5;
+				final double slowMultiplier = .2;
 				// start with (0, 255, 0) -> add red (255, 255, 0) -> remove green (255, 0, 0) -> add blue (255, 0, 255)
 				// -> remove red (0, 0, 255) -> add green (0, 255, 255) -> remove blue (0, 255, 0)
 				final int max = 256 * 6;
-				int total = (int) ((time * slowMultiplier) % (256 * 6));
+				int total = (((int) Math.floor(time * slowMultiplier)) % (256 * 6));
 				int part = total / 6; // 0 - 5
 				int currentColor = total % 256;
 
@@ -119,6 +119,7 @@ public class LEDHandler implements RobotController { // even though it implement
 						b = 0;
 				}
 				Color color = new Color(r, g, b);
+				SmartDashboard.putString("color:", color.toString());
 				LEDs.SetRangeandClear(color, 0, outOf, outOf); // set all to color
 
 				break;

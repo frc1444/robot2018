@@ -70,6 +70,14 @@ public class CubeController implements RobotController{
 			mode = LiftMode.MANUAL_SECOND_STAGE_ONLY;
 		} else if (controller.gridTopLeft()){ // TODO change
 			mode = LiftMode.MANUAL_MAIN_STAGE_ONLY;
+		} else if(controller.thumbTopLeft()){
+			mode = LiftMode.SCALE_MAX;
+		} else if(controller.thumbTopRight()){
+			mode = LiftMode.SWITCH;
+		} else if(controller.thumbBottomLeft()){
+			mode = LiftMode.MIN_11;
+		} else if(controller.thumbBottomRight()){
+			mode = LiftMode.MIN_13;
 		} else {
 			isPressed = false;
 		}
@@ -112,9 +120,12 @@ public class CubeController implements RobotController{
 			lift.setSecondStagePosition(mode.secondPosition);
 		}
 	}
+	public LiftMode getLiftMode(){
+		return mode;
+	}
 
-	private enum LiftMode {
-		NONE(), BRAKE(),
+	public enum LiftMode {
+		NONE(), @Deprecated BRAKE(),
 		MANUAL(), MANUAL_SECOND_STAGE_ONLY(),
 		MANUAL_MAIN_STAGE_ONLY(), // will be used for climbing
 		SCALE_MAX(1, 1), SCALE_MIN(.9, 1), SWITCH(0, .5), MIN_11(0, 0), MIN_13(0, .08), DRIVE(0, .2);

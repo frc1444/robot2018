@@ -13,7 +13,7 @@ import java.awt.geom.Point2D;
 public class SwerveModule {
 	private static final boolean USE_QUICK_REVERSE = false; // TODO test this today
 
-	private final double wheelCircumference = 2 * Math.PI; // in inches
+	private final double wheelCircumference = 4 * Math.PI; // in inches
 
 	private BaseMotorController drive;
 	private BaseMotorController steer;
