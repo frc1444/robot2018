@@ -1,6 +1,7 @@
 package org.usfirst.frc.team1444.robot;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 
 /**
  * Holds game data to help in autonomous mode for things like which scale is which
@@ -8,10 +9,27 @@ import edu.wpi.first.wpilibj.DriverStation;
  */
 public class GameData {
 
+	private static SendableChooser<StartingPosition> startingChooser = null;
+
 	private DriverStation station;
 
 	public GameData(DriverStation station){
 		this.station = station;
+		initStartingChooser();
+	}
+
+	private static void initStartingChooser(){
+		if(startingChooser != null){
+			return;
+		}
+		startingChooser = new SendableChooser<>();
+		String text = "Starting ";
+		startingChooser.addDefault(text + StartingPosition.LEFT.name, StartingPosition.LEFT);
+		startingChooser.addObject(text + StartingPosition.MIDDLE.name, StartingPosition.MIDDLE);
+		startingChooser.addObject(text + StartingPosition.RIGHT.name, StartingPosition.RIGHT);
+	}
+	public StartingPosition getStartingPosition(){
+		return startingChooser.getSelected();
 	}
 
 	/**
@@ -46,5 +64,14 @@ public class GameData {
 		return station.getGameSpecificMessage();
 	}
 
+	private enum StartingPosition{
+		LEFT("left"), MIDDLE("middle"), RIGHT("right");
+
+		final String name;
+		StartingPosition(String name){
+			this.name = name;
+		}
+
+	}
 
 }

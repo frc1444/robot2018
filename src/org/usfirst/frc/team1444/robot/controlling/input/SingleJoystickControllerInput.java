@@ -74,7 +74,7 @@ public class SingleJoystickControllerInput implements ControllerInput {
 
 	@Override
 	public double rightStickY() {
-		return 0; // TODO should we have this as stick.getRawAxis(SLIDER_AXIS); ?
+		return 0; // should we have this as stick.getRawAxis(SLIDER_AXIS); ?
 	}
 
 	@Override

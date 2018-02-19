@@ -82,7 +82,8 @@ public class CubeController implements RobotController{
 				lift.setMainStageSpeed(0);
 				lift.setSecondStageSpeed(0);
 				if(mode == LiftMode.BRAKE){
-					// TODO add brake code
+					// brake mode does same as NONE, so if we wanted, we could try to lock the position when we enter
+					// otherwise, this mode does nothing
 				}
 			} else if(mode == LiftMode.MANUAL || mode == LiftMode.MANUAL_MAIN_STAGE_ONLY || mode == LiftMode.MANUAL_SECOND_STAGE_ONLY){
 				double speed = controller.joystickY();
