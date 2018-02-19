@@ -56,15 +56,18 @@ public class Robot extends IterativeRobot {
 	private ControllerInput driveInput;
 	private JoystickInput manipulatorInput;
 
-//	private LightDrive2812 LEDs;
-//	private int timer = 0;
-//	private int timer2 = 0;
-//	private Color[] colorwheel;
-
 	private GameData gameData; // Should only be used after match has started (Shouldn't be used in disabled mode)
 
 	private RobotController robotController;  // use ***Init to change this to something that fits that mode
+	
+	private enum Robot_State {
+		TELEOP,
+		AUTO,
+		TEST,
+		DISABLED
+	};
 
+	private Robot_State robot_state;
 //	private PidParameters drivePid;
 //	private PidParameters steerPid;
 
@@ -137,6 +140,8 @@ public class Robot extends IterativeRobot {
 		this.gameData = new GameData(DriverStation.getInstance());
 
 		this.setRobotController(null);
+		
+		this.robot_state = Robot_State.DISABLED;
 
 
 		// Setup dashboard autonomousChooser
@@ -154,6 +159,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void disabledInit() {
 		setRobotController(null);
+		this.robot_state = Robot_State.DISABLED;
 	}
 	
 	public void disabledPeriodic() {
@@ -193,7 +199,7 @@ public class Robot extends IterativeRobot {
 	public void robotPeriodic() {
 		lift.update();
 
-		if(this.robotController == null) {
+		if(this.robot_state == Robot_State.DISABLED) {
 			ledHandler.setMode(LEDMode.TEAM_COLOR);
 		} else if(Math.abs(manipulatorInput.joystickY()) > 0.1) {
 			ledHandler.setMode(LEDMode.MOVE_WITH_LIFT);
@@ -215,6 +221,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void autonomousInit() {
 		setRobotController(null);
+		this.robot_state = Robot_State.AUTO;
 	}
 
 	/**
@@ -237,6 +244,7 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopInit() {
+		this.robot_state = Robot_State.TELEOP;
 		driveInput = createControllerInput(Constants.JoystickPortNumber);
 //		ControllerInput manipulatorInput = new SingleJoystickControllerInput(Constants.CubeJoystickPortNumber);
 		manipulatorInput = new LogitechExtremeJoystickInput(Constants.CubeJoystickPortNumber);
@@ -272,6 +280,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void testInit() {
 		setRobotController(null);
+		this.robot_state = Robot_State.TEST;
 	}
 
 	/**
