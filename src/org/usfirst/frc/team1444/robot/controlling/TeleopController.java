@@ -19,6 +19,10 @@ public class TeleopController implements RobotController {
 		this.cubeController = cubeController;
 	}
 
+	public SwerveController getSwerveController(){
+		return swerveController;
+	}
+
 
 	@Override
 	public void update(Robot robot) {

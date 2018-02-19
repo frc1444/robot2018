@@ -170,8 +170,8 @@ public class Robot extends IterativeRobot {
 		return drive;
 	}
 	
-	public SwerveController getController() {
-		return (SwerveController)this.robotController;
+	public RobotController getController() {
+		return this.robotController;
 	}
 	
 	public BNO055 getGyro(){
@@ -204,9 +204,9 @@ public class Robot extends IterativeRobot {
 	public void robotPeriodic() {
 		lift.update();
 
-		if(this.robot_state == Robot_State.DISABLED) {
+		if(this.robot_state == Robot_State.DISABLED) { // TODO we could just use isDisabled()
 			ledHandler.setMode(LEDMode.TEAM_COLOR);
-		} else if(Math.abs(manipulatorInput.joystickY()) > 0.1) {
+		} else if(Math.abs(manipulatorInput.joystickY()) > 0.1) { // TODO replace with a call to CubeController
 			ledHandler.setMode(LEDMode.MOVE_WITH_LIFT);
 		} else {
 			ledHandler.setMode(LEDMode.DRIVE_SPEED);

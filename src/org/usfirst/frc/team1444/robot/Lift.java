@@ -85,14 +85,17 @@ public class Lift {
 		this.secondStageMotor.set(ControlMode.Position, position * SECOND_STAGE_ENCODER_COUNTS);
 	}
 
+	/** @return A number from 0 to 1. 0 is at bottom. Note returned number could be slightly out of the range 0 to 1 */
 	public double getMainStagePosition(){
 		return mainStageMaster.getSelectedSensorPosition(mainPid.pidIdx) / (double) MAIN_STAGE_ENCODER_COUNTS;
 	}
+	/** @return A number from 0 to 1. 0 is at bottom. Note returned number could be slightly out of the range 0 to 1 */
 	public double getSecondStagePosition(){
 		return secondStageMotor.getSelectedSensorPosition(secondPid.pidIdx) / (double) SECOND_STAGE_ENCODER_COUNTS;
 	}
 	// endregion
 
+	// region stage speeds
 	/**
 	 * @param speed Speed of the main stage. (-1 to 1) positive raises lift
 	 */
@@ -110,8 +113,6 @@ public class Lift {
 			}
 		}
 		this.mainStageMaster.set(ControlMode.PercentOutput, speed);
-//		SmartDashboard.putNumber("main stage speed", speed);
-//		SmartDashboard.putNumber("main stage id", this.mainStageMaster.getDeviceID());
 	}
 	public void setSecondStageSpeed(double speed){
 		double position = getSecondStagePosition(); // update this code when above code is updated
@@ -126,9 +127,9 @@ public class Lift {
 				speed *= scale;
 			}
 		}
-		SmartDashboard.putNumber("second statge speed: ", speed);
 		this.secondStageMotor.set(ControlMode.PercentOutput, speed);
 	}
+	// endregion
 
 
 	public void debug(){
