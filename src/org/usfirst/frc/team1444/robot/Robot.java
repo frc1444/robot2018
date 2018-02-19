@@ -17,9 +17,11 @@ import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.BNO055.MODES;
+import org.usfirst.frc.team1444.robot.LEDHandler.LEDMode;
 import org.usfirst.frc.team1444.robot.controlling.EncoderDebug;
 import org.usfirst.frc.team1444.robot.controlling.RobotController;
 import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
+import org.usfirst.frc.team1444.robot.controlling.SwerveController;
 import org.usfirst.frc.team1444.robot.controlling.TeleopController;
 import org.usfirst.frc.team1444.robot.controlling.autonomous.ResetEncoderController;
 import org.usfirst.frc.team1444.robot.controlling.input.*;
@@ -50,6 +52,9 @@ public class Robot extends IterativeRobot {
 	private Lift lift;
 	private BNO055 IMU;
 	private LEDHandler ledHandler;
+	
+	private ControllerInput driveInput;
+	private JoystickInput manipulatorInput;
 
 //	private LightDrive2812 LEDs;
 //	private int timer = 0;
@@ -143,24 +148,26 @@ public class Robot extends IterativeRobot {
 		controllerInputChooser.addObject(SINGLE_JOYSTICK, SINGLE_JOYSTICK);
 		SmartDashboard.putData("Controller Type", controllerInputChooser);
 
+		
 	}
 
 	@Override
 	public void disabledInit() {
 		setRobotController(null);
-		this.ledHandler.getLEDs().ClearLEDs();
-		this.ledHandler.setMode(LEDHandler.LEDMode.RAINBOW);
 	}
 	
 	public void disabledPeriodic() {
 
-		this.ledHandler.update(this); // TODO also update this in robotPeriodic below
-		
 	}
 
 	public SwerveDrive getDrive() {
 		return drive;
 	}
+	
+	public SwerveController getController() {
+		return (SwerveController)this.robotController;
+	}
+	
 	public BNO055 getGyro(){
 		return this.IMU;
 	}
@@ -185,6 +192,16 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void robotPeriodic() {
 		lift.update();
+
+		if(this.robotController == null) {
+			ledHandler.setMode(LEDMode.TEAM_COLOR);
+		} else if(Math.abs(manipulatorInput.joystickY()) > 0.1) {
+			ledHandler.setMode(LEDMode.MOVE_WITH_LIFT);
+		} else {
+			ledHandler.setMode(LEDMode.DRIVE_SPEED);
+		}
+		this.ledHandler.update(this);
+		
 		if(robotController != null) {
 			robotController.update(this);
 			if(robotController instanceof RobotControllerProcess){
@@ -220,12 +237,12 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopInit() {
-		ControllerInput driveInput = createControllerInput(Constants.JoystickPortNumber);
+		driveInput = createControllerInput(Constants.JoystickPortNumber);
 //		ControllerInput manipulatorInput = new SingleJoystickControllerInput(Constants.CubeJoystickPortNumber);
-		JoystickInput manipulatorInput = new LogitechExtremeJoystickInput(Constants.CubeJoystickPortNumber);
+		manipulatorInput = new LogitechExtremeJoystickInput(Constants.CubeJoystickPortNumber);
 //		setRobotController(new TeleopController(driveInput, manipulatorInput));
 		setRobotController(new ResetEncoderController(new TeleopController(driveInput, manipulatorInput)));
-
+		
 		IMU.reset(); // TODO don't reset gyro here. Do it somewhere else
 	}
 

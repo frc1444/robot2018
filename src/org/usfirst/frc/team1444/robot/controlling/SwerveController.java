@@ -69,6 +69,10 @@ public class SwerveController implements RobotController {
 				throw new RuntimeException("Unknown control mode: " + mode);
 		}
 	}
+	
+	public ControllerInput getControllerInput() {
+		return this.controller;
+	}
 
 //	/** Will be called when using either driving mode */
 //	private void onDrive(SwerveDrive drive){
