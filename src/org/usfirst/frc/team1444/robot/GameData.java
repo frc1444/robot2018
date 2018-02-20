@@ -64,7 +64,7 @@ public class GameData {
 		return station.getGameSpecificMessage();
 	}
 
-	private enum StartingPosition{
+	public enum StartingPosition{
 		LEFT("left"), MIDDLE("middle"), RIGHT("right");
 
 		final String name;

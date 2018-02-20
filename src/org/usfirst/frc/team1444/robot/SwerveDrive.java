@@ -134,6 +134,9 @@ public class SwerveDrive {
 
 
 	/**
+	 * If you just want to rotate while still, call this method with speed=0, direction=null, turnAmount=turn speed
+	 * centerWhileStill=null/or a point to rotate around
+	 *
 	 * 
 	 * @param speed Desired speed of the motors (-1 to 1) that will eventually be converted to ft/s
 	 * @param direction Desired direction of robot in degrees or null if you don't want to change direction. Even if
@@ -216,6 +219,9 @@ public class SwerveDrive {
 	 * Uses the rotateModuleSub method and bases rotation around the point centerOfRotation
 	 * <p>
 	 * Note: isLeft is used to make sure that when changing direction, wheels won't do a 180
+	 * Note this shouldn't be used very often outside of this class
+	 * <p>
+	 * When rotating around 0,0, isLeft should be false and -1 means turning left 1 means turning right
 	 *
 	 * @param speed The desired speed that will be scaled depending on where centerOfRotation is
 	 * @param centerOfRotation The point that you want to rotate around relative to origin (the middle of robot)
