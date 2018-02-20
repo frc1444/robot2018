@@ -20,9 +20,9 @@ public class IntakeDrive extends DistanceDrive {
 	public IntakeDrive(double distanceInInches, double speed, double intakeSpeed){
 		super(distanceInInches, 90, false, speed);
 		this.intakeSpeed = intakeSpeed;
-		if(intakeSpeed > 0){
-			System.err.println("Are you sure you want to run the motors positive while driving? - From " + this.getClass().getName());
-		}
+//		if(intakeSpeed > 0){
+//			System.err.println("Are you sure you want to run the motors positive while driving? - From " + this.getClass().getName());
+//		}
 	}
 
 	@Override

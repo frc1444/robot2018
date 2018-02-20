@@ -80,7 +80,7 @@ public class SwerveModule {
 	 * @return the total distance the drive wheel has gone in inches
 	 */
 	public double getTotalDistanceGone(){
-		return (this.drive.getSelectedSensorPosition(drivePid.pidIdx) / (double) getUsedEncoderCounts()) * wheelCircumference;
+		return (this.drive.getSelectedSensorPosition(drivePid.pidIdx) / (double) Constants.RealCimCountsPerRev) * wheelCircumference;
 	}
 
 	private boolean canUseQuickReverse(){
@@ -180,12 +180,14 @@ public class SwerveModule {
 	
 	public void debug() {	
 		// Get the raw analog encoder count (can be removed later once drive is sorted out)
-		SmartDashboard.putNumber("Raw Analog " + ID, steer.getSensorCollection().getAnalogInRaw());
+//		SmartDashboard.putNumber("Raw Analog " + ID, steer.getSensorCollection().getAnalogInRaw());
 		
 		// Print the current, measured encoder count
-		SmartDashboard.putNumber("Encoder " + ID, steer.getSelectedSensorPosition(steerPid.pidIdx));
+//		SmartDashboard.putNumber("Encoder " + ID, steer.getSelectedSensorPosition(steerPid.pidIdx));
 
-		SmartDashboard.putString("is quad encoder? id: " + ID, "" + this.setToQuad);
+//		SmartDashboard.putString("is quad encoder? id: " + ID, "" + this.setToQuad);
+//		SmartDashboard.putNumber("distance gone id: " + ID, this.getTotalDistanceGone());
+//		SmartDashboard.putNumber("drive encoder counts id: " + ID, this.drive.getSelectedSensorPosition(drivePid.pidIdx));
 	}
 	
 	private void UpdateDrivePid(PidParameters pid) {
