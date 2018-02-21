@@ -38,10 +38,15 @@ public final class Constants {
 	public static final int CtreUnitConversion = 600; // Conversion to CTRE units of 100 units/ms
 	public static final int MaxCimRpm = 5300;
 	public static final int CimCoderCountsPerRev = 80;	// Talon SRX counts every edge of the quadrature encoder, so 4 * 20
+	public static final int RealCimCountsPerRev = 534;
 	
 	// Steer Motor Constants
 	public static final int QuadSteerCountsPerRev = 1657;	// Determined from PG71 gearmotor with 7 CPR encoder
 	public static final int AnalogSteerCountsPerRev = 1024; // Number of counts while using absolute encoder
+
+	// Lift motor constants
+	public static final int LiftEncoderCountsPerRev = 1024; // SRX Magnetic encoder
+	public static final int LiftGerboxRatio = 21;   // VersaPlanetery
 	
 
 	// Controls

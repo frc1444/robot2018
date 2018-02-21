@@ -19,26 +19,36 @@ public class AutonomousController extends RobotControllerProcess {
 		SmartDashboard.putBoolean("Is data accurate:", data.isAccurate());
 
 		GameData.StartingPosition position = data.getStartingPosition();
-		if(position == GameData.StartingPosition.MIDDLE){
+		if(position == GameData.StartingPosition.MIDDLE || true){
 			/*
 			Note that we can't be inside the exchange zone meaning that we can't be directly in the middle, we'll be
 			a little to the right of the center
 			 */
 			final double speed = .3; // change speed here
 			final double depth = robot.getFrameDepth() + robot.getIntakeExtendsDistance();
-			DistanceDrive driveToPowerCubeZone = new DistanceDrive(30 - depth, 90, true, speed);
+			DistanceDrive driveToPowerCubeZone = new DistanceDrive(98 - depth, 90, true, speed);
 
-			DistanceDrive driveToOurSide = new DistanceDrive(50, data.isHomeSwitchLeft() ? 180 : 0, true, speed);
-			// TODO raise lift
-			DistanceDrive driveToSwitch = new DistanceDrive(30 - depth, 90, true, speed);
-			// TODO spit out cube
+			DistanceDrive driveToOurSide = new DistanceDrive(65, data.isHomeSwitchLeft() ? 180 : 0, true, speed);
+			LiftController raiseLift = new LiftController(0.0, 1.0);
+			MultiController raiseAndDrive = new MultiController(driveToOurSide, raiseLift);
+
+			final double distanceToSwitch = 4.8 * 12;
+			DistanceDrive halfToSwitch = new DistanceDrive(distanceToSwitch * (2.5 / 3.0), 90, true, speed);
+
+			IntakeDrive moveAndSpit = new IntakeDrive(distanceToSwitch * (.5 / 3.0), speed, 1);
 
 
 			this.currentController = driveToPowerCubeZone;
-			driveToPowerCubeZone.setNextController(driveToOurSide);
-			driveToOurSide.setNextController(driveToSwitch);
-			driveToSwitch.setNextController(null);
+			driveToPowerCubeZone.setNextController(raiseAndDrive);
+			raiseAndDrive.setNextController(halfToSwitch);
+			halfToSwitch.setNextController(moveAndSpit);
+			moveAndSpit.setNextController(null);
 		} else {
+			// just some random comments that Josh needs:
+			// 185
+
+			// 125 at V
+			// 63 degrees
 			this.setNextController(new DistanceDrive(30, 90, true, .3));
 		}
 	}

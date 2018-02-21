@@ -36,8 +36,10 @@ public class Lift {
 		mainStageMaster.configForwardSoftLimitEnable(true, Constants.TimeoutMs);
 		mainStageMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, Constants.PidIdx, Constants.TimeoutMs);
 		mainStageMaster.setInverted(true); // Needs to be inverted
+		mainStageMaster.setSensorPhase(true);
 		mainStageMaster.setNeutralMode(NeutralMode.Brake);
 		mainStagePid.apply(mainStageMaster); // apply pid values
+//		mainStageMaster.configClosedloopRamp(.5, Constants.TimeoutMs);
 
 		mainStageSlave.follow(mainStageMaster);
 		mainStageSlave.setInverted(true); // Inverted relative to master - tested and works
@@ -108,6 +110,7 @@ public class Lift {
 			if(scale >= 0){ // we don't want to reverse the speed
 				speed *= scale;
 			} else {
+				System.out.println("setting to safety speed... scale: " + scale + " position " + position + "speed: " + speed);
 				speed *= SAFETY_SPEED;
 			}
 		} else if(position > .8 && speed > 0){
@@ -118,7 +121,13 @@ public class Lift {
 				speed *= SAFETY_SPEED;
 			}
 		}
+		SmartDashboard.putNumber("main speed", speed);
 		this.mainStageMaster.set(ControlMode.PercentOutput, speed);
+
+//		double targetSpeed = (speed * Constants.LiftEncoderCountsPerRev * Constants.MaxCimRpm )
+//				/ (Constants.CtreUnitConversion);
+
+		//this.mainStageMaster.set(ControlMode.Velocity, targetSpeed);
 	}
 	public void setSecondStageSpeed(double speed){
 		double position = getSecondStagePosition(); // update this code when above code is updated
@@ -137,6 +146,7 @@ public class Lift {
 				speed *= SAFETY_SPEED;
 			}
 		}
+		SmartDashboard.putNumber("2nd speed", speed);
 		this.secondStageMotor.set(ControlMode.PercentOutput, speed);
 	}
 	// endregion

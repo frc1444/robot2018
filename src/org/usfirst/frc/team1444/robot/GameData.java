@@ -61,7 +61,11 @@ public class GameData {
 	}
 
 	private String getMessage(){
-		return station.getGameSpecificMessage();
+		String r = station.getGameSpecificMessage();
+		if(r.length() < 3){
+			r = "LLL";
+		}
+		return r;
 	}
 
 	public enum StartingPosition{

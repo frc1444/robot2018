@@ -19,6 +19,7 @@ import org.usfirst.frc.team1444.robot.BNO055.MODES;
 import org.usfirst.frc.team1444.robot.LEDHandler.LEDMode;
 import org.usfirst.frc.team1444.robot.controlling.*;
 import org.usfirst.frc.team1444.robot.controlling.autonomous.AutonomousController;
+import org.usfirst.frc.team1444.robot.controlling.autonomous.DistanceDrive;
 import org.usfirst.frc.team1444.robot.controlling.autonomous.ResetEncoderController;
 import org.usfirst.frc.team1444.robot.controlling.input.*;
 
@@ -83,7 +84,7 @@ public class Robot extends IterativeRobot {
 		try{
 			UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
 			camera.setResolution(640, 480);
-			camera.setFPS(15);
+			camera.setFPS(9);
 		} catch(Exception e){
 			e.printStackTrace();
 			System.err.println("Unable to start camera server.");
@@ -106,6 +107,7 @@ public class Robot extends IterativeRobot {
 		PidParameters drivePid = new PidParameters();
 		drivePid.KF = 1;
 		drivePid.KP = 1.5;
+		drivePid.closedRampRate = .25;
 
 		PidParameters steerPid = new PidParameters();
 		steerPid.KP = 8;
@@ -123,12 +125,18 @@ public class Robot extends IterativeRobot {
 				new TalonSRX(Constants.FrontRightDriveId), new TalonSRX(Constants.FrontRightSteerId),
 				new TalonSRX(Constants.RearLeftDriveId), new TalonSRX(Constants.RearLeftSteerId),
 				new TalonSRX(Constants.RearRightDriveId), new TalonSRX(Constants.RearRightSteerId),
-				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset, 28, 17.5);
+				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset, 27.375, 22.25);
 
 		this.intake = new Intake(new TalonSRX(Constants.IntakeLeftId), new TalonSRX(Constants.IntakeRightId));
 
 		PidParameters mainPid = new PidParameters();
 		PidParameters secondPid = new PidParameters();
+
+		mainPid.KP = .5;
+		mainPid.closedRampRate = .5;
+
+		secondPid.KP = .4;
+		secondPid.closedRampRate = .5;
 		this.lift = new Lift(
 				new TalonSRX(Constants.MainBoomMasterId), new TalonSRX(Constants.MainBoomSlaveId),
 				new TalonSRX(Constants.SecondaryBoomId),
@@ -258,7 +266,9 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void autonomousInit() {
 		this.robot_state = Robot_State.AUTO;
-		setRobotController(new ResetEncoderController(new AutonomousController()));
+		RobotController nextController = new AutonomousController();
+//		RobotController nextController = new DistanceDrive(12 * 5, 90, false, .3);
+		setRobotController(new ResetEncoderController(nextController));
 	}
 
 	/**

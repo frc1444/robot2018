@@ -9,6 +9,8 @@ public class PidParameters {
 	public double KD;
 	public double KF;
 	public int pidIdx;
+
+	public double closedRampRate = 0;
 	
 	PidParameters() {
 		this.KP = 0;
@@ -36,6 +38,7 @@ public class PidParameters {
 		motor.config_kI(pidIdx, KI, Constants.TimeoutMs);
 		motor.config_kD(pidIdx, KD, Constants.TimeoutMs);
 		motor.config_kF(pidIdx, KF, Constants.TimeoutMs);
+		motor.configClosedloopRamp(closedRampRate, Constants.TimeoutMs);
 	}
 
 
