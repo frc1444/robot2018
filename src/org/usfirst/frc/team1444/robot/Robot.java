@@ -238,7 +238,7 @@ public class Robot extends IterativeRobot {
 					ledHandler.setMode(LEDMode.DRIVE_SPEED);
 				}
 			} else {
-//			ledHandler.setMode(LEDMode.RAINBOW);
+//				ledHandler.setMode(LEDMode.RAINBOW);
 				ledHandler.setMode(LEDMode.TEAM_COLOR);
 			}
 			try {
