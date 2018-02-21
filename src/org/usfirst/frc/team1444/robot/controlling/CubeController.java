@@ -87,14 +87,19 @@ public class CubeController implements RobotController{
 
 		if(mode.isSpecial){
 			if(mode == LiftMode.NONE || mode == LiftMode.BRAKE){
-				lift.setMainStageSpeed(0);
-				lift.setSecondStageSpeed(0);
+//				lift.setMainStageSpeed(0);
+//				lift.setSecondStageSpeed(0);
 				if(mode == LiftMode.BRAKE){
 					// brake mode does same as NONE, so if we wanted, we could try to lock the position when we enter
 					// otherwise, this mode does nothing
 				}
 			} else if(mode == LiftMode.MANUAL || mode == LiftMode.MANUAL_MAIN_STAGE_ONLY || mode == LiftMode.MANUAL_SECOND_STAGE_ONLY){
 				double speed = controller.joystickY();
+
+				if (Math.abs(speed) < 0.1) {
+					speed = 0;
+				}
+
 				if(!isPressed){
 					speed = 0;
 				}
@@ -116,8 +121,7 @@ public class CubeController implements RobotController{
 				throw new UnsupportedOperationException("Do not know how to deal with special mode: " + mode);
 			}
 		} else {
-			lift.setMainStagePosition(mode.mainPosition);
-			lift.setSecondStagePosition(mode.secondPosition);
+			lift.setBothPosition(mode.position);
 		}
 	}
 	public LiftMode getLiftMode(){
@@ -128,17 +132,19 @@ public class CubeController implements RobotController{
 		NONE(), @Deprecated BRAKE(),
 		MANUAL(), MANUAL_SECOND_STAGE_ONLY(),
 		MANUAL_MAIN_STAGE_ONLY(), // will be used for climbing
-		SCALE_MAX(1, 1), SCALE_MIN(.9, 1), SWITCH(0, .5), MIN_11(0, 0), MIN_13(0, .08), DRIVE(0, .2);
 
-		double mainPosition;
-		double secondPosition;
+		SCALE_MAX(Lift.Position.SCALE_MAX), SCALE_MIN(Lift.Position.SCALE_MIN), SWITCH(Lift.Position.SWITCH),
+		MIN_11(Lift.Position.MIN), MIN_13(Lift.Position.MIN_13),
+		@Deprecated
+		DRIVE(Lift.Position.DRIVE);
+
+		Lift.Position position;
 
 		boolean isSpecial;
 		boolean needsPress;
 
-		LiftMode(double mainPosition, double secondPosition, boolean isSpecial, boolean needsPress){
-			this.mainPosition = mainPosition;
-			this.secondPosition = secondPosition;
+		LiftMode(Lift.Position position, boolean isSpecial, boolean needsPress){
+			this.position = position;
 			this.isSpecial = isSpecial;
 			this.needsPress = needsPress;
 		}
@@ -146,15 +152,15 @@ public class CubeController implements RobotController{
 		/**
 		 * Creates normal LiftMode that doesn't need press
 		 */
-		LiftMode(double mainPosition, double secondPosition){
-			this(mainPosition, secondPosition, false, false);
+		LiftMode(Lift.Position position){
+			this(position, false, false);
 		}
 
 		/**
 		 * Creates a special LiftMode that needs a press
 		 */
 		LiftMode(){
-			this(.5, .5, true, true);
+			this(null, true, true);
 		}
 	}
 }

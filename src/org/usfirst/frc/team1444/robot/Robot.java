@@ -31,10 +31,6 @@ import org.usfirst.frc.team1444.robot.controlling.input.*;
  * project.
  */
 public class Robot extends IterativeRobot {
-	// For autonomousChooser
-	private static final String DEFAULT_AUTO = "Default";	// Boring default autonomous
-	private static final String RAMPAGE_AUTO = "RAMPAGE";	// RAMPAGE
-
 	// For controllerInputChooser
 	private static final String PS4_CONTROLLER = "PS4 Controller";
 	private static final String SINGLE_JOYSTICK = "Single Joystick";
@@ -47,6 +43,7 @@ public class Robot extends IterativeRobot {
 
 	private SendableChooser<String> controllerInputChooser = new SendableChooser<>();
 
+	private PidHandler pidHandler;
 
 	private SwerveDrive drive;
 	private Intake intake;
@@ -61,14 +58,14 @@ public class Robot extends IterativeRobot {
 
 	private RobotController robotController;  // use ***Init to change this to something that fits that mode
 	
-	public enum Robot_State {
-		TELEOP,
-		AUTO,
-		TEST,
-		DISABLED
-	};
+//	public enum Robot_State {
+//		TELEOP,
+//		AUTO,
+//		TEST,
+//		DISABLED
+//	};
 
-	private Robot_State robot_state;
+//	private Robot_State robot_state;
 //	private PidParameters drivePid;
 //	private PidParameters steerPid;
 
@@ -81,6 +78,7 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
+		this.pidHandler = new PidHandler();
 		try{
 			UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
 			camera.setResolution(640, 480);
@@ -140,19 +138,15 @@ public class Robot extends IterativeRobot {
 		this.lift = new Lift(
 				new TalonSRX(Constants.MainBoomMasterId), new TalonSRX(Constants.MainBoomSlaveId),
 				new TalonSRX(Constants.SecondaryBoomId),
-				mainPid, secondPid);
+				mainPid, secondPid,
+				pidHandler);
 
 		this.gameData = new GameData(DriverStation.getInstance());
 
 		this.setRobotController(null);
 		
-		this.robot_state = Robot_State.DISABLED;
+//		this.robot_state = Robot_State.DISABLED;
 
-
-		// Setup dashboard autonomousChooser
-		autonomousChooser.addDefault(DEFAULT_AUTO, DEFAULT_AUTO); // since DEFAULT_AUTO is a String, use for both
-		autonomousChooser.addObject(RAMPAGE_AUTO, RAMPAGE_AUTO);
-		SmartDashboard.putData("Auto choices", autonomousChooser);
 
 		controllerInputChooser.addDefault(PS4_CONTROLLER, PS4_CONTROLLER);
 		controllerInputChooser.addObject(SINGLE_JOYSTICK, SINGLE_JOYSTICK);
@@ -164,11 +158,14 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void disabledInit() {
 		setRobotController(null);
-		this.robot_state = Robot_State.DISABLED;
+//		this.robot_state = Robot_State.DISABLED;
 	}
 	
 	public void disabledPeriodic() {
 
+	}
+	public PidHandler getPidHandler(){
+		return pidHandler;
 	}
 	public double getFrameWidth(){
 		return frameWidth;
@@ -208,9 +205,9 @@ public class Robot extends IterativeRobot {
 		return lift;
 	}
 	
-	public Robot_State getState() {
-		return this.robot_state;
-	}
+//	public Robot_State getState() {
+//		return this.robot_state;
+//	}
 	
 	public GameData getGameData(){
 //		if(isDisabled()) throw new IllegalStateException("GameData may not be accurate while disabled.");
@@ -227,12 +224,13 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void robotPeriodic() {
 		lift.update();
+		pidHandler.update();
 
 		if(ledHandler != null) {
 			SmartDashboard.putBoolean("LED working:", true);
-			if (this.robot_state == Robot_State.DISABLED) { // TODO we could just use isDisabled()
+			if (isDisabled()) { // TODO we could just use isDisabled()
 				ledHandler.setMode(LEDMode.RAINBOW); // just for testing right now
-			} else if (this.robot_state == Robot_State.TELEOP) {
+			} else if (isOperatorControl() && this.robotController instanceof TeleopController) {
 				TeleopController controller = (TeleopController) this.robotController;
 				if (controller.getCubeController().getLiftMode() != CubeController.LiftMode.NONE) {
 					ledHandler.setMode(LEDMode.MOVE_WITH_LIFT);
@@ -265,7 +263,7 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void autonomousInit() {
-		this.robot_state = Robot_State.AUTO;
+//		this.robot_state = Robot_State.AUTO;
 		RobotController nextController = new AutonomousController();
 //		RobotController nextController = new DistanceDrive(12 * 5, 90, false, .3);
 		setRobotController(new ResetEncoderController(nextController));
@@ -276,22 +274,11 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		// We probably won't but code in here. Probably do this in autonomousInit and check in here if we
-		// have the right robotController
-		switch (autonomousChooser.getSelected()) {
-			case RAMPAGE_AUTO:
-				// RAMPAGE
-				break;
-			case DEFAULT_AUTO:
-			default:
-				// Boring default auto
-				break;
-		}
 	}
 
 	@Override
 	public void teleopInit() {
-		this.robot_state = Robot_State.TELEOP;
+//		this.robot_state = Robot_State.TELEOP;
 		driveInput = createControllerInput(Constants.JoystickPortNumber);
 //		ControllerInput manipulatorInput = new SingleJoystickControllerInput(Constants.CubeJoystickPortNumber);
 		manipulatorInput = new LogitechExtremeJoystickInput(Constants.CubeJoystickPortNumber);
@@ -327,7 +314,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void testInit() {
 		setRobotController(null);
-		this.robot_state = Robot_State.TEST;
+//		this.robot_state = Robot_State.TEST;
 	}
 
 	/**

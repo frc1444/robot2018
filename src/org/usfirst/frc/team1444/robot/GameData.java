@@ -2,6 +2,7 @@ package org.usfirst.frc.team1444.robot;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * Holds game data to help in autonomous mode for things like which scale is which
@@ -23,11 +24,20 @@ public class GameData {
 			return;
 		}
 		startingChooser = new SendableChooser<>();
-		String text = "Starting ";
+		String text = "";
 		startingChooser.addDefault(text + StartingPosition.LEFT.name, StartingPosition.LEFT);
 		startingChooser.addObject(text + StartingPosition.MIDDLE.name, StartingPosition.MIDDLE);
 		startingChooser.addObject(text + StartingPosition.RIGHT.name, StartingPosition.RIGHT);
+		SmartDashboard.putData("Starting position", startingChooser);
 	}
+
+	/**
+	 * This can be used to inform different parts of the code where the robot is starting. Note that autonomous may
+	 * or may not use this to determine where to start. Sometimes it's better to just use you're own chooser so it's
+	 * easier to keep track of the different modes
+	 *
+	 * @return The starting position of the robot. The default is LEFT.
+	 */
 	public StartingPosition getStartingPosition(){
 		return startingChooser.getSelected();
 	}
@@ -61,9 +71,17 @@ public class GameData {
 	}
 
 	private String getMessage(){
+		final String dashString = "Is message random";
 		String r = station.getGameSpecificMessage();
 		if(r.length() < 3){
-			r = "LLL";
+//			r = "LLL";
+			r = "";
+			for(int i = 0; i < 3; i++){
+				r += Math.random() < .5 ? "L" : "R";
+			}
+			SmartDashboard.putBoolean(dashString, true);
+		} else {
+			SmartDashboard.putBoolean(dashString, false);
 		}
 		return r;
 	}

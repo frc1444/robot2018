@@ -12,7 +12,7 @@ public class PidParameters {
 
 	public double closedRampRate = 0;
 	
-	PidParameters() {
+	public PidParameters() {
 		this.KP = 0;
 		this.KI = 0;
 		this.KD = 0;
@@ -20,7 +20,7 @@ public class PidParameters {
 		this.pidIdx = 0;
 	}
 	
-	PidParameters(PidParameters pid) {
+	public PidParameters(PidParameters pid) {
 		this.KP = pid.KP;
 		this.KI = pid.KI;
 		this.KD = pid.KD;

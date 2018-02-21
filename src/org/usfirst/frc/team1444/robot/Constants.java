@@ -45,8 +45,8 @@ public final class Constants {
 	public static final int AnalogSteerCountsPerRev = 1024; // Number of counts while using absolute encoder
 
 	// Lift motor constants
-	public static final int LiftEncoderCountsPerRev = 1024; // SRX Magnetic encoder
-	public static final int LiftGerboxRatio = 21;   // VersaPlanetery
+	public static final int LiftEncoderCountsPerRev = 4096; // SRX Magnetic encoder
+	public static final int LiftGearboxRatio = 21;   // VersaPlanetery
 	
 
 	// Controls

@@ -5,8 +5,13 @@ import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import java.util.Arrays;
+
 public class Lift {
-	private static final int MAIN_STAGE_ENCODER_COUNTS = 27000;
+	private static final boolean USE_SPEED_SET = true;
+	private static final double MAX_POSITION_INCREMENT = .075;
+
+	private static final int MAIN_STAGE_ENCODER_COUNTS = 29000; // 29600
 	private static final int SECOND_STAGE_ENCODER_COUNTS = 22600;
 
 	private static final double SAFETY_SPEED = .2;
@@ -20,7 +25,8 @@ public class Lift {
 
 	public Lift(TalonSRX mainStageMaster, BaseMotorController mainStageSlave,
 	            TalonSRX secondStageMotor,
-	            PidParameters mainStagePid, PidParameters secondStagePid){
+	            PidParameters mainStagePid, PidParameters secondStagePid,
+	            PidHandler pidHandler){
 
 		// set instance variables
 		this.mainStageMaster = mainStageMaster;
@@ -38,7 +44,7 @@ public class Lift {
 		mainStageMaster.setInverted(true); // Needs to be inverted
 		mainStageMaster.setSensorPhase(true);
 		mainStageMaster.setNeutralMode(NeutralMode.Brake);
-		mainStagePid.apply(mainStageMaster); // apply pid values
+//		mainStagePid.apply(mainStageMaster); // apply pid values
 //		mainStageMaster.configClosedloopRamp(.5, Constants.TimeoutMs);
 
 		mainStageSlave.follow(mainStageMaster);
@@ -55,8 +61,10 @@ public class Lift {
 		secondStageMotor.setInverted(false); // needs to be tested
 		secondStageMotor.setSensorPhase(false);
 		secondStageMotor.setNeutralMode(NeutralMode.Brake);
-		secondStagePid.apply(secondStageMotor); // apply pid values
+//		secondStagePid.apply(secondStageMotor); // apply pid values
 
+		pidHandler.addPid(new PidHandler.PidDashObject(mainPid, Arrays.asList(mainStageMaster), "main stage pid"));
+		pidHandler.addPid(new PidHandler.PidDashObject(secondStagePid, Arrays.asList(secondStageMotor), "second stage pid"));
 	}
 
 	/**
@@ -97,6 +105,15 @@ public class Lift {
 	public double getSecondStagePosition(){
 		return secondStageMotor.getSelectedSensorPosition(secondPid.pidIdx) / (double) SECOND_STAGE_ENCODER_COUNTS;
 	}
+
+	/**
+	 * Uses setMainStagePosition and setSecondStagePosition to set a preset position
+	 * @param position the preset position
+	 */
+	public void setBothPosition(Position position){
+		this.setMainStagePosition(position.getMainPosition());
+		this.setSecondStagePosition(position.getSecondPosition());
+	}
 	// endregion
 
 	// region stage speeds
@@ -105,49 +122,105 @@ public class Lift {
 	 */
 	public void setMainStageSpeed(double speed){
 		double position = getMainStagePosition(); // a value from 0 to 1
-		if(position < .2 && speed < 0){
-			double scale = (position + .05) / .3;
-			if(scale >= 0){ // we don't want to reverse the speed
-				speed *= scale;
-			} else {
-				System.out.println("setting to safety speed... scale: " + scale + " position " + position + "speed: " + speed);
-				speed *= SAFETY_SPEED;
+		if(USE_SPEED_SET) {
+//			if (position < .2 && speed < 0) {
+//				double scale = (position + .05) / .3;
+//				if (scale >= 0) { // we don't want to reverse the speed
+//					speed *= scale;
+//				} else {
+////				System.out.println("setting to safety speed... scale: " + scale + " position " + position + "speed: " + speed);
+//					speed *= SAFETY_SPEED;
+//				}
+//			} else if (position > .8 && speed > 0) {
+//				double scale = ((1 - position) + .05) / .2;
+//				if (scale >= 0) { // we don't want to reverse the speed
+//					speed *= scale;
+//				} else {
+//					speed *= SAFETY_SPEED;
+//				}
+//			}
+			//this.mainStageMaster.set(ControlMode.PercentOutput, speed);
+
+			double targetSpeed = (speed * Constants.LiftEncoderCountsPerRev * Constants.MaxCimRpm)
+					/ (Constants.CtreUnitConversion*10.0);
+
+			if(position > (0.8 * 1.0) && (speed > 0)) {
+				targetSpeed *= ((1.0 - position) / 0.2) + 0.05;
+			} else if(position < (0.3 * 1.0) && (speed < 0)) {
+				targetSpeed *= (position / 0.5);
 			}
-		} else if(position > .8 && speed > 0){
-			double scale = ((1 - position) + .05) / .3;
-			if(scale >= 0){ // we don't want to reverse the speed
-				speed *= scale;
-			} else {
-				speed *= SAFETY_SPEED;
+
+			this.mainStageMaster.set(ControlMode.Velocity, targetSpeed);
+
+			SmartDashboard.putNumber("main speed", targetSpeed);
+		} else {
+			double newPosition = 0;
+
+			if (position >= (1 - MAX_POSITION_INCREMENT) && (speed > 0)) {
+				newPosition = position + .005;
 			}
+			else if (position <= MAX_POSITION_INCREMENT && (speed < 0)) {
+				newPosition = position - .005;
+			}
+			else {
+				newPosition = position + (speed * MAX_POSITION_INCREMENT);
+			}
+
+			if (newPosition > 1) {
+				newPosition = 1;
+			}
+
+			if (newPosition < 0) {
+				newPosition = 0;
+			}
+
+			this.setMainStagePosition(newPosition);
 		}
-		SmartDashboard.putNumber("main speed", speed);
-		this.mainStageMaster.set(ControlMode.PercentOutput, speed);
-
-//		double targetSpeed = (speed * Constants.LiftEncoderCountsPerRev * Constants.MaxCimRpm )
-//				/ (Constants.CtreUnitConversion);
-
-		//this.mainStageMaster.set(ControlMode.Velocity, targetSpeed);
 	}
 	public void setSecondStageSpeed(double speed){
-		double position = getSecondStagePosition(); // update this code when above code is updated
-		if(position < .2 && speed < 0){
-			double scale = (position + .05) / .3;
-			if(scale >= 0){ // we don't want to reverse the speed
-				speed *= scale;
-			} else {
-				speed *= SAFETY_SPEED;
+		double position = getSecondStagePosition(); // 0 to 1
+		if(USE_SPEED_SET) {
+			if (position < .2 && speed < 0) {
+				double scale = (position + .05) / .3;
+				if (scale >= 0) { // we don't want to reverse the speed
+					speed *= scale;
+				} else {
+					speed *= SAFETY_SPEED;
+				}
+			} else if (position > .8 && speed > 0) {
+				double scale = ((1 - position) + .05) / .18;
+				if (scale >= 0) { // we don't want to reverse the speed
+					speed *= scale;
+				} else {
+					speed *= SAFETY_SPEED;
+				}
 			}
-		} else if(position > .8 && speed > 0){
-			double scale = ((1 - position) + .05) / .3;
-			if(scale >= 0){ // we don't want to reverse the speed
-				speed *= scale;
-			} else {
-				speed *= SAFETY_SPEED;
+			SmartDashboard.putNumber("2nd speed", speed);
+			this.secondStageMotor.set(ControlMode.PercentOutput, speed);
+		} else { // using some complex way with pid loops
+			double newPosition = 0;
+
+			if (position >= (1 - MAX_POSITION_INCREMENT)) {
+				newPosition += 1;
 			}
+			else if (position <= MAX_POSITION_INCREMENT) {
+				newPosition -= 1;
+			}
+			else {
+				newPosition = position + (speed * MAX_POSITION_INCREMENT);
+			}
+
+			if (newPosition > 1) {
+				newPosition = 1;
+			}
+
+			if (newPosition < 0) {
+				newPosition = 0;
+			}
+
+			this.setSecondStagePosition(newPosition);
+
 		}
-		SmartDashboard.putNumber("2nd speed", speed);
-		this.secondStageMotor.set(ControlMode.PercentOutput, speed);
 	}
 	// endregion
 
@@ -167,5 +240,29 @@ public class Lift {
 		SmartDashboard.putNumber("second stage position", getSecondStagePosition());
 	}
 
+	/**
+	 * A bunch of preset positions
+	 */
+	public enum Position{
+		SCALE_MAX(1, 1), SCALE_MIN(.9, 1), SWITCH(0.5, .5), MIN(0, 0), MIN_13(0, .08), // TODO change switch
+		@Deprecated
+		DRIVE(0, .2);
+
+		private final double mainPosition;
+		private final double secondPosition;
+
+		Position(double mainPosition, double secondPosition){
+			this.mainPosition = mainPosition;
+			this.secondPosition = secondPosition;
+		}
+
+		public double getMainPosition(){
+			return mainPosition;
+		}
+		public double getSecondPosition(){
+			return secondPosition;
+		}
+
+	}
 
 }

@@ -29,6 +29,9 @@ public class TeleopController implements RobotController {
 
 	@Override
 	public void update(Robot robot) {
+		if(swerveController.getControllerInput().dPad() == 90){
+			robot.getGyro().reset();
+		}
 		switch(mode) {
 			case DRIVE_NORMAL:
 				swerveController.update(robot);

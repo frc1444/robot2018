@@ -1,11 +1,8 @@
 package org.usfirst.frc.team1444.robot;
 
 import com.mach.LightDrive.LightDrive2812;
-
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
-import org.usfirst.frc.team1444.robot.Robot.Robot_State;
 import org.usfirst.frc.team1444.robot.controlling.RobotController;
 import org.usfirst.frc.team1444.robot.controlling.SwerveController;
 import org.usfirst.frc.team1444.robot.controlling.TeleopController;
@@ -14,9 +11,8 @@ import java.awt.*;
 
 public class LEDHandler implements RobotController { // even though it implements this, we'll put it in the base package
 
-	private static final Color[] rainbow = new Color[] {
 
-	};
+	private Color lastRainbow = null;
 
 	private int timer = 0;
 	private int timer2 = 0;
@@ -72,13 +68,16 @@ public class LEDHandler implements RobotController { // even though it implement
 			case RAINBOW:
 			default:
 				long time = System.currentTimeMillis();
-				final double slowMultiplier = .2;
+				time *= .3; // now time isn't accurate but we will use it
 				// start with (0, 255, 0) -> add red (255, 255, 0) -> remove green (255, 0, 0) -> add blue (255, 0, 255)
 				// -> remove red (0, 0, 255) -> add green (0, 255, 255) -> remove blue (0, 255, 0)
 				final int max = 256 * 6;
-				int total = (((int) Math.floor(time * slowMultiplier)) % (256 * 6));
-				int part = total / 6; // 0 - 5
+				int total = (int) ((time) % max);
+				int part = total / 256; // 0 - 5
 				int currentColor = total % 256;
+				SmartDashboard.putNumber("total", total);
+				SmartDashboard.putNumber("part", part);
+				SmartDashboard.putNumber("currentColor", currentColor);
 
 				int r, g, b;
 				switch(part){
@@ -113,14 +112,17 @@ public class LEDHandler implements RobotController { // even though it implement
 						b = 255 - currentColor;
 						break;
 					default:
-						System.err.println("part is: " + part);
+//						System.err.println("part is: " + part);
 						r = 0;
 						g = 0;
 						b = 0;
 				}
 				Color color = new Color(r, g, b);
-				SmartDashboard.putString("color:", color.toString());
-				LEDs.SetRangeandClear(color, 0, outOf, outOf); // set all to color
+				if(!color.equals(lastRainbow)) {
+					SmartDashboard.putString("color:", color.toString());
+					LEDs.SetRangeandClear(color, 0, outOf, outOf); // set all to color
+					lastRainbow = color;
+				}
 
 				break;
 		}
