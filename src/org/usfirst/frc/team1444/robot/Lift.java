@@ -11,7 +11,7 @@ public class Lift {
 	private static final boolean USE_SPEED_SET = true;
 	private static final double MAX_POSITION_INCREMENT = .075;
 
-	private static final int MAIN_STAGE_ENCODER_COUNTS = 29000; // 29600
+	private static final int MAIN_STAGE_ENCODER_COUNTS = 29600; // 29600
 	private static final int SECOND_STAGE_ENCODER_COUNTS = 22600;
 
 	private static final double SAFETY_SPEED = .2;
@@ -82,11 +82,22 @@ public class Lift {
 
 	// region stage positions
 	/**
-	 * Method that takes a position and starts to move the main stage to that position
-	 * @param position wanted position of main stage (0 to 1)
+	 * Move the boom to a desired position - wraps the veolicty control from below
+	 * @param Desired position of main stage (0 - full down, 1 - full up)
 	 */
-	public void setMainStagePosition(double position){
-		this.mainStageMaster.set(ControlMode.Position, position * MAIN_STAGE_ENCODER_COUNTS);
+	public void setMainStagePosition(double position){	
+		
+		// Set position using simple proportional control
+		double currentPosition = getMainStagePosition();
+		double error = position - currentPosition;
+		
+		// "Five sound good?" "Yeah, that should work..." - Mike and Aaron
+		double KP = 5;
+		
+		double setPoint = error * KP;
+		
+		this.setMainStageSpeed(setPoint);
+		
 	}
 
 	/**
@@ -118,111 +129,54 @@ public class Lift {
 
 	// region stage speeds
 	/**
-	 * @param speed Speed of the main stage. (-1 to 1) positive raises lift
+	 * Sets the speed of the main lift stage using velocity control
+	 * @param speed Desired speed of the main stage. (-1 to 1) - positive raises lift
 	 */
 	public void setMainStageSpeed(double speed){
 		double position = getMainStagePosition(); // a value from 0 to 1
-		if(USE_SPEED_SET) {
-//			if (position < .2 && speed < 0) {
-//				double scale = (position + .05) / .3;
-//				if (scale >= 0) { // we don't want to reverse the speed
-//					speed *= scale;
-//				} else {
-////				System.out.println("setting to safety speed... scale: " + scale + " position " + position + "speed: " + speed);
-//					speed *= SAFETY_SPEED;
-//				}
-//			} else if (position > .8 && speed > 0) {
-//				double scale = ((1 - position) + .05) / .2;
-//				if (scale >= 0) { // we don't want to reverse the speed
-//					speed *= scale;
-//				} else {
-//					speed *= SAFETY_SPEED;
-//				}
-//			}
-			//this.mainStageMaster.set(ControlMode.PercentOutput, speed);
 
-			double targetSpeed = (speed * Constants.LiftEncoderCountsPerRev * Constants.MaxCimRpm)
-					/ (Constants.CtreUnitConversion*10.0);
+		double targetSpeed = (speed * Constants.LiftMainStageEncoderCountsPerRev * Constants.MaxCimRpm)
+				/ (Constants.CtreUnitConversion * Constants.LiftMainGearboxRatio);
 
-			if(position > (0.8 * 1.0) && (speed > 0)) {
-				targetSpeed *= ((1.0 - position) / 0.2) + 0.05;
-			} else if(position < (0.3 * 1.0) && (speed < 0)) {
-				targetSpeed *= (position / 0.5);
-			}
-
-			this.mainStageMaster.set(ControlMode.Velocity, targetSpeed);
-
-			SmartDashboard.putNumber("main speed", targetSpeed);
-		} else {
-			double newPosition = 0;
-
-			if (position >= (1 - MAX_POSITION_INCREMENT) && (speed > 0)) {
-				newPosition = position + .005;
-			}
-			else if (position <= MAX_POSITION_INCREMENT && (speed < 0)) {
-				newPosition = position - .005;
-			}
-			else {
-				newPosition = position + (speed * MAX_POSITION_INCREMENT);
-			}
-
-			if (newPosition > 1) {
-				newPosition = 1;
-			}
-
-			if (newPosition < 0) {
-				newPosition = 0;
-			}
-
-			this.setMainStagePosition(newPosition);
+		// Linearally scale the speed as the stage approaches the limits
+		if(position > (0.8) && (speed > 0)) {
+			// Add a little feed-forward to help the final approach to the upper limit
+			targetSpeed *= ((1.0 - position) / 0.2) + (position >= 1.0 ? 0 : 0.1);
+		} else if(position < (0.1) && (speed < 0)) {
+			// No need for feed forward when lowering since gravity will bring the stage all the way home
+			// The divisor is also larger here due to gravity
+			targetSpeed *= (position / 0.4);
 		}
+
+		this.mainStageMaster.set(ControlMode.Velocity, targetSpeed);
+
+		SmartDashboard.putNumber("main speed", targetSpeed);
 	}
+	
+	/**
+	 * Sets the speed of the second lift stage using velocity control
+	 * @param speed Desired speed of the second stage (-1 to 1) - positive raises the stage
+	 */
 	public void setSecondStageSpeed(double speed){
-		double position = getSecondStagePosition(); // 0 to 1
-		if(USE_SPEED_SET) {
-			if (position < .2 && speed < 0) {
-				double scale = (position + .05) / .3;
-				if (scale >= 0) { // we don't want to reverse the speed
-					speed *= scale;
-				} else {
-					speed *= SAFETY_SPEED;
-				}
-			} else if (position > .8 && speed > 0) {
-				double scale = ((1 - position) + .05) / .18;
-				if (scale >= 0) { // we don't want to reverse the speed
-					speed *= scale;
-				} else {
-					speed *= SAFETY_SPEED;
-				}
-			}
-			SmartDashboard.putNumber("2nd speed", speed);
-			this.secondStageMotor.set(ControlMode.PercentOutput, speed);
-		} else { // using some complex way with pid loops
-			double newPosition = 0;
+		double position = getSecondStagePosition(); // 0 to 1		
+		
+		double targetSpeed = (speed * Constants.LiftMainStageEncoderCountsPerRev * Constants.MaxBagRpm)
+				/ (Constants.CtreUnitConversion * Constants.LiftSecondStageGearboxRatio);
 
-			if (position >= (1 - MAX_POSITION_INCREMENT)) {
-				newPosition += 1;
-			}
-			else if (position <= MAX_POSITION_INCREMENT) {
-				newPosition -= 1;
-			}
-			else {
-				newPosition = position + (speed * MAX_POSITION_INCREMENT);
-			}
-
-			if (newPosition > 1) {
-				newPosition = 1;
-			}
-
-			if (newPosition < 0) {
-				newPosition = 0;
-			}
-
-			this.setSecondStagePosition(newPosition);
-
+		// Linearally scale the speed as the stage approaches the limits
+		if((position > 0.8) && (speed > 0)) {
+			// Add a little feed-forward to help the final approach to the upper limit
+			targetSpeed *= ((1.0 - position) / 0.2) + (position >= 1.0 ? 0 : 0.1);
+		} else if((position < 0.3) && (speed < 0)) {
+			// No need for feed forward when lowering since gravity will bring the stage all the way home
+			// The divisor is also larger here due to gravity
+			targetSpeed *= (position / 0.5);
 		}
+
+		SmartDashboard.putNumber("main speed", targetSpeed);
+		
+		this.secondStageMotor.set(ControlMode.Velocity, targetSpeed);
 	}
-	// endregion
 
 
 	public void debug(){
