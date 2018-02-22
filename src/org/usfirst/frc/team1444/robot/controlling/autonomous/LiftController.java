@@ -18,6 +18,15 @@ public class LiftController extends RobotControllerProcess {
 		this.mainStagePosition = mainStagePosition;
 		this.secondStagePosition = secondStagePosition;
 	}
+	public LiftController(Lift.Position position){
+		if(position != null){
+			mainStagePosition = position.getMainPosition();
+			secondStagePosition = position.getSecondPosition();
+		} else {
+			mainStagePosition = null;
+			secondStagePosition = null;
+		}
+	}
 
 	@Override
 	public void update(Robot robot) {

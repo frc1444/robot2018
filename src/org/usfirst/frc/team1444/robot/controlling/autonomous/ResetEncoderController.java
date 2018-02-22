@@ -13,13 +13,13 @@ import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
  */
 public class ResetEncoderController extends RobotControllerProcess {
 
-	private static final double ALLOWED_DEGREES_FOR_ZERO = 1.5; // can be within -x and x including -x and x
+	private static final double ALLOWED_DEGREES_FOR_ZERO = 4.0; // can be within -x and x including -x and x
 	private static final long TIME_OUT_AFTER = 3000;
 	private static final long WAIT_AFTER_LAST = 100;
 
-	private Long timeOutAt = null;
-	private boolean done = false;
-	private Long resetAt = null;
+	private Long timeOutAt = null; // initialized on first call to update
+	private boolean done = false; // true when all set to quad and are done
+	private Long resetAt = null; // initialized when waiting to be set to quad
 
 	public ResetEncoderController(RobotController nextController){
 		super(nextController);
@@ -45,7 +45,6 @@ public class ResetEncoderController extends RobotControllerProcess {
 		for(SwerveModule module : drive.getModules()){
 			boolean quad = module.isQuad();
 			if(quad){
-//				System.out.println("isQuad " + module.getID() + ": IS TRUE!!!");
 				continue;
 			}
 			allQuad = false;
@@ -61,12 +60,16 @@ public class ResetEncoderController extends RobotControllerProcess {
 
 		if(allQuad){
 			this.done = true;
+			return;
 		}
 
 		if(allReady || System.currentTimeMillis() >= timeOutAt){
 			if(resetAt == null) { // don't keep increasing
-				drive.switchToQuad();
-				System.out.println("Done with ResetEncoderCounts. Should reset soon.");
+				if(allReady){
+					System.out.println("ResetEncoderCounts correctly worked.");
+				} else {
+					System.out.println("ResetEncoderCounts timed out.");
+				}
 				resetAt = System.currentTimeMillis() + WAIT_AFTER_LAST;
 			}
 		}

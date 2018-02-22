@@ -4,11 +4,14 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+import java.util.Random;
+
 /**
  * Holds game data to help in autonomous mode for things like which scale is which
  * More info: http://wpilib.screenstepslive.com/s/currentCS/m/getting_started/l/826278-2018-game-data-details
  */
 public class GameData {
+	private static final Random randomizer = new Random();
 
 	private static SendableChooser<StartingPosition> startingChooser = null;
 
@@ -71,18 +74,23 @@ public class GameData {
 	}
 
 	private String getMessage(){
-		final String dashString = "Is message random";
+		final String dashString = "Game Specific Message";
 		String r = station.getGameSpecificMessage();
+		String endString = " (from FMS)";
 		if(r.length() < 3){
-//			r = "LLL";
-			r = "";
-			for(int i = 0; i < 3; i++){
-				r += Math.random() < .5 ? "L" : "R";
+			endString = " randomized";
+			if(station.isFMSAttached()){
+				endString += " (FMS connected not ready)";
+			} else {
+				endString += "(No FMS)";
 			}
-			SmartDashboard.putBoolean(dashString, true);
-		} else {
-			SmartDashboard.putBoolean(dashString, false);
+			StringBuilder builder = new StringBuilder();
+			for(int i = 0; i < 3; i++){
+				builder.append(randomizer.nextBoolean() ? 'L' : 'R');
+			}
+			r = builder.toString();
 		}
+		SmartDashboard.putString(dashString, r + endString);
 		return r;
 	}
 

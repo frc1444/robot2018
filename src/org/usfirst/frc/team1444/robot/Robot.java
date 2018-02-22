@@ -19,7 +19,6 @@ import org.usfirst.frc.team1444.robot.BNO055.MODES;
 import org.usfirst.frc.team1444.robot.LEDHandler.LEDMode;
 import org.usfirst.frc.team1444.robot.controlling.*;
 import org.usfirst.frc.team1444.robot.controlling.autonomous.AutonomousController;
-import org.usfirst.frc.team1444.robot.controlling.autonomous.DistanceDrive;
 import org.usfirst.frc.team1444.robot.controlling.autonomous.ResetEncoderController;
 import org.usfirst.frc.team1444.robot.controlling.input.*;
 
@@ -37,11 +36,8 @@ public class Robot extends IterativeRobot {
 
 	private final double frameWidth = 28.0;
 	private final double frameDepth = 33.0;
-	private final double intakeExtendsDistance = 16.0; // TODO measure this
-
-	private SendableChooser<String> autonomousChooser = new SendableChooser<>();
-
-	private SendableChooser<String> controllerInputChooser = new SendableChooser<>();
+	private final double intakeExtendsDistance = 16.0; // compared to frame // TODO measure this
+	private final double bumperExtendsDistance = 5; // TODO measure this
 
 	private PidHandler pidHandler;
 
@@ -57,17 +53,7 @@ public class Robot extends IterativeRobot {
 	private GameData gameData; // Should only be used after match has started (Shouldn't be used in disabled mode)
 
 	private RobotController robotController;  // use ***Init to change this to something that fits that mode
-	
-//	public enum Robot_State {
-//		TELEOP,
-//		AUTO,
-//		TEST,
-//		DISABLED
-//	};
 
-//	private Robot_State robot_state;
-//	private PidParameters drivePid;
-//	private PidParameters steerPid;
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
 		super();
@@ -127,38 +113,29 @@ public class Robot extends IterativeRobot {
 
 		this.intake = new Intake(new TalonSRX(Constants.IntakeLeftId), new TalonSRX(Constants.IntakeRightId));
 
-		PidParameters mainPid = new PidParameters();
-		PidParameters secondPid = new PidParameters();
-
-		mainPid.KP = .5;
-		mainPid.closedRampRate = .5;
-
-		secondPid.KP = .4;
-		secondPid.closedRampRate = .5;
+//		PidParameters mainPid = new PidParameters();
+//		PidParameters secondPid = new PidParameters();
+//
+//		mainPid.KP = .5;
+//		mainPid.closedRampRate = .5;
+//
+//		secondPid.KP = .4;
+//		secondPid.closedRampRate = .5;
 		this.lift = new Lift(
 				new TalonSRX(Constants.MainBoomMasterId), new TalonSRX(Constants.MainBoomSlaveId),
-				new TalonSRX(Constants.SecondaryBoomId),
-				mainPid, secondPid,
-				pidHandler);
+				new TalonSRX(Constants.SecondaryBoomId));
+//				mainPid, secondPid,
+//				pidHandler);
 
 		this.gameData = new GameData(DriverStation.getInstance());
 
 		this.setRobotController(null);
-		
-//		this.robot_state = Robot_State.DISABLED;
-
-
-		controllerInputChooser.addDefault(PS4_CONTROLLER, PS4_CONTROLLER);
-		controllerInputChooser.addObject(SINGLE_JOYSTICK, SINGLE_JOYSTICK);
-		SmartDashboard.putData("Controller Type", controllerInputChooser);
-
 		
 	}
 
 	@Override
 	public void disabledInit() {
 		setRobotController(null);
-//		this.robot_state = Robot_State.DISABLED;
 	}
 	
 	public void disabledPeriodic() {
@@ -167,14 +144,18 @@ public class Robot extends IterativeRobot {
 	public PidHandler getPidHandler(){
 		return pidHandler;
 	}
-	public double getFrameWidth(){
-		return frameWidth;
+
+	public double getWidth(){
+		return frameWidth + bumperExtendsDistance;
 	}
-	public double getFrameDepth(){
-		return frameDepth;
+	public double getDepth(){
+		return frameDepth + bumperExtendsDistance;
 	}
 	public double getIntakeExtendsDistance(){
 		return intakeExtendsDistance;
+	}
+	public double getTotalDepth(){
+		return getDepth() + getIntakeExtendsDistance();
 	}
 
 	public SwerveDrive getDrive() {
@@ -205,12 +186,7 @@ public class Robot extends IterativeRobot {
 		return lift;
 	}
 	
-//	public Robot_State getState() {
-//		return this.robot_state;
-//	}
-	
 	public GameData getGameData(){
-//		if(isDisabled()) throw new IllegalStateException("GameData may not be accurate while disabled.");
 		return gameData;
 	}
 
@@ -278,30 +254,11 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopInit() {
-//		this.robot_state = Robot_State.TELEOP;
-		driveInput = createControllerInput(Constants.JoystickPortNumber);
-//		ControllerInput manipulatorInput = new SingleJoystickControllerInput(Constants.CubeJoystickPortNumber);
+		driveInput = new PS4Controller(Constants.JoystickPortNumber);
 		manipulatorInput = new LogitechExtremeJoystickInput(Constants.CubeJoystickPortNumber);
-//		setRobotController(new TeleopController(driveInput, manipulatorInput));
 		setRobotController(new ResetEncoderController(new TeleopController(driveInput, manipulatorInput)));
 		
 		IMU.reset(); // TODO don't reset gyro here. Do it somewhere else
-	}
-
-	/**
-	 * Uses controllerInputChooser to create the correct ControllerInput object
-	 */
-	private ControllerInput createControllerInput(int port){
-		String selected = controllerInputChooser.getSelected();
-		switch(selected){
-			case PS4_CONTROLLER:
-				return new PS4Controller(port);
-			case SINGLE_JOYSTICK:
-				return new SingleJoystickControllerInput(port);
-			default:
-				break;
-		}
-		throw new RuntimeException("controllerInputChooser has selected: '" + selected + "'");
 	}
 
 	/**
