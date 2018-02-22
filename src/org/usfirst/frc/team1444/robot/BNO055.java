@@ -68,7 +68,7 @@ public class BNO055 implements Gyro {
 	 * Set IMU operating mode
 	 * @param mode Operating mode for IMU.
 	 */
-	public void SetMode(MODES mode) {
+	public void SetMode(IMUMode mode) {
 		if(page != 0) {
 			page = 0;
 			m_i2c.write(REG_PAGE0.PAGE_ID, 0);
@@ -172,7 +172,7 @@ public class BNO055 implements Gyro {
 		static final int NDOF = 12;
 	}
 	*/
-	static enum MODES {
+	static enum IMUMode {
 		CONFIG(0),
 		ACCONLY(1),
 		MAG_ONLY(2),
@@ -189,7 +189,7 @@ public class BNO055 implements Gyro {
 		
 		public final byte val;
 		
-		MODES(int x){
+		IMUMode(int x){
 			this.val = (byte)x;
 		}
 	}

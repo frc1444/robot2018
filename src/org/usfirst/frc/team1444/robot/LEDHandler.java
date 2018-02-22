@@ -1,6 +1,8 @@
 package org.usfirst.frc.team1444.robot;
 
 import com.mach.LightDrive.LightDrive2812;
+
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.controlling.RobotController;
@@ -15,8 +17,7 @@ public class LEDHandler implements RobotController { // even though it implement
 	private Color lastRainbow = null;
 
 	private int timer = 0;
-	private int timer2 = 0;
-	private int count = 0;
+	private int toggle = 0;
 
 	private LEDMode mode;
 	private LightDrive2812 LEDs;
@@ -41,6 +42,7 @@ public class LEDHandler implements RobotController { // even though it implement
 	public void update(Robot robot) {
 		double temp = 0.0;
 		final int outOf = 63;
+		
 		if(timer++ > 2) {
 			timer = 0;
 			switch(mode) {
@@ -53,6 +55,24 @@ public class LEDHandler implements RobotController { // even though it implement
 						LEDs.SetRange(Color.ORANGE, 0, outOf);
 					}
 					break;
+				case RSL_LIGHT:
+					if(robot.isEnabled()) {
+						if(toggle == 0) {
+							LEDs.SetRange(Color.ORANGE, 0, outOf);
+						} else if(toggle == 2){
+							LEDs.SetRange(Color.BLACK, 0, outOf);
+						}
+					} else {
+						LEDs.SetRange(Color.ORANGE, 0, outOf);
+					}
+					
+					if(toggle++ > 2) toggle = 0;
+					break;
+				case COUNTDOWN:
+					//Remaining time in current mode (auton or teleop) in sec
+					double remaining = DriverStation.getInstance().getMatchTime();
+					LEDs.SetRangeandClear(remaining>10?Color.GREEN:remaining>5?Color.YELLOW:Color.RED, 0, (int)((remaining/15.0)*outOf), outOf);
+					break;
 				case MOVE_WITH_LIFT:
 					Lift lift = robot.getLift();
 					temp = lift.getMainStagePosition() * outOf;
@@ -62,8 +82,8 @@ public class LEDHandler implements RobotController { // even though it implement
 					RobotController controller = robot.getController();
 					if(controller instanceof TeleopController){
 						SwerveController swerve = ((TeleopController) controller).getSwerveController();
-						temp = swerve.getControllerInput().rightTrigger() * 63.0; // TODO this may not be accurate
-						LEDs.SetRangeandClear(temp<0?Color.RED:Color.GREEN, 0, (int)Math.abs(temp), outOf);
+						temp = swerve.getControllerInput().leftStickY();
+						LEDs.SetRangeandClear(temp<0?Color.RED:Color.GREEN, 0, (int)Math.abs(temp)*outOf, outOf);
 					} else {
 						// maybe we're in autonomous mode. Maybe we should get data from the talons/modules instead of the joystick
 					}
@@ -78,9 +98,6 @@ public class LEDHandler implements RobotController { // even though it implement
 					int total = (int) ((time) % max);
 					int part = total / 256; // 0 - 5
 					int currentColor = total % 256;
-					SmartDashboard.putNumber("total", total);
-					SmartDashboard.putNumber("part", part);
-					SmartDashboard.putNumber("currentColor", currentColor);
 	
 					int r, g, b;
 					switch(part){
@@ -122,11 +139,9 @@ public class LEDHandler implements RobotController { // even though it implement
 					}
 					Color color = new Color(r, g, b);
 					if(!color.equals(lastRainbow)) {
-						SmartDashboard.putString("color:", color.toString());
 						LEDs.SetRangeandClear(color, 0, outOf, outOf); // set all to color
 						lastRainbow = color;
 					}
-	
 					break;
 			}
 			
@@ -136,6 +151,8 @@ public class LEDHandler implements RobotController { // even though it implement
 
 	public enum LEDMode{
 		TEAM_COLOR,
+		RSL_LIGHT,
+		COUNTDOWN,
 		MOVE_WITH_LIFT,
 		DRIVE_SPEED,
 		RAINBOW

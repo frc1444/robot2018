@@ -15,7 +15,9 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import org.usfirst.frc.team1444.robot.BNO055.MODES;
+
+import org.usfirst.frc.team1444.robot.BNO055;
+import org.usfirst.frc.team1444.robot.BNO055.IMUMode;
 import org.usfirst.frc.team1444.robot.LEDHandler.LEDMode;
 import org.usfirst.frc.team1444.robot.controlling.*;
 import org.usfirst.frc.team1444.robot.controlling.autonomous.AutonomousController;
@@ -91,7 +93,7 @@ public class Robot extends IterativeRobot {
 		//gyro.calibrate();
 
 		IMU = new BNO055();
-		IMU.SetMode(MODES.NDOF);
+		IMU.SetMode(IMUMode.NDOF);
 
 		try {
 			LightDrive2812 lightDrive = new LightDrive2812();
@@ -99,7 +101,6 @@ public class Robot extends IterativeRobot {
 		} catch(Exception ex){
 			System.err.println("\nStart error message for Light Drive");
 			ex.printStackTrace();
-			System.err.println("MIIIIIIIKE!, Fix the LightDrive!!\nEnd error for light drive\n");
 		}
 
 		PidParameters drivePid = new PidParameters();
@@ -227,20 +228,32 @@ public class Robot extends IterativeRobot {
 		pidHandler.update();
 
 		if(ledHandler != null) {
-			SmartDashboard.putBoolean("LED working:", true);
-			if (isDisabled()) { // TODO we could just use isDisabled()
-				ledHandler.setMode(LEDMode.RAINBOW); // just for testing right now
+			//SmartDashboard.putBoolean("LED working:", true);
+			
+			if (isDisabled()) {
+				//MODE WHEN DISABLED
+				ledHandler.setMode(LEDMode.TEAM_COLOR); //<-- Maybe we should make a TEAM_COLOR mode that does a rainbow-like fade through blue/redish colors...
+				//ledHandler.setMode(LEDMode.RAINBOW);
+			} else if(DriverStation.getInstance().getMatchTime() < 16.0) {
+				//MODE WHEN IN FINAL COUNTDOWN (TELEOP OR AUTO)
+				ledHandler.setMode(LEDMode.COUNTDOWN);
 			} else if (isOperatorControl() && this.robotController instanceof TeleopController) {
+				//MODES WHEN IN TELEOP
 				TeleopController controller = (TeleopController) this.robotController;
+				
 				if (controller.getCubeController().getLiftMode() != CubeController.LiftMode.NONE) {
 					ledHandler.setMode(LEDMode.MOVE_WITH_LIFT);
 				} else {
 					ledHandler.setMode(LEDMode.DRIVE_SPEED);
 				}
+			} else if(isTest()) {
+				//MODE IN TEST MODE
+				ledHandler.setMode(LEDMode.RSL_LIGHT);
 			} else {
-//				ledHandler.setMode(LEDMode.RAINBOW);
+				//DEFAULT MODE
 				ledHandler.setMode(LEDMode.TEAM_COLOR);
 			}
+			
 			try {
 				this.ledHandler.update(this);
 			} catch (NullPointerException ex) {
@@ -314,6 +327,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void testInit() {
 		setRobotController(null);
+		ledHandler.setMode(LEDMode.RSL_LIGHT);
 //		this.robot_state = Robot_State.TEST;
 	}
 
@@ -322,6 +336,7 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void testPeriodic() {
+		ledHandler.update(this);
 	}
 
 }
