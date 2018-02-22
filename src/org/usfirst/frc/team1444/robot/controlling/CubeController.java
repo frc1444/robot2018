@@ -30,7 +30,7 @@ public class CubeController implements RobotController{
 	private void intakeUpdate(Intake intake){
 		int pov = controller.pov();
 		if(pov == -1){
-			intake.setSpeed(0);
+			intake.setSpeed(-.25);
 			return;
 		}
 		double yPov = Math.sin(Math.toRadians(controller.pov())); // because I'm lazy.
@@ -53,7 +53,7 @@ public class CubeController implements RobotController{
 			intake.setSpeeds(leftSpeed, rightSpeed);
 
 		} else {
-			intake.setSpeed(0);
+			intake.setSpeed(-.25);
 		}
 
 	}
@@ -92,6 +92,11 @@ public class CubeController implements RobotController{
 				if(mode == LiftMode.BRAKE){
 					// brake mode does same as NONE, so if we wanted, we could try to lock the position when we enter
 					// otherwise, this mode does nothing
+					
+					// Attempt to hold position
+					lift.setMainStagePosition(lift.getMainStagePosition());
+					lift.setSecondStagePosition(lift.getSecondStagePosition());
+					
 				}
 			} else if(mode == LiftMode.MANUAL || mode == LiftMode.MANUAL_MAIN_STAGE_ONLY || mode == LiftMode.MANUAL_SECOND_STAGE_ONLY){
 				double speed = controller.joystickY();

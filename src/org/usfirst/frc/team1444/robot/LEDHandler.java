@@ -39,7 +39,7 @@ public class LEDHandler implements RobotController { // even though it implement
 	public void update(Robot robot) {
 		double temp = 0.0;
 		final int outOf = 63;
-		
+		if(timer++ > 9) {
 		switch(mode){
 			case TEAM_COLOR:
 				if(robot.getGameData().getAlliance() == Alliance.Blue) {
@@ -126,8 +126,9 @@ public class LEDHandler implements RobotController { // even though it implement
 
 				break;
 		}
-		
+		timer = 0;
 		LEDs.Update();
+		}
 	}
 
 	public enum LEDMode{
