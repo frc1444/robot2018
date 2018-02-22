@@ -5,8 +5,6 @@ import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-import java.util.Arrays;
-
 public class Lift {
 	private static final boolean USE_SPEED_SET = true;
 	private static final double MAX_POSITION_INCREMENT = .075;
@@ -20,19 +18,19 @@ public class Lift {
 
 	private BaseMotorController secondStageMotor;
 
-	private PidParameters mainPid;
-	private PidParameters secondPid;
+//	private PidParameters mainPid;
+//	private PidParameters secondPid;
 
 	public Lift(TalonSRX mainStageMaster, BaseMotorController mainStageSlave,
-	            TalonSRX secondStageMotor,
-	            PidParameters mainStagePid, PidParameters secondStagePid,
-	            PidHandler pidHandler){
+	            TalonSRX secondStageMotor){
+//	            PidParameters mainStagePid, PidParameters secondStagePid,
+//	            PidHandler pidHandler){
 
 		// set instance variables
 		this.mainStageMaster = mainStageMaster;
 		this.secondStageMotor = secondStageMotor;
-		this.mainPid = mainStagePid;
-		this.secondPid = secondStagePid;
+//		this.mainPid = mainStagePid;
+//		this.secondPid = secondStagePid;
 
 		// configure the heck out of passed controllers
 		// main stage
@@ -44,8 +42,6 @@ public class Lift {
 		mainStageMaster.setInverted(true); // Needs to be inverted
 		mainStageMaster.setSensorPhase(true);
 		mainStageMaster.setNeutralMode(NeutralMode.Brake);
-//		mainStagePid.apply(mainStageMaster); // apply pid values
-//		mainStageMaster.configClosedloopRamp(.5, Constants.TimeoutMs);
 
 		mainStageSlave.follow(mainStageMaster);
 		mainStageSlave.setInverted(true); // Inverted relative to master - tested and works
@@ -61,10 +57,9 @@ public class Lift {
 		secondStageMotor.setInverted(false); // needs to be tested
 		secondStageMotor.setSensorPhase(false);
 		secondStageMotor.setNeutralMode(NeutralMode.Brake);
-//		secondStagePid.apply(secondStageMotor); // apply pid values
 
-		pidHandler.addPid(new PidHandler.PidDashObject(mainPid, Arrays.asList(mainStageMaster), "main stage pid"));
-		pidHandler.addPid(new PidHandler.PidDashObject(secondStagePid, Arrays.asList(secondStageMotor), "second stage pid"));
+//		pidHandler.addPid(new PidHandler.PidDashObject(mainPid, Arrays.asList(mainStageMaster), "main stage pid"));
+//		pidHandler.addPid(new PidHandler.PidDashObject(secondStagePid, Arrays.asList(secondStageMotor), "second stage pid"));
 	}
 
 	/**
@@ -73,17 +68,17 @@ public class Lift {
 	 */
 	public void update(){
 		if(mainStageMaster.getSensorCollection().isRevLimitSwitchClosed()){
-			mainStageMaster.setSelectedSensorPosition(0, mainPid.pidIdx, Constants.TimeoutMs);
+			mainStageMaster.setSelectedSensorPosition(0, Constants.PidIdx, Constants.TimeoutMs);
 		}
 		if(secondStageMotor.getSensorCollection().isRevLimitSwitchClosed()){
-			secondStageMotor.setSelectedSensorPosition(0, secondPid.pidIdx, Constants.TimeoutMs);
+			secondStageMotor.setSelectedSensorPosition(0, Constants.PidIdx, Constants.TimeoutMs);
 		}
 	}
 
 	// region stage positions
 	/**
 	 * Move the boom to a desired position - wraps the veolicty control from below
-	 * @param Desired position of main stage (0 - full down, 1 - full up)
+	 * @param position desired position of main stage (0 - full down, 1 - full up)
 	 */
 	public void setMainStagePosition(double position){	
 		
@@ -110,11 +105,11 @@ public class Lift {
 
 	/** @return A number from 0 to 1. 0 is at bottom. Note returned number could be slightly out of the range 0 to 1 */
 	public double getMainStagePosition(){
-		return mainStageMaster.getSelectedSensorPosition(mainPid.pidIdx) / (double) MAIN_STAGE_ENCODER_COUNTS;
+		return mainStageMaster.getSelectedSensorPosition(Constants.PidIdx) / (double) MAIN_STAGE_ENCODER_COUNTS;
 	}
 	/** @return A number from 0 to 1. 0 is at bottom. Note returned number could be slightly out of the range 0 to 1 */
 	public double getSecondStagePosition(){
-		return secondStageMotor.getSelectedSensorPosition(secondPid.pidIdx) / (double) SECOND_STAGE_ENCODER_COUNTS;
+		return secondStageMotor.getSelectedSensorPosition(Constants.PidIdx) / (double) SECOND_STAGE_ENCODER_COUNTS;
 	}
 
 	/**

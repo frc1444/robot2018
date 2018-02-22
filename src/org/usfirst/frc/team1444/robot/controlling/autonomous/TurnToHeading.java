@@ -6,13 +6,14 @@ import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
 
 public class TurnToHeading extends RobotControllerProcess {
 
-	private static final double ALLOWED_DEADBAND_FOR_SUCCESS = 3; // if 3, then 6 degrees total allowed
+	private static final double ALLOWED_DEADBAND_FOR_SUCCESS = 5; // if 3, then 6 degrees total allowed
 	private static final double MAX_SPEED = .3;
 
 	private boolean done = false;
 	private double rotation; // desired rotation of robot in degrees (0 - 360)
 
 	/**
+	 * Allows you to make the robot face a certain direction
 	 * @param rotationInDegrees The rotation in degrees you want to turn to where 90 is straight forward and 0 is to the right
 	 */
 	public TurnToHeading(double rotationInDegrees){
@@ -38,7 +39,8 @@ public class TurnToHeading extends RobotControllerProcess {
 
 		if(Math.abs(degreesAway) <= ALLOWED_DEADBAND_FOR_SUCCESS){
 			this.done = true;
-			drive.update(0, null, 0, null);
+//			drive.update(0, null, 0, null);
+			drive.setAllSpeeds(0);
 			return;
 		}
 		double speed = MAX_SPEED;
@@ -46,7 +48,8 @@ public class TurnToHeading extends RobotControllerProcess {
 		if(absDegreesAway < 70){
 			speed *= Math.pow(absDegreesAway / 70, .75);
 		}
-		drive.update(0, null, speed, null);
+//		drive.update(0, null, speed, null);
+		drive.rotateAroundSubDrive(speed, null, false);
 	}
 
 	@Override

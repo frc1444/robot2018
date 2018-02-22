@@ -29,8 +29,18 @@ public abstract class RobotControllerProcess implements RobotController {
 	protected RobotController getNextController(){
 		return nextController;
 	}
-	public void setNextController(RobotController controller){
+
+	/**
+	 * You are able to do something like x.setNextController(b).setNextController(go) etc
+	 *
+	 * Sets the next robot controller and returns the passed controller
+	 * @param controller The next controller to set
+	 * @param <T> Something that extends a RobotController
+	 * @return The passed controller
+	 */
+	public <T extends RobotController> T setNextController(T controller){
 		this.nextController = controller;
+		return controller;
 	}
 
 	protected abstract boolean isDone();

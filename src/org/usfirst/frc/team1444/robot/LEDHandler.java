@@ -91,14 +91,12 @@ public class LEDHandler implements RobotController { // even though it implement
 				case RAINBOW:
 				default:
 					long time = System.currentTimeMillis();
-					time *= .3; // now time isn't accurate but we will use it
-					// start with (0, 255, 0) -> add red (255, 255, 0) -> remove green (255, 0, 0) -> add blue (255, 0, 255)
-					// -> remove red (0, 0, 255) -> add green (0, 255, 255) -> remove blue (0, 255, 0)
 					final int max = 256 * 6;
-					int total = (int) ((time) % max);
+					final double secondsForRev = 3.0;
+
+					int total = (int) (((time / 1000.0) * (max / secondsForRev)) % max);
 					int part = total / 256; // 0 - 5
 					int currentColor = total % 256;
-	
 					int r, g, b;
 					switch(part){
 						case 0: // adding red
@@ -132,12 +130,16 @@ public class LEDHandler implements RobotController { // even though it implement
 							b = 255 - currentColor;
 							break;
 						default:
-	//						System.err.println("part is: " + part);
+							System.err.println("part is: " + part);
 							r = 0;
 							g = 0;
 							b = 0;
+							break;
 					}
-					Color color = new Color(r, g, b);
+					final double roundTo = 5;
+					Color color = new Color((int) (Math.round(r / roundTo) * roundTo),
+							(int) (Math.round(g / roundTo) * roundTo),
+							(int) (Math.round(b / roundTo) * roundTo));
 					if(!color.equals(lastRainbow)) {
 						LEDs.SetRangeandClear(color, 0, outOf, outOf); // set all to color
 						lastRainbow = color;

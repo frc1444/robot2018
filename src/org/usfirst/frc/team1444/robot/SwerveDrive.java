@@ -143,13 +143,9 @@ public class SwerveDrive {
 	 *                  this isn't between 0 and 360, it will take the most efficient path.
 	 * @param turnAmount a number from -1 to 1 representing how much you want to turn.
 	 * @param centerWhileStill The center of rotation. This is only applied when speed is 0 and is usually calculated
-	 *                         using the d-pad and the locations of the modules. if null then same as (0, 0)
+	 *                         using the d-pad and the locations of the modules.
 	 */
 	public void update(double speed, Double direction, double turnAmount, Point2D centerWhileStill) {
-		if(centerWhileStill == null){
-			centerWhileStill = ZERO;
-		}
-
 		if(direction != null){
 			this.rotation = direction;
 		}
@@ -187,7 +183,7 @@ public class SwerveDrive {
 	 * Uses the provided parameters and this.rotation to set the motor speeds
 	 * @param speed A value from -1 to 1 representing the percent speed
 	 * @param turnAmount A value from -1 to 1 representing how much the robot should rotate. -1 is full left
-	 * @param centerWhileStill The point that will be used to rotate around only if speed is 0
+	 * @param centerWhileStill The point that will be used to rotate around only if speed is 0. if null then same as (0, 0)
 	 */
 	private void regularDrive(final double speed, final double turnAmount, Point2D centerWhileStill){
 		if(turnAmount == 0){
@@ -227,8 +223,11 @@ public class SwerveDrive {
 	 * @param centerOfRotation The point that you want to rotate around relative to origin (the middle of robot)
 	 * @param isLeft true if the robot is turning left, false otherwise
 	 */
-	private void rotateAroundSubDrive(double speed, Point2D centerOfRotation, boolean isLeft){
-		assert speed != 0 && centerOfRotation != null;
+	public void rotateAroundSubDrive(double speed, Point2D centerOfRotation, boolean isLeft){
+		if(centerOfRotation == null){
+			centerOfRotation = ZERO;
+		}
+		assert speed != 0;
 
 		final double absSpeed = Math.abs(speed); // should be used below instead of typing Math.abs(speed)
 		final double centerDistanceToOrigin = centerOfRotation.distance(this.origin);
