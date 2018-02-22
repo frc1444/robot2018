@@ -23,6 +23,8 @@ public class LEDHandler implements RobotController { // even though it implement
 
 	public LEDHandler(LightDrive2812 lightDrive){
 		this.LEDs = lightDrive;
+		//LEDs.DebugEnable();
+		System.out.println("LightDrive set. Version " + Integer.toString(LEDs.GetVersion()));
 	}
 	public LightDrive2812 getLEDs(){
 		return LEDs;
@@ -39,7 +41,7 @@ public class LEDHandler implements RobotController { // even though it implement
 	public void update(Robot robot) {
 		double temp = 0.0;
 		final int outOf = 63;
-		if(timer++ > 9) {
+		if(timer++ > 2) {
 			timer = 0;
 			switch(mode) {
 				case TEAM_COLOR:
@@ -128,8 +130,8 @@ public class LEDHandler implements RobotController { // even though it implement
 					break;
 			}
 			
-			LEDs.Update();
 		}
+		LEDs.Update();
 	}
 
 	public enum LEDMode{
