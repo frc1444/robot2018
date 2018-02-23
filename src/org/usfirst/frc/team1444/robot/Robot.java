@@ -8,21 +8,21 @@
 package org.usfirst.frc.team1444.robot;
 
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.mach.LightDrive.*;
+import com.mach.LightDrive.LightDrive2812;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
-import org.usfirst.frc.team1444.robot.BNO055;
 import org.usfirst.frc.team1444.robot.BNO055.IMUMode;
 import org.usfirst.frc.team1444.robot.LEDHandler.LEDMode;
 import org.usfirst.frc.team1444.robot.controlling.*;
 import org.usfirst.frc.team1444.robot.controlling.autonomous.AutonomousController;
 import org.usfirst.frc.team1444.robot.controlling.autonomous.ResetEncoderController;
-import org.usfirst.frc.team1444.robot.controlling.input.*;
+import org.usfirst.frc.team1444.robot.controlling.input.ControllerInput;
+import org.usfirst.frc.team1444.robot.controlling.input.JoystickInput;
+import org.usfirst.frc.team1444.robot.controlling.input.LogitechExtremeJoystickInput;
+import org.usfirst.frc.team1444.robot.controlling.input.PS4Controller;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -32,9 +32,6 @@ import org.usfirst.frc.team1444.robot.controlling.input.*;
  * project.
  */
 public class Robot extends IterativeRobot {
-	// For controllerInputChooser
-	private static final String PS4_CONTROLLER = "PS4 Controller";
-	private static final String SINGLE_JOYSTICK = "Single Joystick";
 
 	private final double frameWidth = 28.0;
 	private final double frameDepth = 33.0;
@@ -55,6 +52,8 @@ public class Robot extends IterativeRobot {
 	private GameData gameData; // Should only be used after match has started (Shouldn't be used in disabled mode)
 
 	private RobotController robotController;  // use ***Init to change this to something that fits that mode
+
+	private boolean isGyroReset = false; // should only be used in checkGyro()
 
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
@@ -104,7 +103,6 @@ public class Robot extends IterativeRobot {
 		final int rrOffset = 333;
 		
 		// Initialize the drive by passing in new TalonSRXs for each drive and steer motor
-		// length: 28 width: 17.5
 		drive = new SwerveDrive(
 				new TalonSRX(Constants.FrontLeftDriveId), new TalonSRX(Constants.FrontLeftSteerId),
 				new TalonSRX(Constants.FrontRightDriveId), new TalonSRX(Constants.FrontRightSteerId),
@@ -114,19 +112,9 @@ public class Robot extends IterativeRobot {
 
 		this.intake = new Intake(new TalonSRX(Constants.IntakeLeftId), new TalonSRX(Constants.IntakeRightId));
 
-//		PidParameters mainPid = new PidParameters();
-//		PidParameters secondPid = new PidParameters();
-//
-//		mainPid.KP = .5;
-//		mainPid.closedRampRate = .5;
-//
-//		secondPid.KP = .4;
-//		secondPid.closedRampRate = .5;
 		this.lift = new Lift(
 				new TalonSRX(Constants.MainBoomMasterId), new TalonSRX(Constants.MainBoomSlaveId),
 				new TalonSRX(Constants.SecondaryBoomId));
-//				mainPid, secondPid,
-//				pidHandler);
 
 		this.gameData = new GameData(DriverStation.getInstance());
 
@@ -202,14 +190,16 @@ public class Robot extends IterativeRobot {
 	public void robotPeriodic() {
 		lift.update();
 		pidHandler.update();
+		this.checkGyro();
 
 		if(ledHandler != null) {
 			//SmartDashboard.putBoolean("LED working:", true);
 			
 			if (isDisabled()) {
 				//MODE WHEN DISABLED
-				ledHandler.setMode(LEDMode.TEAM_COLOR); //<-- Maybe we should make a TEAM_COLOR mode that does a rainbow-like fade through blue/redish colors...
-				//ledHandler.setMode(LEDMode.RAINBOW);
+				ledHandler.setMode(LEDMode.TEAM_RAINBOW);
+				//<-- Maybe we should make a TEAM_COLOR mode that does a rainbow-like fade through blue/redish colors...
+				//    say no more ^
 			} else if(DriverStation.getInstance().getMatchTime() < 16.0) {
 				//MODE WHEN IN FINAL COUNTDOWN (TELEOP OR AUTO)
 				ledHandler.setMode(LEDMode.COUNTDOWN);
@@ -234,12 +224,9 @@ public class Robot extends IterativeRobot {
 				this.ledHandler.update(this);
 			} catch (NullPointerException ex) {
 				ex.printStackTrace();
-				SmartDashboard.putBoolean("LED working:", false);
 			}
-		} else {
-			SmartDashboard.putBoolean("LED working:", false);
 		}
-		
+
 		if(robotController != null) {
 			robotController.update(this);
 			if(robotController instanceof RobotControllerProcess){
@@ -293,7 +280,21 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void testPeriodic() {
-		ledHandler.update(this);
+	}
+
+	/**
+	 * Resets the gyro if necessary
+	 */
+	private void checkGyro(){
+		if(isDisabled()){
+			isGyroReset = false;
+			return;
+		}
+		if(isGyroReset){
+			return;
+		}
+		isGyroReset = true;
+		this.IMU.reset();
 	}
 
 }

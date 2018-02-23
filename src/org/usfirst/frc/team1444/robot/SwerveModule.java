@@ -33,6 +33,8 @@ public class SwerveModule {
 	private Boolean setToQuad = null;
 	private boolean isSpeedInReverse = false; // TODO this is not checked unless we call setSpeed
 	//                                           so if we only call setSpeed once, it may give us bugs
+
+	private double lastSetSpeed = 0;
 	
 
 	/**
@@ -86,12 +88,21 @@ public class SwerveModule {
 	private boolean canUseQuickReverse(){
 		return setToQuad != null && setToQuad && USE_QUICK_REVERSE;
 	}
+
+	/**
+	 * Will be used in LED code and if needed, can be used for debugging.
+	 * @return The last value passed to setSpeed (-1 to 1)
+	 */
+	public double getLastSetSpeed(){
+		return lastSetSpeed;
+	}
 	
 	/**
 	 * Update the setpoint for the drive PID control
 	 * @param speed Desired motor speed as a percentage of maximum: -1 to 1
 	 */
 	public void setSpeed(double speed) {
+		this.lastSetSpeed = speed;
 		
 		// Convert input percentage to CTRE units/100ms		
 		double targetSpeed = (speed * Constants.CimCoderCountsPerRev * Constants.MaxCimRpm) / Constants.CtreUnitConversion;

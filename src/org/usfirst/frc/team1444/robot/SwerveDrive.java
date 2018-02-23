@@ -29,8 +29,10 @@ public class SwerveDrive {
 	 * Initializes SwerveDrive and creates SwerveModules. Even though each parameter is a BaseMotorController,
 	 * we can still pass it a TalonSRX
 	 *
-	 * @param wheelBase distance from left to right wheels on the robot in inches
-	 * @param trackWidth distance from front to back wheels on the robot in inches
+	 * Notice that wheelBase is first (front to back aka y)
+	 *
+	 * @param wheelBase distance from front to back wheels on the robot in inches
+	 * @param trackWidth distance from left to right wheels on the robot in inches
 	 */
 	public SwerveDrive(BaseMotorController flDrive, BaseMotorController flSteer,
 	                   BaseMotorController frDrive, BaseMotorController frSteer,
@@ -40,8 +42,7 @@ public class SwerveDrive {
 	                   int flOffset, int frOffset, int rlOffset, int rrOffset,
 	                   double wheelBase, double trackWidth) {
 
-		// TODO I think wheelBase and trackWidth are flipped since shouldn't wheelBase be front to back?
-		double x = trackWidth / 2;
+		double x = trackWidth / 2; // notice uses trackWidth
 		double y = wheelBase / 2;
 		moduleArray = new SwerveModule[]{
 				new SwerveModule(flDrive, flSteer, drivePid, steerPid, new Point2D.Double(-x, y), 0, flOffset),

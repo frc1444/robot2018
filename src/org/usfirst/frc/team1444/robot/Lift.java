@@ -193,7 +193,7 @@ public class Lift {
 	 * A bunch of preset positions
 	 */
 	public enum Position{
-		SCALE_MAX(1, 1), SCALE_MIN(.9, 1), SWITCH(0.5, .5), MIN(0, 0), MIN_13(0, .08), // TODO change switch
+		SCALE_MAX(1, 1), SCALE_MIN(.9, 1), SWITCH(0.2, .7), MIN(0, 0), MIN_13(0, .08), // TODO make sure switch is accurate
 		@Deprecated
 		DRIVE(0, .2);
 
