@@ -58,4 +58,8 @@ public class DistanceDrive extends RobotControllerProcess {
 		return done;
 	}
 
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + String.format("{distance:%s,heading:%s,relGyro:%s,speed:%s}", distance, heading, makeRelativeToGyro, percentSpeed);
+	}
 }

@@ -62,6 +62,11 @@ public abstract class RobotControllerProcess implements RobotController {
 
 	protected abstract boolean isDone();
 
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "{}";
+	}
+
 	/**
 	 * It is recommended to use this class when building complex links ex: Using multiple if statements or even methods
 	 */

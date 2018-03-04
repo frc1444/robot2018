@@ -47,4 +47,16 @@ public class MultiController extends RobotControllerProcess {
 		}
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder(getClass().getSimpleName());
+		builder.append("{");
+		for(RobotController c : controllers){
+			builder.append(c.toString());
+			builder.append(",");
+		}
+		builder.append("}");
+		return builder.toString();
+	}
 }

@@ -2,7 +2,6 @@ package org.usfirst.frc.team1444.robot.controlling.autonomous;
 
 import org.usfirst.frc.team1444.robot.Intake;
 import org.usfirst.frc.team1444.robot.Robot;
-import org.usfirst.frc.team1444.robot.controlling.RobotController;
 
 public class IntakeDrive extends DistanceDrive {
 
@@ -34,5 +33,10 @@ public class IntakeDrive extends DistanceDrive {
 			return;
 		}
 		intake.setSpeed(this.intakeSpeed);
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + String.format("{speed:%s}", intakeSpeed);
 	}
 }

@@ -204,6 +204,11 @@ public class AutonomousController implements RobotController {
 
 	}
 
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "{currentController: " + currentController.toString() + " }";
+	}
+
 	private enum AutoMode{
 		CENTER_ORIGINAL("CENTER original auto"),
 		CENTER_IMPROVED("CENTER improved auto"),

@@ -45,4 +45,9 @@ public class LiftController extends RobotControllerProcess {
 	protected boolean isDone() {
 		return done;
 	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + String.format("{1st pos:%s, 2nd pos:%s, done:%s}", mainStagePosition, secondStagePosition, done);
+	}
 }

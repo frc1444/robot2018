@@ -226,6 +226,7 @@ public class Robot extends IterativeRobot {
 
 		if(robotController != null) {
 			robotController.update(this);
+			SmartDashboard.putString("Current Robot Controller", robotController.toString());
 			if(robotController instanceof RobotControllerProcess){
 				robotController = ((RobotControllerProcess) robotController).getNext();
 			}
@@ -266,7 +267,7 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void testInit() {
-		setRobotController(null);
+		setRobotController(new ResetEncoderController(null));
 		ledHandler.setMode(LEDMode.RSL_LIGHT);
 //		this.robot_state = Robot_State.TEST;
 	}

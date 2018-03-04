@@ -27,4 +27,13 @@ public class TimedIntake extends RobotControllerProcess {
 	protected boolean isDone() {
 		return startTime + timeMillis < System.currentTimeMillis();
 	}
+
+	@Override
+	public String toString() {
+		String timeLeft = "";
+		if(startTime != null){
+			timeLeft = ", time left:" + ((startTime + timeMillis) - System.currentTimeMillis());
+		}
+		return getClass().getSimpleName() + "{total time:%s, intake speed:%s" + timeLeft + "}";
+	}
 }
