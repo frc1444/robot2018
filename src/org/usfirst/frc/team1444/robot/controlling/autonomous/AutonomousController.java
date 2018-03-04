@@ -9,7 +9,7 @@ import org.usfirst.frc.team1444.robot.controlling.RobotController;
 import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
 
 public class AutonomousController implements RobotController {
-	private static final double SPEED = .3;
+	private static final double SPEED = .5; // TODO test this. Originally it was .3
 	private static SendableChooser<AutoMode> modeChooser = null;
 
 	private boolean isInitialized = false;
@@ -34,9 +34,11 @@ public class AutonomousController implements RobotController {
 			modeChooser.addObject(mode.name, mode);
 		}
 	}
+
+
 	private void initDesiredAuto(Robot robot){
-		GameData data = robot.getGameData();
-		SmartDashboard.putBoolean("Is data accurate:", data.isAccurate());
+//		GameData data = robot.getGameData();
+//		SmartDashboard.putBoolean("Is data accurate:", data.isAccurate());
 
 		AutoMode mode = modeChooser.getSelected();
 		switch(mode){
@@ -50,16 +52,16 @@ public class AutonomousController implements RobotController {
 			default:
 				System.err.println("Unknown auto mode: " + mode);
 		}
-		// 185
 	}
 
+	// region ========== Auto Modes ==========
 	/**
 	 * Original autonomous code by Josh which works well except for the robot turns a little bit
 	 * @param robot The robot
 	 */
 	private void initOriginalMiddleAutonomous(Robot robot){
 			final GameData data = robot.getGameData();
-			final double depth = robot.getTotalDepth();
+			final double depth = robot.getDepth(true); // with intake extends
 			DistanceDrive driveToPowerCubeZone = new DistanceDrive(98 - depth, 90, true, SPEED);
 
 			DistanceDrive driveToOurSide = new DistanceDrive(65, data.isHomeSwitchLeft() ? 180 : 0, true, SPEED);
@@ -102,67 +104,66 @@ public class AutonomousController implements RobotController {
 
 	private void initSideAutonomous(Robot robot, boolean startingLeft){
 		/*
-		useful: https://firstfrc.blob.core.windows.net/frc2018/Manual/2018FRCGameSeasonManual.pdf
-		  * pg 23
-		  * pg 27 for alliance wall
+		 * useful: https://firstfrc.blob.core.windows.net/frc2018/Manual/2018FRCGameSeasonManual.pdf
+		 * pg 23
+		 * pg 27 for alliance wall
+		 *
+		 * Also note in the code below, since we use if statements, linking RobotControllerProcesses should be done very carefully:
+		 * You cannot do this: RobotControllerProcess someProcess = new CoolProcess().setNextController(nextProcess)
+		 * because the new CoolProcess() instance will basically be lost
+		 * This is why we use the RobotControllerProcess.Builder
 		 */
 		final GameData data = robot.getGameData();
+
+		RobotControllerProcess.Builder builder = new RobotControllerProcess.Builder();
 
 		final double IN_ANGLE = startingLeft ? 0 : 180; // the angle to go closer to center
 		final double OUT_ANGLE = startingLeft ? 180 : 0; // the angle to go closer to wall
 
 		final double driveSwitchAngle = 86.5; // estimated
-		DistanceDrive driveSideSwitch = new DistanceDrive(185 - robot.getDepth(), // measured
+		DistanceDrive driveSideSwitch = new DistanceDrive(185 - robot.getDepth(false), // measured
 				startingLeft ? 180 - driveSwitchAngle : driveSwitchAngle, true, SPEED);
+		builder.append(driveSideSwitch);
 
-		// now the robot is between the wall and the switch. It's bumper should not be past the back of the home switch
-		RobotControllerProcess afterPossibleScore;
+		// now the robot is between the wall and the side of switch. It's bumper should not be past the back of the home switch
+
 		if(startingLeft == data.isHomeSwitchLeft() && startingLeft != data.isScaleLeft()){ // put stuff on this switch if scale to far
-			MultiController raiseAndTurn = new MultiController(
+			// take control over the switch quickly
+			builder.append(new MultiController( // raise and turn
 					new TurnToHeading(IN_ANGLE),
 					new LiftController(Lift.Position.SWITCH)
-			);
+			));
 
 			final double distanceToSwitch = 30;
-			DistanceDrive driveToSwitch = new DistanceDrive(distanceToSwitch + 5, IN_ANGLE, true, SPEED);
+			builder.append(new DistanceDrive(distanceToSwitch + 5, IN_ANGLE, true, SPEED)); // drive to switch
 
-			TimedIntake spitOut = new TimedIntake(800, 1);
+			builder.append(new TimedIntake(800, 1)); // spit out
 
 			final double distanceToMoveAway = 5;
-			DistanceDrive getAwayFromBumpers = new DistanceDrive(distanceToMoveAway, OUT_ANGLE, true, SPEED);
+			builder.append(new DistanceDrive(distanceToMoveAway, OUT_ANGLE, true, SPEED)); // get away from side of switch
+		} else {
+			// go for the scale
 
-			// link controllers
-			afterPossibleScore = driveSideSwitch.setNextController(raiseAndTurn)
-					.setNextController(driveToSwitch)
-					.setNextController(spitOut)
-					.setNextController(getAwayFromBumpers);
-		} else { // go for the farther side of the scale (which is our side)
-			RobotControllerProcess afterScaleApproachAndRaise;
-
-			final double approachScaleAngle = 80;
-			final DistanceDrive approach = new DistanceDrive(64, startingLeft ? approachScaleAngle : 180 - approachScaleAngle, true, SPEED); // measured
-			final LiftController raise = new LiftController(Lift.Position.SCALE_MIN);
-			if(startingLeft == data.isScaleLeft()){
-				afterScaleApproachAndRaise = new MultiController(approach, raise); // raise and get near scale
-			} else {
+			builder.append(new DistanceDrive(65, 90, true, SPEED)); // move past switch so we're in between the scale and the back of the switch
+			if(startingLeft != data.isScaleLeft()){ // is scale on the other side?
 				// drive between scale and home switch to get to our side of scale then raise while approaching
-				afterScaleApproachAndRaise = new DistanceDrive(190, IN_ANGLE, true, SPEED) // estimated
-						.setNextController(new MultiController(approach, raise));
+				builder.append(new DistanceDrive(190, IN_ANGLE, true, SPEED)); // estimated
 			}
+			final double approachScaleAngle = 80;
+			builder.append(new MultiController(
+					new DistanceDrive(64, startingLeft ? approachScaleAngle : 180 - approachScaleAngle, true, SPEED), // raise // measured
+					new LiftController(Lift.Position.SCALE_MIN) // raise
+			)); // raise and get near scale
 
 			// drive right up to scale
-			DistanceDrive driveToScale = new DistanceDrive(38, 90, true, SPEED / 2.0); // measured
-
-			TimedIntake spitOut = new TimedIntake(800, 1);
-
-			afterPossibleScore = afterScaleApproachAndRaise.setNextController(driveToScale)
-					.setNextController(spitOut);
+			builder.append(new DistanceDrive(38, 90, true, SPEED / 2.0)); // drive to scale // measured
+			builder.append(new TimedIntake(800, 1)); // spit out
+			// once we have got the cube in the scale, we can tell what side we are on based on data.isScaleLeft()
 		}
 		// note that after afterPossibleScore, the robot may be turned different depending on which clause above executed
 		//  so use the gyro (obviously) and use TurnToHeading to change heading if needed
 
-		this.initStartingIntakeController().setNextController(driveSideSwitch)
-				.setNextController(afterPossibleScore);
+		builder.attachTo(this.initStartingIntakeController());
 	}
 
 	/**
@@ -186,6 +187,7 @@ public class AutonomousController implements RobotController {
 		return up.setNextController(down)
 				.setNextController(shortIntake);
 	}
+	// endregion ========= End Auto Modes =========
 
 	@Override
 	public void update(Robot robot) {
@@ -201,11 +203,6 @@ public class AutonomousController implements RobotController {
 		}
 
 	}
-//
-//	@Override
-//	protected boolean isDone() {
-//		return this.getNextController() != null;
-//	}
 
 	private enum AutoMode{
 		CENTER_ORIGINAL("CENTER original auto"),

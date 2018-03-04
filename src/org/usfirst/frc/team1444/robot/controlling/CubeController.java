@@ -1,5 +1,6 @@
 package org.usfirst.frc.team1444.robot.controlling;
 
+import org.usfirst.frc.team1444.robot.Constants;
 import org.usfirst.frc.team1444.robot.Intake;
 import org.usfirst.frc.team1444.robot.Lift;
 import org.usfirst.frc.team1444.robot.Robot;
@@ -10,9 +11,13 @@ import org.usfirst.frc.team1444.robot.controlling.input.JoystickInput;
  */
 public class CubeController implements RobotController{
 
+	private static final double MANUAL_SPEED_POW_AMOUNT = 2;
+
 	private JoystickInput controller; // later, we might want multiple controllers here
 
 	private LiftMode mode = LiftMode.NONE;
+
+	private Lift.Position lockedPosition = null; // only used when in LiftMode.LOCK
 
 	public CubeController(JoystickInput controller){
 		this.controller = controller;
@@ -43,7 +48,7 @@ public class CubeController implements RobotController{
 			double leftSpeed = speed;
 			double rightSpeed = speed;
 
-			if(joystickX != 0){ // TODO replace with deadband
+			if(Math.abs(joystickX) > Constants.CubeJoystickDeadband){
 				if(joystickX < 0){
 					leftSpeed *= 1 - joystickX;
 				} else {
@@ -59,16 +64,18 @@ public class CubeController implements RobotController{
 	}
 	private void liftUpdate(Lift lift){
 		lift.debug();
-//		double liftSpeed = controller.joystickY(); // if single joystick, just joystick y
-//		liftSpeed *= 1.;
-//		lift.setMainStageSpeed(liftSpeed);
-//		lift.debug();
+
 		boolean isPressed = true; // set to false in else
-		if(controller.trigger()){
+		if(controller.gridTopRight()){
+			if(mode != LiftMode.LOCK_POSITION){
+				mode = LiftMode.LOCK_POSITION;
+				lockedPosition = lift.getBothPosition();
+			}
+		} else if(controller.trigger()){
 			mode = LiftMode.MANUAL;
 		} else if (controller.thumbButton()){
 			mode = LiftMode.MANUAL_SECOND_STAGE_ONLY;
-		} else if (controller.gridTopLeft()){ // TODO change
+		} else if (controller.gridTopLeft()){
 			mode = LiftMode.MANUAL_MAIN_STAGE_ONLY;
 		} else if(controller.thumbTopLeft()){
 			mode = LiftMode.SCALE_MAX;
@@ -85,19 +92,13 @@ public class CubeController implements RobotController{
 			mode = LiftMode.NONE;  // reset mode if they go out of it
 		}
 
-		if(mode.isSpecial){
-			if(mode == LiftMode.NONE || mode == LiftMode.BRAKE){
-//				lift.setMainStageSpeed(0);
-//				lift.setSecondStageSpeed(0);
-				if(mode == LiftMode.BRAKE){
-					// brake mode does same as NONE, so if we wanted, we could try to lock the position when we enter
-					// otherwise, this mode does nothing
-					
-					// Attempt to hold position
-					lift.setMainStagePosition(lift.getMainStagePosition());
-					lift.setSecondStagePosition(lift.getSecondStagePosition());
-					
-				}
+		if(mode.isSpecial()){
+			if(mode == LiftMode.NONE){
+				// we aren't in any mode, so there should be no power going to the lift
+				lift.setMainStageSpeed(0);
+				lift.setSecondStageSpeed(0);
+			} else if(mode == LiftMode.LOCK_POSITION){
+				lift.setBothPosition(this.lockedPosition);
 			} else if(mode == LiftMode.MANUAL || mode == LiftMode.MANUAL_MAIN_STAGE_ONLY || mode == LiftMode.MANUAL_SECOND_STAGE_ONLY){
 				double speed = controller.joystickY();
 
@@ -113,12 +114,12 @@ public class CubeController implements RobotController{
 				boolean main = mode == LiftMode.MANUAL_MAIN_STAGE_ONLY || both;
 				boolean second = mode == LiftMode.MANUAL_SECOND_STAGE_ONLY || both;
 				if (main) {
-					lift.setMainStageSpeed(speed);
+					lift.setMainStageSpeed(Math.pow(speed, MANUAL_SPEED_POW_AMOUNT));
 				} else {
 					lift.setMainStageSpeed(0);
 				}
 				if (second) {
-					lift.setSecondStageSpeed(speed);
+					lift.setSecondStageSpeed(Math.pow(speed, MANUAL_SPEED_POW_AMOUNT));
 				} else {
 					lift.setSecondStageSpeed(0);
 				}
@@ -134,23 +135,19 @@ public class CubeController implements RobotController{
 	}
 
 	public enum LiftMode {
-		NONE(), @Deprecated BRAKE(),
+		NONE(),
+		LOCK_POSITION(null, false), // with this, you only need to press it once to lock the position
 		MANUAL(), MANUAL_SECOND_STAGE_ONLY(),
 		MANUAL_MAIN_STAGE_ONLY(), // will be used for climbing
 
 		SCALE_MAX(Lift.Position.SCALE_MAX), SCALE_MIN(Lift.Position.SCALE_MIN), SWITCH(Lift.Position.SWITCH),
-		MIN_11(Lift.Position.MIN), MIN_13(Lift.Position.MIN_13),
-		@Deprecated
-		DRIVE(Lift.Position.DRIVE);
+		MIN_11(Lift.Position.MIN), MIN_13(Lift.Position.MIN_13);
 
 		Lift.Position position;
-
-		boolean isSpecial;
 		boolean needsPress;
 
-		LiftMode(Lift.Position position, boolean isSpecial, boolean needsPress){
+		LiftMode(Lift.Position position, boolean needsPress){
 			this.position = position;
-			this.isSpecial = isSpecial;
 			this.needsPress = needsPress;
 		}
 
@@ -158,14 +155,18 @@ public class CubeController implements RobotController{
 		 * Creates normal LiftMode that doesn't need press
 		 */
 		LiftMode(Lift.Position position){
-			this(position, false, false);
+			this(position, false);
 		}
 
 		/**
 		 * Creates a special LiftMode that needs a press
 		 */
 		LiftMode(){
-			this(null, true, true);
+			this(null, true);
+		}
+
+		public boolean isSpecial(){
+			return position == null;
 		}
 	}
 }

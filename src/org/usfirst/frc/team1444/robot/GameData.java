@@ -13,36 +13,13 @@ import java.util.Random;
 public class GameData {
 	private static final Random randomizer = new Random();
 
-	private static SendableChooser<StartingPosition> startingChooser = null;
-
 	private DriverStation station;
+	private String randomizedMessage;
 
 	public GameData(DriverStation station){
 		this.station = station;
-		initStartingChooser();
-	}
 
-	private static void initStartingChooser(){
-		if(startingChooser != null){
-			return;
-		}
-		startingChooser = new SendableChooser<>();
-		String text = "";
-		startingChooser.addDefault(text + StartingPosition.LEFT.name, StartingPosition.LEFT);
-		startingChooser.addObject(text + StartingPosition.MIDDLE.name, StartingPosition.MIDDLE);
-		startingChooser.addObject(text + StartingPosition.RIGHT.name, StartingPosition.RIGHT);
-		SmartDashboard.putData("Starting position", startingChooser);
-	}
-
-	/**
-	 * This can be used to inform different parts of the code where the robot is starting. Note that autonomous may
-	 * or may not use this to determine where to start. Sometimes it's better to just use you're own chooser so it's
-	 * easier to keep track of the different modes
-	 *
-	 * @return The starting position of the robot. The default is LEFT.
-	 */
-	public StartingPosition getStartingPosition(){
-		return startingChooser.getSelected();
+		this.randomizedMessage = createRandomizedMessage();
 	}
 
 	/**
@@ -76,32 +53,37 @@ public class GameData {
 	private String getMessage(){
 		final String dashString = "Game Specific Message";
 		String r = station.getGameSpecificMessage();
-		String endString = " (from FMS)";
+		String endString;
 		if(r.length() < 3){
 			endString = " randomized";
 			if(station.isFMSAttached()){
-				endString += " (FMS connected not ready)";
+				endString += "(FMS connected not ready)";
 			} else {
 				endString += "(No FMS)";
 			}
-			StringBuilder builder = new StringBuilder();
-			for(int i = 0; i < 3; i++){
-				builder.append(randomizer.nextBoolean() ? 'L' : 'R');
+			r = this.randomizedMessage;
+		} else { // do stuff for endString so we know what's happening with it
+			if(station.isFMSAttached()){
+				if(station.isDisabled()){
+					endString = "(from FMS while disabled (Bad and inaccurate))";
+					System.err.println("We are trying to use the game specific message while disabled. It works but might be inaccurate.");
+				} else {
+					endString = "(from FMS)";
+				}
+			} else {
+				endString = "(from DriverStation GameData)";
 			}
-			r = builder.toString();
 		}
-		SmartDashboard.putString(dashString, r + endString);
+		SmartDashboard.putString(dashString, r + " " + endString);
 		return r;
 	}
 
-	public enum StartingPosition{
-		LEFT("left"), MIDDLE("middle"), RIGHT("right");
-
-		final String name;
-		StartingPosition(String name){
-			this.name = name;
+	private static String createRandomizedMessage(){
+		StringBuilder builder = new StringBuilder(); // because this is faster in java when adding to strings in loops
+		for(int i = 0; i < 3; i++){
+			builder.append(randomizer.nextBoolean() ? 'L' : 'R');
 		}
-
+		return builder.toString();
 	}
 
 }

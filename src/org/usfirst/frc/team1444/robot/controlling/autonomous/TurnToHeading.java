@@ -25,8 +25,9 @@ public class TurnToHeading extends RobotControllerProcess {
 	@Override
 	public void update(Robot robot) {
 		SwerveDrive drive = robot.getDrive();
-		double currentRotation = robot.getGyro().getAngle() + 90; // 90 - 450
-		currentRotation %= 360; // 0 - 360
+		double currentRotation = robot.getGyro().getAngle() + 90;
+		currentRotation %= 360;
+		currentRotation = currentRotation < 0 ? currentRotation + 360 : currentRotation;
 
 
 		double degreesAway = rotation - currentRotation; // if we want to turn left, this will be positive

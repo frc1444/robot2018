@@ -43,6 +43,87 @@ public abstract class RobotControllerProcess implements RobotController {
 		return controller;
 	}
 
+	/**
+	 * @return the last linked process. Note that if there is a regular RobotController at the very end, that will not be returned
+	 */
+	public RobotControllerProcess getLastLinkedProcess(){
+		RobotControllerProcess r = this;
+		while(true){
+			RobotController next = r.getNext();
+			if(next != r && next instanceof RobotControllerProcess){
+				// since we check instanceof, next will not be null
+				r = (RobotControllerProcess) next;
+			} else {
+				break;
+			}
+		}
+		return r;
+	}
+
 	protected abstract boolean isDone();
 
+	/**
+	 * It is recommended to use this class when building complex links ex: Using multiple if statements or even methods
+	 */
+	public static class Builder {
+
+		private RobotControllerProcess firstProcess;
+
+		private RobotControllerProcess currentProcess;
+
+		/**
+		 * @param processes the list of processes to append
+		 */
+		public Builder(RobotControllerProcess... processes){
+			this.append(processes);
+		}
+
+		/**
+		 * Note that if some of the passes Processes have controllers linked to them, they will not be deleted
+		 * @param processes
+		 * @return returns this
+		 */
+		public Builder append(RobotControllerProcess... processes){
+			for(RobotControllerProcess p : processes){
+				if(firstProcess == null){
+					firstProcess = p;
+					currentProcess = p;
+				} else {
+					currentProcess = currentProcess.getLastLinkedProcess().setNextController(p);
+				}
+			}
+			return this;
+		}
+
+		/**
+		 * You can also think about this method like addToBeginning
+		 * <p>
+		 * Can be used to attach the processes in this builder to the last linked process from process
+		 * <p>
+		 * Code:
+		 * <p>
+		 * process.getLastLinkedProcess().setNextController(firstProcess);
+		 * firstProcess = process;
+		 *
+		 * @param process the process to use it's last linked process to link this builder's processes
+		 */
+		public void attachTo(RobotControllerProcess process){
+			process.getLastLinkedProcess().setNextController(firstProcess);
+			firstProcess = process;
+		}
+
+		/**
+		 * Note the returned value will have controllers linked after it so you can't add more controllers to the returned
+		 * value but you can still use this instance if you'd like.
+		 *
+		 * If you lose this instance, you can create a new instance with the returned value and it will still work without
+		 * losing any of the appended RobotControllerProcesses from the previous instance
+		 *
+		 * @return the controller that should go into action first.
+		 */
+		public RobotControllerProcess build(){
+			return firstProcess;
+		}
+
+	}
 }

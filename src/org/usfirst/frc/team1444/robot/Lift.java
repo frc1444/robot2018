@@ -75,7 +75,7 @@ public class Lift {
 		}
 	}
 
-	// region stage positions
+	// region ========= stage positions ===========
 	/**
 	 * Move the boom to a desired position - wraps the veolicty control from below
 	 * @param position desired position of main stage (0 - full down, 1 - full up)
@@ -111,6 +111,9 @@ public class Lift {
 	public double getSecondStagePosition(){
 		return secondStageMotor.getSelectedSensorPosition(Constants.PidIdx) / (double) SECOND_STAGE_ENCODER_COUNTS;
 	}
+	public Position getBothPosition(){
+		return new Position(this.getMainStagePosition(), this.getSecondStagePosition());
+	}
 
 	/**
 	 * Uses setMainStagePosition and setSecondStagePosition to set a preset position
@@ -120,7 +123,7 @@ public class Lift {
 		this.setMainStagePosition(position.getMainPosition());
 		this.setSecondStagePosition(position.getSecondPosition());
 	}
-	// endregion
+	// endregion ========= end stage positions ============
 
 	// region stage speeds
 	/**
@@ -155,7 +158,7 @@ public class Lift {
 	public void setSecondStageSpeed(double speed){
 		double position = getSecondStagePosition(); // 0 to 1		
 		
-		double targetSpeed = (speed * Constants.LiftMainStageEncoderCountsPerRev * Constants.MaxBagRpm)
+		double targetSpeed = (speed * Constants.LiftSecondStageEncoderCountsPerRev * Constants.MaxBagRpm)
 				/ (Constants.CtreUnitConversion * Constants.LiftSecondStageGearboxRatio);
 
 		// Linearally scale the speed as the stage approaches the limits
@@ -172,6 +175,7 @@ public class Lift {
 		
 		this.secondStageMotor.set(ControlMode.Velocity, targetSpeed);
 	}
+	// endregion End State speeds
 
 
 	public void debug(){
@@ -192,15 +196,17 @@ public class Lift {
 	/**
 	 * A bunch of preset positions
 	 */
-	public enum Position{
-		SCALE_MAX(1, 1), SCALE_MIN(.9, 1), SWITCH(0.2, .7), MIN(0, 0), MIN_13(0, .08), // TODO make sure switch is accurate
-		@Deprecated
-		DRIVE(0, .2);
+	public static class Position{
+		public static final Position SCALE_MAX = new Position(1, 1);
+		public static final Position SCALE_MIN = new Position(.9, 1);
+		public static final Position SWITCH = new Position(0.2, .7);// TODO make sure accurate
+		public static final Position MIN = new Position(0, 0);
+		public static final Position MIN_13 = new Position(0, .08);
 
 		private final double mainPosition;
 		private final double secondPosition;
 
-		Position(double mainPosition, double secondPosition){
+		public Position(double mainPosition, double secondPosition){
 			this.mainPosition = mainPosition;
 			this.secondPosition = secondPosition;
 		}

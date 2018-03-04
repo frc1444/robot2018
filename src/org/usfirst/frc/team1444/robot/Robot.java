@@ -33,10 +33,13 @@ import org.usfirst.frc.team1444.robot.controlling.input.PS4Controller;
  */
 public class Robot extends IterativeRobot {
 
+	// if false, then whenever we enable, we will reset the gyro. if true, gyro is good until we disable
+	private static final String IS_GYRO_RESET_KEY = "Is Gyro Reset"; // will appear on SmartDashboard
+
 	private final double frameWidth = 28.0;
 	private final double frameDepth = 33.0;
-	private final double intakeExtendsDistance = 16.0; // compared to frame // TODO measure this
-	private final double bumperExtendsDistance = 5; // TODO measure this
+	private final double intakeExtendsDistance = 10; // compared to frame (not to bumper) // TODO measure this
+	private final double bumperExtendsDistance = 3.5;
 
 	private PidHandler pidHandler;
 
@@ -53,7 +56,7 @@ public class Robot extends IterativeRobot {
 
 	private RobotController robotController;  // use ***Init to change this to something that fits that mode
 
-	private boolean isGyroReset = false; // should only be used in checkGyro()
+//	private boolean isGyroReset = false; // should only be used in checkGyro()
 
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
@@ -137,14 +140,8 @@ public class Robot extends IterativeRobot {
 	public double getWidth(){
 		return frameWidth + bumperExtendsDistance;
 	}
-	public double getDepth(){
-		return frameDepth + bumperExtendsDistance;
-	}
-	public double getIntakeExtendsDistance(){
-		return intakeExtendsDistance;
-	}
-	public double getTotalDepth(){
-		return getDepth() + getIntakeExtendsDistance();
+	public double getDepth(boolean includeIntakeExtends){
+		return frameDepth + bumperExtendsDistance + (includeIntakeExtends ? intakeExtendsDistance : 0);
 	}
 
 	public SwerveDrive getDrive() {
@@ -258,7 +255,6 @@ public class Robot extends IterativeRobot {
 		manipulatorInput = new LogitechExtremeJoystickInput(Constants.CubeJoystickPortNumber);
 		setRobotController(new ResetEncoderController(new TeleopController(driveInput, manipulatorInput)));
 		
-		IMU.reset(); // TODO don't reset gyro here. Do it somewhere else
 	}
 
 	/**
@@ -282,19 +278,27 @@ public class Robot extends IterativeRobot {
 	public void testPeriodic() {
 	}
 
+	// region Reset Gyro Code
+	private boolean isGyroReset(){
+		return SmartDashboard.getBoolean(IS_GYRO_RESET_KEY, false);
+	}
+	private void setGyroReset(boolean b){
+		SmartDashboard.putBoolean(IS_GYRO_RESET_KEY, b);
+	}
 	/**
 	 * Resets the gyro if necessary
 	 */
 	private void checkGyro(){
 		if(isDisabled()){
-			isGyroReset = false;
+			setGyroReset(false);
 			return;
 		}
-		if(isGyroReset){
+		if(isGyroReset()){
 			return;
 		}
-		isGyroReset = true;
+		setGyroReset(true);
 		this.IMU.reset();
 	}
+	// endregion
 
 }

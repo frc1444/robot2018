@@ -62,4 +62,6 @@ public final class Constants {
 	public static final double RotationRateDeadband = 0.05;
 
 	public static final double FineScaleAmount = .3;
+
+	public static final double CubeJoystickDeadband = .05;
 }
