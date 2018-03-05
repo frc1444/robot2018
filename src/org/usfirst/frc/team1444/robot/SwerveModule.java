@@ -11,7 +11,7 @@ import java.awt.geom.Point2D;
 // SwerveModule defines one corner of a swerve drive
 // Two motor controllers are defined, drive and steer
 public class SwerveModule {
-	private static final boolean USE_QUICK_REVERSE = false; // TODO test this today
+	private static final boolean USE_QUICK_REVERSE = false; // TODO test this today or the day before the match, that's fine too
 
 	private final double wheelCircumference = 4 * Math.PI; // in inches
 
@@ -27,7 +27,6 @@ public class SwerveModule {
 	
 	private int encoderOffset; // offset for absolute encoder
 
-//	private SensorCollection steerSensorCollection; use built in sensor collection instead
 
 	// null means not initialized, true means it is a quad encoder, false means it is an analog encoder
 	private Boolean setToQuad = null;
@@ -64,7 +63,6 @@ public class SwerveModule {
 		// Manually measured encoder offset
 		this.encoderOffset = offset;
 
-//		this.steerSensorCollection = new SensorCollection(this.steer);
 		this.switchToAnalog();
 
 		// Set the drive PID parameters
@@ -191,7 +189,7 @@ public class SwerveModule {
 	
 	public void debug() {	
 		// Get the raw analog encoder count (can be removed later once drive is sorted out)
-//		SmartDashboard.putNumber("Raw Analog " + ID, steer.getSensorCollection().getAnalogInRaw());
+		SmartDashboard.putNumber("Raw Analog " + ID, steer.getSensorCollection().getAnalogInRaw());
 		
 		// Print the current, measured encoder count
 //		SmartDashboard.putNumber("Encoder " + ID, steer.getSelectedSensorPosition(steerPid.pidIdx));
@@ -204,20 +202,12 @@ public class SwerveModule {
 	private void UpdateDrivePid(PidParameters pid) {
 		this.drivePid = pid;
 		
-//		drive.config_kP(drivePid.pidIdx, drivePid.KP, Constants.TimeoutMs);
-//		drive.config_kI(drivePid.pidIdx, drivePid.KI, Constants.TimeoutMs);
-//		drive.config_kD(drivePid.pidIdx, drivePid.KD, Constants.TimeoutMs);
-//		drive.config_kF(drivePid.pidIdx, drivePid.KF, Constants.TimeoutMs);
 		drivePid.apply(drive);
 	}
 	
 	private void UpdateSteerPid(PidParameters pid) {
 		this.steerPid = pid;
 		
-//		steer.config_kP(steerPid.pidIdx, steerPid.KP, Constants.TimeoutMs);
-//		steer.config_kI(steerPid.pidIdx, steerPid.KI, Constants.TimeoutMs);
-//		steer.config_kD(steerPid.pidIdx, steerPid.KD, Constants.TimeoutMs);
-//		steer.config_kF(steerPid.pidIdx, steerPid.KF, Constants.TimeoutMs);
 		steerPid.apply(steer);
 	}
 

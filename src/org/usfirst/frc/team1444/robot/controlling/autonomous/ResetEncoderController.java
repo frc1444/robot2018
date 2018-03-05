@@ -1,6 +1,5 @@
 package org.usfirst.frc.team1444.robot.controlling.autonomous;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.SwerveDrive;
 import org.usfirst.frc.team1444.robot.SwerveModule;
