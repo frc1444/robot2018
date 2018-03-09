@@ -13,12 +13,15 @@ import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.BNO055.IMUMode;
 import org.usfirst.frc.team1444.robot.LEDHandler.LEDMode;
 import org.usfirst.frc.team1444.robot.controlling.*;
 import org.usfirst.frc.team1444.robot.controlling.autonomous.AutonomousController;
 import org.usfirst.frc.team1444.robot.controlling.autonomous.ResetEncoderController;
+import org.usfirst.frc.team1444.robot.controlling.autonomous.TurnToHeading;
+import org.usfirst.frc.team1444.robot.controlling.autonomous.WaitProcess;
 import org.usfirst.frc.team1444.robot.controlling.input.ControllerInput;
 import org.usfirst.frc.team1444.robot.controlling.input.JoystickInput;
 import org.usfirst.frc.team1444.robot.controlling.input.LogitechExtremeJoystickInput;
@@ -46,7 +49,8 @@ public class Robot extends IterativeRobot {
 	private SwerveDrive drive;
 	private Intake intake;
 	private Lift lift;
-	private BNO055 IMU;
+//	private BNO055 IMU;
+	private Gyro gyro;
 	private LEDHandler ledHandler;
 	
 	private ControllerInput driveInput;
@@ -80,8 +84,11 @@ public class Robot extends IterativeRobot {
 		//gyro = new ADXRS450_Gyro(Port.kOnboardCS0);
 		//gyro.calibrate();
 
-		IMU = new BNO055();
+		BNO055 IMU = new BNO055();
 		IMU.SetMode(IMUMode.NDOF);
+
+		this.gyro = IMU;
+//		this.gyro = FakeGyro.getInstance();
 
 		try {
 			LightDrive2812 lightDrive = new LightDrive2812();
@@ -102,8 +109,8 @@ public class Robot extends IterativeRobot {
 		
 		final int flOffset = 515;
 		final int frOffset = 703;
-		final int rlOffset = 559;
-		final int rrOffset = 333;
+		final int rlOffset = 777;
+		final int rrOffset = 604;
 		
 		// Initialize the drive by passing in new TalonSRXs for each drive and steer motor
 		drive = new SwerveDrive(
@@ -122,6 +129,8 @@ public class Robot extends IterativeRobot {
 		this.gameData = new GameData(DriverStation.getInstance());
 
 		this.setRobotController(null);
+
+		AutonomousController.initModeChooser();
 		
 	}
 
@@ -162,8 +171,8 @@ public class Robot extends IterativeRobot {
 	 *
 	 * @return the gyro this robot uses.
 	 */
-	public BNO055 getGyro(){
-		return this.IMU;
+	public Gyro getGyro(){
+		return this.gyro;
 	}
 	public Intake getIntake(){
 		return intake;
@@ -186,6 +195,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void robotPeriodic() {
 		lift.update();
+		lift.debug();
 		pidHandler.update();
 		this.checkGyro();
 
@@ -232,15 +242,13 @@ public class Robot extends IterativeRobot {
 			}
 		}
 		
-		SmartDashboard.putNumber("Gyro (IMU)", IMU.getAngle());
+		SmartDashboard.putNumber("Gyro", gyro.getAngle());
 	}
 
 	@Override
 	public void autonomousInit() {
-//		this.robot_state = Robot_State.AUTO;
-		RobotController nextController = new AutonomousController();
-//		RobotController nextController = new DistanceDrive(12 * 5, 90, false, .3);
-		setRobotController(new ResetEncoderController(nextController));
+		setRobotController(new ResetEncoderController(new WaitProcess(200, new AutonomousController()))); // auton
+//		setRobotController(new ResetEncoderController(null)); // no auton
 	}
 
 	/**
@@ -267,7 +275,7 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void testInit() {
-		setRobotController(new ResetEncoderController(null));
+		setRobotController(new ResetEncoderController(new TurnToHeading(0)));
 		ledHandler.setMode(LEDMode.RSL_LIGHT);
 //		this.robot_state = Robot_State.TEST;
 	}
@@ -298,7 +306,7 @@ public class Robot extends IterativeRobot {
 			return;
 		}
 		setGyroReset(true);
-		this.IMU.reset();
+		this.gyro.reset();
 	}
 	// endregion
 

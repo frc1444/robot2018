@@ -1,5 +1,6 @@
 package org.usfirst.frc.team1444.robot.controlling.autonomous;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.SwerveDrive;
 import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
@@ -8,6 +9,7 @@ public class TurnToHeading extends RobotControllerProcess {
 
 	private static final double ALLOWED_DEADBAND_FOR_SUCCESS = 5; // if 3, then 6 degrees total allowed
 	private static final double MAX_SPEED = .3;
+	private static final double MIN_SPEED = .08;
 
 	private boolean done = false;
 	private double rotation; // desired rotation of robot in degrees (0 - 360)
@@ -29,7 +31,7 @@ public class TurnToHeading extends RobotControllerProcess {
 	@Override
 	public void update(Robot robot) {
 		SwerveDrive drive = robot.getDrive();
-		double currentRotation = robot.getGyro().getAngle() + 90;
+		double currentRotation = -robot.getGyro().getAngle() + 90;
 		currentRotation %= 360;
 		currentRotation = currentRotation < 0 ? currentRotation + 360 : currentRotation;
 		debugGyroAngle = (int) currentRotation;
@@ -45,17 +47,25 @@ public class TurnToHeading extends RobotControllerProcess {
 		// now calculating degreesAway is complete. if negative, turn to right, if positive, turn to left
 
 		final double absDegreesAway = Math.abs(degreesAway);
+		SmartDashboard.putNumber("degrees away", degreesAway);
+		SmartDashboard.putNumber("desired rotation", rotation);
+		SmartDashboard.putNumber("current rotation", currentRotation);
 		if(absDegreesAway <= ALLOWED_DEADBAND_FOR_SUCCESS){
 			this.done = true;
+			System.out.println("turn to heading done");
 //			drive.update(0, null, 0, null);
 			drive.setAllSpeeds(0);
 			return;
 		}
 		double speed = MAX_SPEED;
-		if(absDegreesAway < 70){
-			speed *= Math.pow(absDegreesAway / 70, .75);
+		if(absDegreesAway < 30){
+			speed *= absDegreesAway / 40;
+		}
+		if(speed < MIN_SPEED){
+			speed = MIN_SPEED;
 		}
 		speed *= -1 * Math.signum(degreesAway);
+
 //		drive.update(0, null, speed, null);
 		drive.rotateAroundSubDrive(speed, null, false);
 	}

@@ -1,5 +1,6 @@
 package org.usfirst.frc.team1444.robot.controlling;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.Constants;
 import org.usfirst.frc.team1444.robot.Intake;
 import org.usfirst.frc.team1444.robot.Lift;
@@ -10,6 +11,7 @@ import org.usfirst.frc.team1444.robot.controlling.input.JoystickInput;
  * Class that handles the intake and lift
  */
 public class CubeController implements RobotController{
+	private static final double IDLE_SPEED = 0;
 
 	private static final double MANUAL_SPEED_POW_AMOUNT = 2;
 
@@ -35,7 +37,7 @@ public class CubeController implements RobotController{
 	private void intakeUpdate(Intake intake){
 		int pov = controller.pov();
 		if(pov == -1){
-			intake.setSpeed(-.25);
+			intake.setSpeed(IDLE_SPEED);
 			return;
 		}
 		double yPov = Math.sin(Math.toRadians(controller.pov())); // because I'm lazy.
@@ -58,7 +60,7 @@ public class CubeController implements RobotController{
 			intake.setSpeeds(leftSpeed, rightSpeed);
 
 		} else {
-			intake.setSpeed(-.25);
+			intake.setSpeed(IDLE_SPEED);
 		}
 
 	}
@@ -91,6 +93,7 @@ public class CubeController implements RobotController{
 		if(!isPressed && mode.needsPress){
 			mode = LiftMode.NONE;  // reset mode if they go out of it
 		}
+		SmartDashboard.putString("lift mode: ", mode.toString());
 
 		if(mode.isSpecial()){
 			if(mode == LiftMode.NONE){
@@ -114,12 +117,14 @@ public class CubeController implements RobotController{
 				boolean main = mode == LiftMode.MANUAL_MAIN_STAGE_ONLY || both;
 				boolean second = mode == LiftMode.MANUAL_SECOND_STAGE_ONLY || both;
 				if (main) {
-					lift.setMainStageSpeed(Math.pow(speed, MANUAL_SPEED_POW_AMOUNT));
+//					lift.setMainStageSpeed(Math.signum(speed) * Math.pow(speed, MANUAL_SPEED_POW_AMOUNT));
+					lift.setMainStageSpeed(speed);
 				} else {
 					lift.setMainStageSpeed(0);
 				}
 				if (second) {
-					lift.setSecondStageSpeed(Math.pow(speed, MANUAL_SPEED_POW_AMOUNT));
+//					lift.setSecondStageSpeed(Math.signum(speed) * Math.pow(speed, MANUAL_SPEED_POW_AMOUNT));
+					lift.setSecondStageSpeed(speed);
 				} else {
 					lift.setSecondStageSpeed(0);
 				}

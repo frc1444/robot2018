@@ -78,6 +78,11 @@ public class GameData {
 		return r;
 	}
 
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "{message:" + this.getMessage() + ",FMSAttached:" + station.isFMSAttached() + "}";
+	}
+
 	private static String createRandomizedMessage(){
 		StringBuilder builder = new StringBuilder(); // because this is faster in java when adding to strings in loops
 		for(int i = 0; i < 3; i++){

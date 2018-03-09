@@ -1,39 +1,31 @@
 package org.usfirst.frc.team1444.robot.controlling.autonomous;
 
 import org.usfirst.frc.team1444.robot.Robot;
-import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
 
-public class TimedIntake extends RobotControllerProcess {
-	private final long timeMillis;
+public class TimedIntake extends WaitProcess {
 	private final double intakeSpeed;
 
-	private Long startTime;
+	private boolean reallyDone = false;
 
 	public TimedIntake(long timeMillis, double intakeSpeed){
-		this.timeMillis = timeMillis;
+		super(timeMillis, null);
 		this.intakeSpeed = intakeSpeed;
 	}
 
 	@Override
 	public void update(Robot robot) {
-		long time = System.currentTimeMillis();
-		if(startTime == null){
-			startTime = time;
+		super.update(robot);
+		if(super.isDone()){
+			robot.getIntake().setSpeed(0);
+			reallyDone = true;
+			return;
 		}
+
 		robot.getIntake().setSpeed(intakeSpeed);
 	}
 
 	@Override
 	protected boolean isDone() {
-		return startTime + timeMillis < System.currentTimeMillis();
-	}
-
-	@Override
-	public String toString() {
-		String timeLeft = "";
-		if(startTime != null){
-			timeLeft = ", time left:" + ((startTime + timeMillis) - System.currentTimeMillis());
-		}
-		return getClass().getSimpleName() + "{total time:%s, intake speed:%s" + timeLeft + "}";
+		return reallyDone;
 	}
 }

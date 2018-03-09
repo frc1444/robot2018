@@ -1,5 +1,6 @@
 package org.usfirst.frc.team1444.robot.controlling.autonomous;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.Lift;
 import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
@@ -31,14 +32,19 @@ public class LiftController extends RobotControllerProcess {
 	@Override
 	public void update(Robot robot) {
 		Lift lift = robot.getLift();
+		double mainAway = 0;
+		double secondAway = 0;
 		if(mainStagePosition != null){
 			lift.setMainStagePosition(mainStagePosition);
+			mainAway = mainStagePosition - lift.getMainStagePosition(); // positive when going up
 		}
 		if(secondStagePosition != null){
 			lift.setSecondStagePosition(secondStagePosition);
+			secondAway = secondStagePosition - lift.getSecondStagePosition();
 		}
-		done = Math.abs(lift.getMainStagePosition() - mainStagePosition) <= ALLOWED_DEADBAND_FOR_SUCCESS &&
-				Math.abs(lift.getSecondStagePosition() - secondStagePosition) <= ALLOWED_DEADBAND_FOR_SUCCESS;
+		SmartDashboard.putString("LiftController mainAway, secondAway", "" + mainAway + ", " + secondAway);
+		done = Math.abs(mainAway) <= ALLOWED_DEADBAND_FOR_SUCCESS &&
+				Math.abs(secondAway) <= ALLOWED_DEADBAND_FOR_SUCCESS;
 	}
 
 	@Override

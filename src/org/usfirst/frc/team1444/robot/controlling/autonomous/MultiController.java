@@ -28,14 +28,18 @@ public class MultiController extends RobotControllerProcess {
 				RobotController next = process.getNext();
 				if(next != null){
 					if(next != process){ // if new controller remove
-						it.add(next);
 						it.remove();
+						it.add(next);
 					}
 				} else { // if null remove
 					it.remove();
 				}
 
 			}
+		}
+
+		if(controllers.size() == 0){
+			System.out.println("multi should be done");
 		}
 	}
 	@Override

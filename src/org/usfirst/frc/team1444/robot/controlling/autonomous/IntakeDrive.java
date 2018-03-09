@@ -8,6 +8,8 @@ public class IntakeDrive extends DistanceDrive {
 
 	private double intakeSpeed;
 
+	private boolean reallyDone = false;
+
 	/**
 	 * This constructs an IntakeDrive which will drive the robot forward at the desired speed and run the intake at the
 	 * desired speed
@@ -28,11 +30,17 @@ public class IntakeDrive extends DistanceDrive {
 	public void update(Robot robot) {
 		super.update(robot);
 		Intake intake = robot.getIntake();
-		if(isDone()){
+		if(super.isDone()){
 			intake.setSpeed(0);
+			this.reallyDone = true;
 			return;
 		}
 		intake.setSpeed(this.intakeSpeed);
+	}
+
+	@Override
+	protected boolean isDone() {
+		return reallyDone;
 	}
 
 	@Override

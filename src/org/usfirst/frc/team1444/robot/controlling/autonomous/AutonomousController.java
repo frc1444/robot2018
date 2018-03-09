@@ -1,6 +1,7 @@
 package org.usfirst.frc.team1444.robot.controlling.autonomous;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.GameData;
 import org.usfirst.frc.team1444.robot.Lift;
 import org.usfirst.frc.team1444.robot.Robot;
@@ -18,7 +19,7 @@ public class AutonomousController implements RobotController {
 		super();
 		initModeChooser();
 	}
-	private static void initModeChooser(){
+	public static void initModeChooser(){
 		if(modeChooser != null){
 			return;
 		}
@@ -32,6 +33,7 @@ public class AutonomousController implements RobotController {
 			}
 			modeChooser.addObject(mode.name, mode);
 		}
+		SmartDashboard.putData("auto modes:", modeChooser);
 	}
 
 
@@ -39,6 +41,7 @@ public class AutonomousController implements RobotController {
 //		GameData data = robot.getGameData();
 //		SmartDashboard.putBoolean("Is data accurate:", data.isAccurate());
 
+		SmartDashboard.putString("for auto:", robot.getGameData().toString());
 		AutoMode mode = modeChooser.getSelected();
 		switch(mode){
 //			case SMART_LEFT: case SMART_RIGHT:
@@ -85,8 +88,10 @@ public class AutonomousController implements RobotController {
 
 			// link controllers
 //			this.currentController = driveToPowerCubeZone;
-			this.initStartingIntakeController()
-					.setNextController(driveToPowerCubeZone)
+//			this.initStartingIntakeController()
+//				.setNextController(driveToPowerCubeZone)
+			this.currentController = driveToPowerCubeZone;
+			driveToPowerCubeZone
 					.setNextController(raiseAndDrive)
 					.setNextController(halfToSwitch)
 					.setNextController(moveAndSpit);
@@ -104,9 +109,12 @@ public class AutonomousController implements RobotController {
 		TimedIntake spitOut = new TimedIntake(500, 1);
 
 		// link controllers
-		this.initStartingIntakeController()
-				.setNextController(longDrive)
+//		this.initStartingIntakeController()
+//				.setNextController(longDrive)
+		this.currentController = driveAndLift;
+		driveAndLift
 				.setNextController(driveAndLift)
+				.setNextController(new WaitProcess(300, null)) // nextController will be below
 				.setNextController(shortDrive)
 				.setNextController(spitOut);
 	}
@@ -183,49 +191,56 @@ public class AutonomousController implements RobotController {
 				// now we are between the wall and the scale
 
 				final double scaleAngle = isScaleLeft ? 0 : 180;
-				builder.append(new MultiController(
-						new LiftController(Lift.Position.SCALE_MAX), // raise
-						new TurnToHeading(scaleAngle) // turn
-				));
+//				builder.append(new MultiController(
+//						new LiftController(Lift.Position.SCALE_MAX), // raise
+//						new TurnToHeading(scaleAngle) // turn
+//				));
+				builder.append(new TurnToHeading(scaleAngle));
+				builder.append(new LiftController(Lift.Position.SCALE_MAX));
 
 				// drive a little bit closer to the scale
-				builder.append(new DistanceDrive(10, scaleAngle, true, SPEED / 2.0)); // estimated
+				builder.append(new DistanceDrive(10, scaleAngle, true, .2)); // estimated
 				builder.append(spitOut); // spit out
 				// once we have got the cube in the scale, we can tell what side we are on based on data.isScaleLeft()
+				builder.append(new DistanceDrive(10, scaleAngle + 180, true, .2));
 			}
 		}
 		// note that after afterPossibleScore, the robot may be turned different depending on which clause above executed
 		//  so use the gyro (obviously) and use TurnToHeading to change heading if needed
 
-		builder.attachTo(this.initStartingIntakeController());
+//		builder.attachTo(this.initStartingIntakeController());
+		this.currentController = builder.build();
 	}
 
-	/**
-	 * This can be used if we are starting with the cube with the intake up (folded in)
-	 * <p>
-	 * Sets this.currentController to a controller that will make the robotStart doing something to make sure the
-	 * intake comes down the right way and to make sure it stays in
-	 * <p>
-	 * After calling this method, it is recommended that you call setNextController on the returned value, and pass a
-	 * IntakeDrive just to make sure it is in
-	 * @return The controller that you should call setNextController on
-	 */
-	private RobotControllerProcess initStartingIntakeController(){
-		LiftController up = new LiftController(0.0, .3);
+//	/**
+//	 * This can be used if we are starting with the cube with the intake up (folded in)
+//	 * <p>
+//	 * Sets this.currentController to a controller that will make the robotStart doing something to make sure the
+//	 * intake comes down the right way and to make sure it stays in
+//	 * <p>
+//	 * After calling this method, it is recommended that you call setNextController on the returned value, and pass a
+//	 * IntakeDrive just to make sure it is in
+//	 * @return The controller that you should call setNextController on
+//	 */
+//	@Deprecated
+//	private RobotControllerProcess initStartingIntakeController(){
+//		LiftController up = new LiftController(0.0, .3);
+//
+//		LiftController down = new LiftController(0.0, 0.0);
+//
+//		TimedIntake shortIntake = new TimedIntake(350, -.5);
+//
+//		this.currentController = up;
+//		return up.setNextController(down)
+//				.setNextController(shortIntake);
+//	}
 
-		LiftController down = new LiftController(0.0, 0.0);
-
-		TimedIntake shortIntake = new TimedIntake(350, -.5);
-
-		this.currentController = up;
-		return up.setNextController(down)
-				.setNextController(shortIntake);
-	}
 	// endregion ========= End Auto Modes =========
 
 	@Override
 	public void update(Robot robot) {
 		if(!isInitialized){
+			robot.getGyro().reset();
 			initDesiredAuto(robot);
 			isInitialized = true;
 		}
@@ -240,10 +255,14 @@ public class AutonomousController implements RobotController {
 
 	@Override
 	public String toString() {
+		if(currentController == null){
+			return getClass().getSimpleName() + "{done}";
+		}
 		return getClass().getSimpleName() + "{currentController: " + currentController.toString() + " }";
 	}
 
 	private enum AutoMode{
+		DRIVE_TO_LINE("drive to line"),
 		CENTER_IMPROVED("CENTER improved auto", null),
 		CENTER_ORIGINAL("CENTER original auto", null),
 
@@ -253,12 +272,11 @@ public class AutonomousController implements RobotController {
 		SCALE_LEFT("scale LEFT auto", true, false, true),
 
 		// modes where we start on the right
-		SMART_RIGHT("smart RIGHT auto", true),
-		SWITCH_RIGHT("switch RIGHT auto", true, true, false),
-		SCALE_RIGHT("scale RIGHT auto", true, false, true),
+		SMART_RIGHT("smart RIGHT auto", false),
+		SWITCH_RIGHT("switch RIGHT auto", false, true, false),
+		SCALE_RIGHT("scale RIGHT auto", false, false, true),
 
-		NOTHING("nothing"),
-		DRIVE_TO_LINE("drive to line");
+		NOTHING("nothing");
 
 		private final String name;
 		/** true is left, false is right, null is middle */
