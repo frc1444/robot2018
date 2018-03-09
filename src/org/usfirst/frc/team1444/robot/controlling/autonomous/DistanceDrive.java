@@ -46,7 +46,7 @@ public class DistanceDrive extends RobotControllerProcess {
 		} else {
 			double heading = this.heading;
 			if(makeRelativeToGyro){
-				heading += robot.getGyro().getAngle();
+				heading += robot.getGyroAngle();
 			}
 			drive.update(percentSpeed, heading, 0, null);
 		}

@@ -26,7 +26,7 @@ public class WaitProcess extends RobotControllerProcess {
 		if(startTime == null){
 			return false;
 		}
-		return startTime + waitMillis >= System.currentTimeMillis();
+		return startTime + waitMillis <= System.currentTimeMillis();
 	}
 
 	@Override

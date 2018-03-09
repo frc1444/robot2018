@@ -7,6 +7,7 @@ import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.awt.geom.Point2D;
+import java.util.Arrays;
 
 // SwerveModule defines one corner of a swerve drive
 // Two motor controllers are defined, drive and steer
@@ -19,7 +20,7 @@ public class SwerveModule {
 	private BaseMotorController steer;
 	
 	private PidParameters drivePid;
-	private PidParameters steerPid;
+//	private PidParameters steerPid;
 
 	private Point2D location;
 
@@ -49,7 +50,8 @@ public class SwerveModule {
 	public SwerveModule(BaseMotorController drive, BaseMotorController steer,
 			PidParameters drivePid, PidParameters steerPid,
 			Point2D location,
-			int id, int offset) {
+			int id, int offset,
+			PidHandler pidHandler) {
 		
 		this.drive = drive;
 		this.steer = steer;
@@ -69,7 +71,8 @@ public class SwerveModule {
 		this.UpdateDrivePid(drivePid);
 		
 		// Set the steer PID parameters
-		this.UpdateSteerPid(steerPid);
+//		this.UpdateSteerPid(steerPid);
+		pidHandler.addPid(new PidHandler.PidDashObject(steerPid, Arrays.asList(steer), "swerve: " + ID + " steer"));
 	}
 
 	public Point2D getLocation(){ return this.location; }
@@ -131,7 +134,7 @@ public class SwerveModule {
 		int targetEncoderCounts = (int) (actualPosition * encoderCounts);
 
 		// Find the fastest path from the current position to the new position
-		final int currentEncoderCount = steer.getSelectedSensorPosition(steerPid.pidIdx);
+		final int currentEncoderCount = steer.getSelectedSensorPosition(Constants.PidIdx);
 		// Add rotation offset factoring in the number of rotations (either positive or negative)
 		if(this.canUseQuickReverse()){
 			final double halfRotationCounts = encoderCounts / 2;
@@ -158,7 +161,7 @@ public class SwerveModule {
 	public double getSensorPositionDegrees(){
 		int encoderCounts = getUsedEncoderCounts();
 
-		int position = steer.getSelectedSensorPosition(steerPid.pidIdx);
+		int position = steer.getSelectedSensorPosition(Constants.PidIdx);
 		position %= encoderCounts;
 		position = position < 0 ? position + encoderCounts : position;
 
@@ -204,12 +207,12 @@ public class SwerveModule {
 		
 		drivePid.apply(drive);
 	}
-	
-	private void UpdateSteerPid(PidParameters pid) {
-		this.steerPid = pid;
-		
-		steerPid.apply(steer);
-	}
+//
+//	private void UpdateSteerPid(PidParameters pid) {
+//		this.steerPid = pid;
+//
+//		steerPid.apply(steer);
+//	}
 
 	/**
 	 * Switches to quad encoder and uses the current position as 0 (origin) meaning that when this is called,

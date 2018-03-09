@@ -7,7 +7,7 @@ import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
 
 public class LiftController extends RobotControllerProcess {
 
-	private static final double ALLOWED_DEADBAND_FOR_SUCCESS = 0.07; // 7%
+	private static final double ALLOWED_DEADBAND_FOR_SUCCESS = 0.20; // 7%
 
 	private Double mainStagePosition;
 	private Double secondStagePosition;

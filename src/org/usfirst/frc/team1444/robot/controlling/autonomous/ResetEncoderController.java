@@ -12,8 +12,8 @@ import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
  */
 public class ResetEncoderController extends RobotControllerProcess {
 
-	private static final double ALLOWED_DEGREES_FOR_ZERO = 4.0; // can be within -x and x including -x and x
-	private static final long TIME_OUT_AFTER = 3000;
+	private static final double ALLOWED_DEGREES_FOR_ZERO = 5.0; // can be within -x and x including -x and x
+	private static final long TIME_OUT_AFTER = 2500;
 	private static final long WAIT_AFTER_LAST = 100;
 
 	private Long timeOutAt = null; // initialized on first call to update

@@ -9,7 +9,7 @@ public class TurnToHeading extends RobotControllerProcess {
 
 	private static final double ALLOWED_DEADBAND_FOR_SUCCESS = 5; // if 3, then 6 degrees total allowed
 	private static final double MAX_SPEED = .3;
-	private static final double MIN_SPEED = .08;
+	private static final double MIN_SPEED = .13;
 
 	private boolean done = false;
 	private double rotation; // desired rotation of robot in degrees (0 - 360)
@@ -31,9 +31,7 @@ public class TurnToHeading extends RobotControllerProcess {
 	@Override
 	public void update(Robot robot) {
 		SwerveDrive drive = robot.getDrive();
-		double currentRotation = -robot.getGyro().getAngle() + 90;
-		currentRotation %= 360;
-		currentRotation = currentRotation < 0 ? currentRotation + 360 : currentRotation;
+		double currentRotation = robot.getRobotHeadingDegrees();
 		debugGyroAngle = (int) currentRotation;
 
 
@@ -59,7 +57,7 @@ public class TurnToHeading extends RobotControllerProcess {
 		}
 		double speed = MAX_SPEED;
 		if(absDegreesAway < 30){
-			speed *= absDegreesAway / 40;
+			speed *= absDegreesAway / 30;
 		}
 		if(speed < MIN_SPEED){
 			speed = MIN_SPEED;

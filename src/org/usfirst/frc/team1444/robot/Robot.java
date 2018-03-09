@@ -18,10 +18,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.BNO055.IMUMode;
 import org.usfirst.frc.team1444.robot.LEDHandler.LEDMode;
 import org.usfirst.frc.team1444.robot.controlling.*;
-import org.usfirst.frc.team1444.robot.controlling.autonomous.AutonomousController;
-import org.usfirst.frc.team1444.robot.controlling.autonomous.ResetEncoderController;
-import org.usfirst.frc.team1444.robot.controlling.autonomous.TurnToHeading;
-import org.usfirst.frc.team1444.robot.controlling.autonomous.WaitProcess;
+import org.usfirst.frc.team1444.robot.controlling.autonomous.*;
 import org.usfirst.frc.team1444.robot.controlling.input.ControllerInput;
 import org.usfirst.frc.team1444.robot.controlling.input.JoystickInput;
 import org.usfirst.frc.team1444.robot.controlling.input.LogitechExtremeJoystickInput;
@@ -35,9 +32,6 @@ import org.usfirst.frc.team1444.robot.controlling.input.PS4Controller;
  * project.
  */
 public class Robot extends IterativeRobot {
-
-	// if false, then whenever we enable, we will reset the gyro. if true, gyro is good until we disable
-	private static final String IS_GYRO_RESET_KEY = "Is Gyro Reset"; // will appear on SmartDashboard
 
 	private final double frameWidth = 28.0;
 	private final double frameDepth = 33.0;
@@ -60,8 +54,6 @@ public class Robot extends IterativeRobot {
 
 	private RobotController robotController;  // use ***Init to change this to something that fits that mode
 
-//	private boolean isGyroReset = false; // should only be used in checkGyro()
-
 
 	public Robot(){ // use the constructor for specific things, otherwise, use robotInit()
 		super();
@@ -81,13 +73,11 @@ public class Robot extends IterativeRobot {
 			e.printStackTrace();
 			System.err.println("Unable to start camera server.");
 		}
-		//gyro = new ADXRS450_Gyro(Port.kOnboardCS0);
-		//gyro.calibrate();
 
 		BNO055 IMU = new BNO055();
 		IMU.SetMode(IMUMode.NDOF);
-
 		this.gyro = IMU;
+
 //		this.gyro = FakeGyro.getInstance();
 
 		try {
@@ -104,12 +94,12 @@ public class Robot extends IterativeRobot {
 		drivePid.closedRampRate = .25;
 
 		PidParameters steerPid = new PidParameters();
-		steerPid.KP = 8;
-		steerPid.KI = 0.008;
+		steerPid.KP = 12;
+		steerPid.KI = 0.03;
 		
 		final int flOffset = 515;
 		final int frOffset = 703;
-		final int rlOffset = 777;
+		final int rlOffset = 770;
 		final int rrOffset = 604;
 		
 		// Initialize the drive by passing in new TalonSRXs for each drive and steer motor
@@ -118,7 +108,8 @@ public class Robot extends IterativeRobot {
 				new TalonSRX(Constants.FrontRightDriveId), new TalonSRX(Constants.FrontRightSteerId),
 				new TalonSRX(Constants.RearLeftDriveId), new TalonSRX(Constants.RearLeftSteerId),
 				new TalonSRX(Constants.RearRightDriveId), new TalonSRX(Constants.RearRightSteerId),
-				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset, 27.375, 22.25);
+				drivePid, steerPid, flOffset, frOffset, rlOffset, rrOffset, 27.375, 22.25,
+				this.pidHandler);
 
 		this.intake = new Intake(new TalonSRX(Constants.IntakeLeftId), new TalonSRX(Constants.IntakeRightId));
 
@@ -171,9 +162,9 @@ public class Robot extends IterativeRobot {
 	 *
 	 * @return the gyro this robot uses.
 	 */
-	public Gyro getGyro(){
-		return this.gyro;
-	}
+//	public Gyro getGyro(){
+//		return this.gyro;
+//	}
 	public Intake getIntake(){
 		return intake;
 	}
@@ -197,7 +188,7 @@ public class Robot extends IterativeRobot {
 		lift.update();
 		lift.debug();
 		pidHandler.update();
-		this.checkGyro();
+//		this.checkGyro();
 
 		if(ledHandler != null) {
 			//SmartDashboard.putBoolean("LED working:", true);
@@ -242,12 +233,14 @@ public class Robot extends IterativeRobot {
 			}
 		}
 		
-		SmartDashboard.putNumber("Gyro", gyro.getAngle());
+		SmartDashboard.putNumber("Gyro", getGyroAngle());
 	}
 
 	@Override
 	public void autonomousInit() {
+		System.out.println("going into auton");
 		setRobotController(new ResetEncoderController(new WaitProcess(200, new AutonomousController()))); // auton
+		this.resetGyro();
 //		setRobotController(new ResetEncoderController(null)); // no auton
 	}
 
@@ -260,6 +253,7 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void teleopInit() {
+		System.out.println("going into teleop");
 		driveInput = new PS4Controller(Constants.JoystickPortNumber);
 		manipulatorInput = new LogitechExtremeJoystickInput(Constants.CubeJoystickPortNumber);
 		setRobotController(new ResetEncoderController(new TeleopController(driveInput, manipulatorInput)));
@@ -275,6 +269,7 @@ public class Robot extends IterativeRobot {
 
 	@Override
 	public void testInit() {
+		System.out.println("going into test");
 		setRobotController(new ResetEncoderController(new TurnToHeading(0)));
 		ledHandler.setMode(LEDMode.RSL_LIGHT);
 //		this.robot_state = Robot_State.TEST;
@@ -287,27 +282,29 @@ public class Robot extends IterativeRobot {
 	public void testPeriodic() {
 	}
 
-	// region Reset Gyro Code
-	private boolean isGyroReset(){
-		return SmartDashboard.getBoolean(IS_GYRO_RESET_KEY, false);
-	}
-	private void setGyroReset(boolean b){
-		SmartDashboard.putBoolean(IS_GYRO_RESET_KEY, b);
-	}
-	/**
-	 * Resets the gyro if necessary
-	 */
-	private void checkGyro(){
-		if(isDisabled()){
-			setGyroReset(false);
-			return;
-		}
-		if(isGyroReset()){
-			return;
-		}
-		setGyroReset(true);
+	public void resetGyro(){
 		this.gyro.reset();
+		System.out.print("RESETTING GYRO");
 	}
-	// endregion
+
+	/**
+	 * @return the amount to add to the desired drive angle. Not the same as getRobotHeadingDegrees
+	 */
+	public double getGyroAngle(){
+		return this.gyro.getAngle();
+	}
+
+	/**
+	 * @return the direction the robot is facing. 90 degrees is forward
+	 */
+	public double getRobotHeadingDegrees(){
+		double angle = getGyroAngle();
+		double r= -angle + 90;
+		r %= 360;
+		if(r < 0){
+			r += 360;
+		}
+		return r;
+	}
 
 }

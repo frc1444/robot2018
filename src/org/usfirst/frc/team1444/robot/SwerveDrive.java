@@ -2,6 +2,7 @@ package org.usfirst.frc.team1444.robot;
 
 import com.ctre.phoenix.motorcontrol.can.BaseMotorController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import org.omg.IOP.ProfileIdHelper;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -40,15 +41,16 @@ public class SwerveDrive {
 	                   BaseMotorController rrDrive, BaseMotorController rrSteer,
 	                   PidParameters drivePid, PidParameters steerPid,
 	                   int flOffset, int frOffset, int rlOffset, int rrOffset,
-	                   double wheelBase, double trackWidth) {
+	                   double wheelBase, double trackWidth,
+	                   PidHandler pidHandler) {
 
 		double x = trackWidth / 2; // notice uses trackWidth
 		double y = wheelBase / 2;
 		moduleArray = new SwerveModule[]{
-				new SwerveModule(flDrive, flSteer, drivePid, steerPid, new Point2D.Double(-x, y), 0, flOffset),
-				new SwerveModule(frDrive, frSteer, drivePid, steerPid, new Point2D.Double(x, y), 1, frOffset),
-				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, new Point2D.Double(-x,-y), 2, rlOffset),
-				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, new Point2D.Double(x, -y), 3, rrOffset)
+				new SwerveModule(flDrive, flSteer, drivePid, steerPid, new Point2D.Double(-x, y), 0, flOffset, pidHandler),
+				new SwerveModule(frDrive, frSteer, drivePid, steerPid, new Point2D.Double(x, y), 1, frOffset, pidHandler),
+				new SwerveModule(rlDrive, rlSteer, drivePid, steerPid, new Point2D.Double(-x,-y), 2, rlOffset, pidHandler),
+				new SwerveModule(rrDrive, rrSteer, drivePid, steerPid, new Point2D.Double(x, -y), 3, rrOffset, pidHandler)
 		};
 
 		this.origin = new Point2D.Double(0, 0);
@@ -57,7 +59,7 @@ public class SwerveDrive {
 		robotDiagonal = Math.hypot(wheelBase, trackWidth);
 		this.cosA = wheelBase / robotDiagonal;
 		this.sinA = trackWidth / robotDiagonal;
-		
+
 	}
 
 	public SwerveModule getFrontLeft() {

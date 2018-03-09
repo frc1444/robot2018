@@ -43,7 +43,7 @@ public class SwerveController implements RobotController {
 	@Override
 	public void update(Robot robot) {
 		SwerveDrive swerveDrive = robot.getDrive();
-		double gyro = robot.getGyro().getAngle();
+		double gyro = robot.getGyroAngle();
 
 //		this.onDrive(swerveDrive);
 		if(controller.rightThumbTop()){
