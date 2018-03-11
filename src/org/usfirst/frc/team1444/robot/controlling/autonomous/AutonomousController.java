@@ -11,16 +11,19 @@ import org.usfirst.frc.team1444.robot.controlling.RobotControllerProcess;
 public class AutonomousController implements RobotController {
 	private static final double SPEED = .5; // TODO test this. Originally it was .3
 	private static SendableChooser<AutoMode> modeChooser = null;
+	private static SendableChooser<Boolean> safeChooser = null; // by default false
+
+	private static final String DELAY_KEY = "wait time (s)";
 
 	private boolean isInitialized = false;
 	private RobotController currentController = null; // will be null when we have got to the right place
 
 	public AutonomousController(){
 		super();
-		initModeChooser();
+		initChoosers();
 	}
-	public static void initModeChooser(){
-		if(modeChooser != null){
+	public static void initChoosers(){
+		if(modeChooser != null && safeChooser != null){
 			return;
 		}
 		modeChooser = new SendableChooser<>();
@@ -34,19 +37,24 @@ public class AutonomousController implements RobotController {
 			modeChooser.addObject(mode.name, mode);
 		}
 		SmartDashboard.putData("auto modes:", modeChooser);
+
+		safeChooser = new SendableChooser<>();
+		safeChooser.addDefault("Not safe auton (normal)", false);
+		safeChooser.addObject("safe auton (no cross over)", true);
+		SmartDashboard.putData("is safe auton", safeChooser);
+
+		if(!SmartDashboard.containsKey(DELAY_KEY)){
+			SmartDashboard.putNumber(DELAY_KEY, 0);
+		}
 	}
 
 
 	private void initDesiredAuto(Robot robot){
-//		GameData data = robot.getGameData();
-//		SmartDashboard.putBoolean("Is data accurate:", data.isAccurate());
 
 		SmartDashboard.putString("for auto:", robot.getGameData().toString());
 		AutoMode mode = modeChooser.getSelected();
+		System.out.println("initting auto mode: " + mode.toString());
 		switch(mode){
-//			case SMART_LEFT: case SMART_RIGHT:
-//				this.initSideAutonomous(robot, mode);
-//				break;
 			case CENTER_ORIGINAL:
 				this.initOriginalMiddleAutonomous(robot);
 				break;
@@ -63,6 +71,12 @@ public class AutonomousController implements RobotController {
 					System.err.println("We won't do anything in auto mode: " + mode);
 				}
 				break;
+		}
+		// hyjack whatever desired auto was
+		long delayMillis = (long) (SmartDashboard.getNumber(DELAY_KEY, 0) * 1000.0);
+		System.out.println("Delay millis: " + delayMillis);
+		if(delayMillis > 0){
+			this.currentController = new WaitProcess(delayMillis, this.currentController);
 		}
 	}
 
@@ -133,6 +147,7 @@ public class AutonomousController implements RobotController {
 		boolean startingLeft = mode.position;
 
 		final GameData data = robot.getGameData();
+		final boolean isSafe = safeChooser.getSelected();
 
 		RobotControllerProcess.Builder builder = new RobotControllerProcess.Builder();
 
@@ -140,7 +155,7 @@ public class AutonomousController implements RobotController {
 		final double OUT_ANGLE = startingLeft ? 180 : 0; // the angle to go closer to wall
 		final TimedIntake spitOut = new TimedIntake(800, 1);
 
-		final double driveSwitchAngle = 80; // estimated
+		final double driveSwitchAngle = 85; // estimated
 		DistanceDrive driveSideSwitch = new DistanceDrive(185 - robot.getDepth(false), // measured
 				startingLeft ? 180 - driveSwitchAngle : driveSwitchAngle, true, SPEED);
 		builder.append(driveSideSwitch);
@@ -167,46 +182,56 @@ public class AutonomousController implements RobotController {
 			builder.append(new DistanceDrive(65, 90, true, .7)); // move past switch so we're in between the scale and the back of the switch
 
 			if(mode.onlySwitch){
-				// go for far switch
-				builder.append(new DistanceDrive(227 - robot.getWidth(), IN_ANGLE, true, SPEED));
-				// TODO because we came off drive station wall at angle, may need to go more than 227 - width
-				builder.append(new MultiController(
-						new TurnToHeading(-90),
-						new LiftController(Lift.Position.SWITCH)
-				));
-				builder.append(new DistanceDrive(15, -90, true, SPEED * (2.0 / 3.0))); // estimated
-				builder.append(spitOut);
-				builder.append(new DistanceDrive(15, 90, true, .3));
-//				builder.append(new LiftController(Lift.Position.MIN));
+				if(!isSafe) {
+					boolean isSwitchLeft = !startingLeft;
+					// go for far switch
+					builder.append(new DistanceDrive(264 - robot.getWidth(), IN_ANGLE, true, SPEED));
+
+					builder.append(new MultiController(
+							new DistanceDrive(70, -90, true, .4),
+							new LiftController(Lift.Position.SWITCH)
+					));
+					builder.append(new TurnToHeading(isSwitchLeft ? 0 : 180));
+					builder.append(new TimedIntake(1000, 1));
+				}
 			} else {
 				// go for the scale
 				final boolean isScaleLeft = data.isScaleLeft();
 
-				if (startingLeft != isScaleLeft) { // is scale on the other side?
-					// drive between scale and home switch to get to our side of scale
-					builder.append(new DistanceDrive(200 - robot.getWidth() + 20, IN_ANGLE, true, .7)); // estimated
-					builder.append(new DistanceDrive(64, IN_ANGLE, true, SPEED)); // don't do full speed the whole time
-					// TODO because we came off the driver station wall at an angle, we may need to go more than 264 - width
-					builder.append(new DistanceDrive(10, OUT_ANGLE, true, SPEED)); // we're probably on the wall, so move in a little
+				final boolean isFar = startingLeft != isScaleLeft;
+
+				if(!isFar || !isSafe) {
+					if (isFar) { // is scale on the other side?
+						// drive between scale and home switch to get to our side of scale
+						builder.append(new DistanceDrive(200 - robot.getWidth(), IN_ANGLE, true, .7)); // estimated
+						builder.append(new DistanceDrive(64 + 20, IN_ANGLE, true, SPEED)); // don't do full speed the whole time
+						// TODO because we came off the driver station wall at an angle, we may need to go more than 264 - width
+						builder.append(new DistanceDrive(10, OUT_ANGLE, true, SPEED)); // we're probably on the wall, so move in a little
+					}
+					// Our position is now isScaleLeft NOT startingPosition
+					builder.append(new DistanceDrive(45 + robot.getDepth(false), 90, true, SPEED)); // measured
+//					if(!isFar){
+//						builder.append(new DistanceDrive(10, OUT_ANGLE, true, .3)); // just make sure we aren't under scale
+//					}
+					// now we are between the wall and the scale
+
+					final double scaleAngle = isScaleLeft ? 0 : 180;
+//					builder.append(new MultiController(
+//							new LiftController(Lift.Position.SCALE_MAX), // raise
+//							new TurnToHeading(scaleAngle) // turn
+//					));
+					builder.append(new TurnToHeading(scaleAngle));
+					builder.append(new LiftController(Lift.Position.SCALE_MAX));
+
+					// drive a little bit closer to the scale
+					builder.append(new DistanceDrive(10, scaleAngle, true, .2)); // estimated
+					builder.append(spitOut); // spit out
+					// once we have got the cube in the scale, we can tell what side we are on based on data.isScaleLeft()
+					builder.append(new DistanceDrive(15, scaleAngle + 180, true, .2));
+//				    builder.append(new LiftController(Lift.Position.MIN));
+				} else {
+					System.out.println("We must be using a safe auton mode. We will not cross over. isSafe: " + isSafe);
 				}
-				// Our position is now isScaleLeft NOT startingPosition
-				builder.append(new DistanceDrive(45 + robot.getDepth(false), 90, true, SPEED)); // measured
-				// now we are between the wall and the scale
-
-				final double scaleAngle = isScaleLeft ? 0 : 180;
-//				builder.append(new MultiController(
-//						new LiftController(Lift.Position.SCALE_MAX), // raise
-//						new TurnToHeading(scaleAngle) // turn
-//				));
-				builder.append(new TurnToHeading(scaleAngle));
-				builder.append(new LiftController(Lift.Position.SCALE_MAX));
-
-				// drive a little bit closer to the scale
-				builder.append(new DistanceDrive(10, scaleAngle, true, .2)); // estimated
-				builder.append(spitOut); // spit out
-				// once we have got the cube in the scale, we can tell what side we are on based on data.isScaleLeft()
-				builder.append(new DistanceDrive(15, scaleAngle + 180, true, .2));
-//				builder.append(new LiftController(Lift.Position.MIN));
 			}
 		}
 		// note that after afterPossibleScore, the robot may be turned different depending on which clause above executed
@@ -216,28 +241,6 @@ public class AutonomousController implements RobotController {
 		this.currentController = builder.build();
 	}
 
-//	/**
-//	 * This can be used if we are starting with the cube with the intake up (folded in)
-//	 * <p>
-//	 * Sets this.currentController to a controller that will make the robotStart doing something to make sure the
-//	 * intake comes down the right way and to make sure it stays in
-//	 * <p>
-//	 * After calling this method, it is recommended that you call setNextController on the returned value, and pass a
-//	 * IntakeDrive just to make sure it is in
-//	 * @return The controller that you should call setNextController on
-//	 */
-//	@Deprecated
-//	private RobotControllerProcess initStartingIntakeController(){
-//		LiftController up = new LiftController(0.0, .3);
-//
-//		LiftController down = new LiftController(0.0, 0.0);
-//
-//		TimedIntake shortIntake = new TimedIntake(350, -.5);
-//
-//		this.currentController = up;
-//		return up.setNextController(down)
-//				.setNextController(shortIntake);
-//	}
 
 	// endregion ========= End Auto Modes =========
 
@@ -288,6 +291,7 @@ public class AutonomousController implements RobotController {
 
 		private final boolean onlySwitch;
 		private final boolean onlyScale;
+
 
 		AutoMode(String name){
 			this(name, null);

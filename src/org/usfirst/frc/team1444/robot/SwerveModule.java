@@ -72,7 +72,6 @@ public class SwerveModule {
 		
 		// Set the steer PID parameters
 //		this.UpdateSteerPid(steerPid);
-		pidHandler.addPid(new PidHandler.PidDashObject(steerPid, Arrays.asList(steer), "swerve: " + ID + " steer"));
 	}
 
 	public Point2D getLocation(){ return this.location; }

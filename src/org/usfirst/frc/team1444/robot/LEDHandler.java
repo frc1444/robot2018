@@ -38,6 +38,9 @@ public class LEDHandler implements RobotController { // even though it implement
 		}
 		this.mode = mode;
 	}
+	public LEDMode getMode(){
+		return mode;
+	}
 
 	@Override
 	public void update(Robot robot) {
@@ -176,7 +179,7 @@ public class LEDHandler implements RobotController { // even though it implement
 				b = 0;
 				break;
 		}
-		final double roundTo = 5;
+		final double roundTo = 1;
 		Color color = new Color((int) (Math.round(r / roundTo) * roundTo),
 				(int) (Math.round(g / roundTo) * roundTo),
 				(int) (Math.round(b / roundTo) * roundTo));

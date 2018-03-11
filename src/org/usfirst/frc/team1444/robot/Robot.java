@@ -97,7 +97,7 @@ public class Robot extends IterativeRobot {
 		steerPid.KP = 12;
 		steerPid.KI = 0.03;
 		
-		final int flOffset = 515;
+		final int flOffset = 138;
 		final int frOffset = 703;
 		final int rlOffset = 770;
 		final int rrOffset = 604;
@@ -121,7 +121,7 @@ public class Robot extends IterativeRobot {
 
 		this.setRobotController(null);
 
-		AutonomousController.initModeChooser();
+		AutonomousController.initChoosers();
 		
 	}
 
@@ -198,10 +198,10 @@ public class Robot extends IterativeRobot {
 				ledHandler.setMode(LEDMode.TEAM_RAINBOW);
 				//<-- Maybe we should make a TEAM_COLOR mode that does a rainbow-like fade through blue/redish colors...
 				//    say no more ^
-			} else if(DriverStation.getInstance().getMatchTime() < 16.0) {
+			} else if(DriverStation.getInstance().getMatchTime() < 16.0 && DriverStation.getInstance().isFMSAttached()) {
 				//MODE WHEN IN FINAL COUNTDOWN (TELEOP OR AUTO)
 				ledHandler.setMode(LEDMode.COUNTDOWN);
-			} else if (isOperatorControl() && this.robotController instanceof TeleopController) {
+			} else if (this.robotController instanceof TeleopController) {
 				//MODES WHEN IN TELEOP
 				TeleopController controller = (TeleopController) this.robotController;
 				
@@ -217,10 +217,11 @@ public class Robot extends IterativeRobot {
 				//DEFAULT MODE
 				ledHandler.setMode(LEDMode.TEAM_COLOR);
 			}
+			SmartDashboard.putString("LEDMode is", ledHandler.getMode().toString());
 			
 			try {
 				this.ledHandler.update(this);
-			} catch (NullPointerException ex) {
+			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
 		}
@@ -284,7 +285,7 @@ public class Robot extends IterativeRobot {
 
 	public void resetGyro(){
 		this.gyro.reset();
-		System.out.print("RESETTING GYRO");
+		System.out.println("RESETTING GYRO");
 	}
 
 	/**

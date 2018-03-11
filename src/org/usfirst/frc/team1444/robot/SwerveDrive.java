@@ -6,6 +6,7 @@ import org.omg.IOP.ProfileIdHelper;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.util.Arrays;
 
 
 // SwerveDrive defines the drive for the entire robot
@@ -59,6 +60,8 @@ public class SwerveDrive {
 		robotDiagonal = Math.hypot(wheelBase, trackWidth);
 		this.cosA = wheelBase / robotDiagonal;
 		this.sinA = trackWidth / robotDiagonal;
+
+		pidHandler.addPid(new PidHandler.PidDashObject(steerPid, Arrays.asList(flSteer, frSteer, rlSteer, rrSteer), "steer PIDs"));
 
 	}
 
