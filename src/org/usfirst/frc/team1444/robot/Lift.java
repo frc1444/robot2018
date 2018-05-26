@@ -6,17 +6,17 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Lift {
-	private static final boolean USE_SPEED_SET = true;
-	private static final double MAX_POSITION_INCREMENT = .075;
 
 	private static final int MAIN_STAGE_ENCODER_COUNTS = 29600; // 29600
 	private static final int SECOND_STAGE_ENCODER_COUNTS = 22600;
 
-	private static final double SAFETY_SPEED = .2;
 
 	private BaseMotorController mainStageMaster;
 
 	private BaseMotorController secondStageMotor;
+
+	// we need these so in auton mode it doesn't keep going up after we reached the deadzone and stopped calling the methods
+	private Double mainStagePosition = null; // a number from 0 to 1 or null if we aren't in position mode
 
 //	private PidParameters mainPid;
 //	private PidParameters secondPid;
@@ -39,7 +39,6 @@ public class Lift {
 		mainStageMaster.configForwardSoftLimitThreshold(MAIN_STAGE_ENCODER_COUNTS, Constants.TimeoutMs);
 		mainStageMaster.configForwardSoftLimitEnable(true, Constants.TimeoutMs);
 		mainStageMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, Constants.PidIdx, Constants.TimeoutMs);
-		mainStageMaster.setInverted(true); // Needs to be inverted
 		mainStageMaster.setSensorPhase(true);
 		mainStageMaster.setNeutralMode(NeutralMode.Brake);
 
@@ -73,6 +72,7 @@ public class Lift {
 		if(secondStageMotor.getSensorCollection().isRevLimitSwitchClosed()){
 			secondStageMotor.setSelectedSensorPosition(0, Constants.PidIdx, Constants.TimeoutMs);
 		}
+		updateMainStagePosition(); // since we have our own custom position setter thingy
 	}
 
 	// region ========= stage positions ===========
@@ -80,19 +80,26 @@ public class Lift {
 	 * Move the boom to a desired position - wraps the veolicty control from below
 	 * @param position desired position of main stage (0 - full down, 1 - full up)
 	 */
-	public void setMainStagePosition(double position){	
+	public void setMainStagePosition(double position){
+		this.mainStagePosition = position;
 		
+		this.updateMainStagePosition();
+	}
+	private void updateMainStagePosition(){
+		if(this.mainStagePosition == null){
+			return;
+		}
+
 		// Set position using simple proportional control
 		double currentPosition = getMainStagePosition();
-		double error = position - currentPosition;
-		
+		double error = this.mainStagePosition - currentPosition;
+
 		// "Five sound good?" "Yeah, that should work..." - Mike and Aaron
 		double KP = 5;
-		
+
 		double setPoint = error * KP;
-		
-		this.setMainStageSpeed(setPoint);
-		
+
+		this.setMainStageSpeed(setPoint, false);
 	}
 
 	/**
@@ -130,7 +137,10 @@ public class Lift {
 	 * Sets the speed of the main lift stage using velocity control
 	 * @param speed Desired speed of the main stage. (-1 to 1) - positive raises lift
 	 */
-	public void setMainStageSpeed(double speed){
+	private void setMainStageSpeed(double speed, boolean exitPositionMode){
+		if(exitPositionMode){
+			this.mainStagePosition = null;
+		}
 		double position = getMainStagePosition(); // a value from 0 to 1
 
 		double targetSpeed = (speed * Constants.LiftMainStageEncoderCountsPerRev * Constants.MaxCimRpm)
@@ -149,6 +159,9 @@ public class Lift {
 		this.mainStageMaster.set(ControlMode.Velocity, targetSpeed);
 
 		SmartDashboard.putNumber("main speed", targetSpeed);
+	}
+	public void setMainStageSpeed(double speed){
+		this.setMainStageSpeed(speed, true);
 	}
 	
 	/**

@@ -11,6 +11,7 @@ public class DistanceDrive extends RobotControllerProcess {
 	private final double heading; // in degrees
 	private final boolean makeRelativeToGyro;
 	private final double percentSpeed;
+	private final Double desiredRobotRotation;
 
 	private Double startingDistance = null; // initialized on first call to update
 	private boolean done = false;
@@ -23,11 +24,18 @@ public class DistanceDrive extends RobotControllerProcess {
 	 *                           alone when passed to SwerveDrive)
 	 * @param percentSpeed The percent speed of the wheels
 	 */
-	public DistanceDrive(double distanceInInches, double headingInDegrees, boolean makeRelativeToGyro, double percentSpeed){
+	public DistanceDrive(double distanceInInches, double headingInDegrees, boolean makeRelativeToGyro, double percentSpeed, Double desiredRobotRotation){
 		this.distance = distanceInInches;
 		this.heading = headingInDegrees;
 		this.makeRelativeToGyro = makeRelativeToGyro;
 		this.percentSpeed = percentSpeed;
+
+		desiredRobotRotation %= 360;
+		desiredRobotRotation = desiredRobotRotation < 0 ? desiredRobotRotation + 360 : desiredRobotRotation;
+		this.desiredRobotRotation = desiredRobotRotation;
+	}
+	public DistanceDrive(double distanceInInches, double headingInDegrees, boolean makeRelativeToGyro, double percentSpeed){
+		this(distanceInInches, headingInDegrees, makeRelativeToGyro, percentSpeed, null);
 	}
 
 
@@ -48,7 +56,19 @@ public class DistanceDrive extends RobotControllerProcess {
 			if(makeRelativeToGyro){
 				heading += robot.getGyroAngle();
 			}
-			drive.update(percentSpeed, heading, 0, null);
+			double turnAmount = 0;
+			if(desiredRobotRotation != null){
+				double degreesAway = desiredRobotRotation - robot.getGyroAngle(); // if we want to turn left, this will be positive
+				if(degreesAway > 180){
+					degreesAway -= 360;
+				} else if (degreesAway < -180){
+					degreesAway += 360;
+				}
+				turnAmount = degreesAway / 360.0; // can only be -.5 to .5
+				turnAmount *= -1; // now if we want to turn left, this will be negative
+				turnAmount = Math.max(-1, Math.min(1, turnAmount)); // if we ever decide to change the "/ 360", we need to stay in range
+			}
+			drive.update(percentSpeed, heading, turnAmount, null);
 		}
 
 	}

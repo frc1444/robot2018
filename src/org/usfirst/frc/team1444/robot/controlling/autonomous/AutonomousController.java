@@ -115,7 +115,7 @@ public class AutonomousController implements RobotController {
 		System.out.println("improved auton.");
 		final GameData data = robot.getGameData();
 		final double angle = 63.0;
-		DistanceDrive longDrive = new DistanceDrive(125, data.isHomeSwitchLeft() ? 180 - angle : angle, true, SPEED);
+		DistanceDrive longDrive = new DistanceDrive(125, data.isHomeSwitchLeft() ? 180 - angle : angle, true, SPEED, 90.0);
 		LiftController raiseLift = new LiftController(Lift.Position.SWITCH);
 //		MultiController driveAndLift = new MultiController(longDrive, raiseLift);
 
@@ -124,10 +124,10 @@ public class AutonomousController implements RobotController {
 		// link controllers
 //		this.initStartingIntakeController()
 //				.setNextController(longDrive)
-		this.currentController = longDrive;
-		longDrive
+		MultiController driveAndLift = new MultiController(longDrive, raiseLift);
+		this.currentController = driveAndLift;
+		driveAndLift
 //				.setNextController(new WaitProcess(300, null)) // nextController will be below
-				.setNextController(raiseLift)
 				.setNextController(shortDrive)
 				.setNextController(new TimedIntake(1000, 1));
 	}
@@ -155,9 +155,8 @@ public class AutonomousController implements RobotController {
 		final double OUT_ANGLE = startingLeft ? 180 : 0; // the angle to go closer to wall
 		final TimedIntake spitOut = new TimedIntake(800, 1);
 
-		final double driveSwitchAngle = 85; // estimated
 		DistanceDrive driveSideSwitch = new DistanceDrive(185 - robot.getDepth(false), // measured
-				startingLeft ? 180 - driveSwitchAngle : driveSwitchAngle, true, SPEED);
+				90, true, SPEED, 90.0);
 		builder.append(driveSideSwitch);
 
 		// now the robot is between the wall and the side of switch. It's bumper should not be past the back of the home switch
@@ -172,14 +171,14 @@ public class AutonomousController implements RobotController {
 			));
 
 			final double distanceToSwitch = 30;
-			builder.append(new DistanceDrive(distanceToSwitch + 15, IN_ANGLE, true, SPEED)); // drive to switch
+			builder.append(new DistanceDrive(distanceToSwitch + 15, IN_ANGLE, true, SPEED, IN_ANGLE)); // drive to switch
 
 			builder.append(spitOut); // spit out
 
 			final double distanceToMoveAway = 15;
 			builder.append(new DistanceDrive(distanceToMoveAway, OUT_ANGLE, true, SPEED)); // get away from side of switch
 		} else {
-			builder.append(new DistanceDrive(65, 90, true, .7)); // move past switch so we're in between the scale and the back of the switch
+			builder.append(new DistanceDrive(60, 90, true, .7)); // move past switch so we're in between the scale and the back of the switch
 
 			if(mode.onlySwitch){
 				if(!isSafe) {
@@ -188,7 +187,7 @@ public class AutonomousController implements RobotController {
 					builder.append(new DistanceDrive(264 - robot.getWidth(), IN_ANGLE, true, SPEED));
 
 					builder.append(new MultiController(
-							new DistanceDrive(70, -90, true, .4),
+							new DistanceDrive(75, -90, true, .4),
 							new LiftController(Lift.Position.SWITCH)
 					));
 					builder.append(new TurnToHeading(isSwitchLeft ? 0 : 180));
@@ -203,13 +202,13 @@ public class AutonomousController implements RobotController {
 				if(!isFar || !isSafe) {
 					if (isFar) { // is scale on the other side?
 						// drive between scale and home switch to get to our side of scale
-						builder.append(new DistanceDrive(200 - robot.getWidth(), IN_ANGLE, true, .7)); // estimated
-						builder.append(new DistanceDrive(64 + 20, IN_ANGLE, true, SPEED)); // don't do full speed the whole time
-						// TODO because we came off the driver station wall at an angle, we may need to go more than 264 - width
-						builder.append(new DistanceDrive(10, OUT_ANGLE, true, SPEED)); // we're probably on the wall, so move in a little
+						builder.append(new DistanceDrive(200 - robot.getWidth(), IN_ANGLE, true, .7, 90.0)); // estimated
+						builder.append(new DistanceDrive(64 + 10, IN_ANGLE, true, SPEED, 90.0)); // don't do full speed the whole time
+						// + 10 above just to be save
+//						builder.append(new DistanceDrive(10, OUT_ANGLE, true, SPEED)); // we're probably on the wall, so move in a little
 					}
 					// Our position is now isScaleLeft NOT startingPosition
-					builder.append(new DistanceDrive(45 + robot.getDepth(false), 90, true, SPEED)); // measured
+					builder.append(new DistanceDrive(50 + robot.getDepth(false), 90, true, SPEED, 90.0)); // measured
 //					if(!isFar){
 //						builder.append(new DistanceDrive(10, OUT_ANGLE, true, .3)); // just make sure we aren't under scale
 //					}
@@ -224,10 +223,10 @@ public class AutonomousController implements RobotController {
 					builder.append(new LiftController(Lift.Position.SCALE_MAX));
 
 					// drive a little bit closer to the scale
-					builder.append(new DistanceDrive(10, scaleAngle, true, .2)); // estimated
+					builder.append(new DistanceDrive(10, scaleAngle, true, .2, scaleAngle)); // estimated
 					builder.append(spitOut); // spit out
 					// once we have got the cube in the scale, we can tell what side we are on based on data.isScaleLeft()
-					builder.append(new DistanceDrive(15, scaleAngle + 180, true, .2));
+					builder.append(new DistanceDrive(15, scaleAngle + 180, true, .2, scaleAngle));
 //				    builder.append(new LiftController(Lift.Position.MIN));
 				} else {
 					System.out.println("We must be using a safe auton mode. We will not cross over. isSafe: " + isSafe);
