@@ -20,7 +20,6 @@ public class Lift {
 
 //	private PidParameters mainPid;
 //	private PidParameters secondPid;
-
 	public Lift(TalonSRX mainStageMaster, BaseMotorController mainStageSlave,
 	            TalonSRX secondStageMotor){
 //	            PidParameters mainStagePid, PidParameters secondStagePid,
@@ -39,6 +38,7 @@ public class Lift {
 		mainStageMaster.configForwardSoftLimitThreshold(MAIN_STAGE_ENCODER_COUNTS, Constants.TimeoutMs);
 		mainStageMaster.configForwardSoftLimitEnable(true, Constants.TimeoutMs);
 		mainStageMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, Constants.PidIdx, Constants.TimeoutMs);
+		mainStageMaster.setInverted(true); // Needs to be inverted
 		mainStageMaster.setSensorPhase(true);
 		mainStageMaster.setNeutralMode(NeutralMode.Brake);
 
@@ -61,6 +61,7 @@ public class Lift {
 //		pidHandler.addPid(new PidHandler.PidDashObject(secondStagePid, Arrays.asList(secondStageMotor), "second stage pid"));
 	}
 
+
 	/**
 	 * does necessary things like check if the limit switch is pressed
 	 * Should be called in the Robot class
@@ -82,7 +83,7 @@ public class Lift {
 	 */
 	public void setMainStagePosition(double position){
 		this.mainStagePosition = position;
-		
+
 		this.updateMainStagePosition();
 	}
 	private void updateMainStagePosition(){
@@ -163,14 +164,14 @@ public class Lift {
 	public void setMainStageSpeed(double speed){
 		this.setMainStageSpeed(speed, true);
 	}
-	
+
 	/**
 	 * Sets the speed of the second lift stage using velocity control
 	 * @param speed Desired speed of the second stage (-1 to 1) - positive raises the stage
 	 */
 	public void setSecondStageSpeed(double speed){
-		double position = getSecondStagePosition(); // 0 to 1		
-		
+		double position = getSecondStagePosition(); // 0 to 1
+
 		double targetSpeed = (speed * Constants.LiftSecondStageEncoderCountsPerRev * Constants.MaxBagRpm)
 				/ (Constants.CtreUnitConversion * Constants.LiftSecondStageGearboxRatio);
 
@@ -185,7 +186,7 @@ public class Lift {
 		}
 
 		SmartDashboard.putNumber("main speed", targetSpeed);
-		
+
 		this.secondStageMotor.set(ControlMode.Velocity, targetSpeed);
 	}
 	// endregion End State speeds

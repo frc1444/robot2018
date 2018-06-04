@@ -1,5 +1,6 @@
 package org.usfirst.frc.team1444.robot.controlling.autonomous;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.usfirst.frc.team1444.robot.Robot;
 import org.usfirst.frc.team1444.robot.SwerveDrive;
 import org.usfirst.frc.team1444.robot.SwerveModule;
@@ -30,8 +31,10 @@ public class DistanceDrive extends RobotControllerProcess {
 		this.makeRelativeToGyro = makeRelativeToGyro;
 		this.percentSpeed = percentSpeed;
 
-		desiredRobotRotation %= 360;
-		desiredRobotRotation = desiredRobotRotation < 0 ? desiredRobotRotation + 360 : desiredRobotRotation;
+		if(desiredRobotRotation != null) {
+			desiredRobotRotation %= 360;
+			desiredRobotRotation = desiredRobotRotation < 0 ? desiredRobotRotation + 360 : desiredRobotRotation;
+		}
 		this.desiredRobotRotation = desiredRobotRotation;
 	}
 	public DistanceDrive(double distanceInInches, double headingInDegrees, boolean makeRelativeToGyro, double percentSpeed){
@@ -58,7 +61,7 @@ public class DistanceDrive extends RobotControllerProcess {
 			}
 			double turnAmount = 0;
 			if(desiredRobotRotation != null){
-				double degreesAway = desiredRobotRotation - robot.getGyroAngle(); // if we want to turn left, this will be positive
+				double degreesAway = desiredRobotRotation - robot.getRobotHeadingDegrees(); // if we want to turn left, this will be positive
 				if(degreesAway > 180){
 					degreesAway -= 360;
 				} else if (degreesAway < -180){
@@ -69,6 +72,7 @@ public class DistanceDrive extends RobotControllerProcess {
 				turnAmount = Math.max(-1, Math.min(1, turnAmount)); // if we ever decide to change the "/ 360", we need to stay in range
 			}
 			drive.update(percentSpeed, heading, turnAmount, null);
+			SmartDashboard.putNumber("turnAmount", turnAmount);
 		}
 
 	}

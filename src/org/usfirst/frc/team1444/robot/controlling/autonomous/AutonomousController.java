@@ -62,7 +62,7 @@ public class AutonomousController implements RobotController {
 				this.initImprovedMiddleAutonomous(robot);
 				break;
 			case DRIVE_TO_LINE: // we don't need a whole method for this
-				this.currentController = new DistanceDrive(140 - robot.getDepth(true), 90, true, SPEED);
+				this.currentController = new DistanceDrive(140 - robot.getDepth(true), 90, true, SPEED, 90.0);
 				break;
 			default:
 				if(mode.position != null){ // starting on the side
